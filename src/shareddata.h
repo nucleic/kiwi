@@ -8,6 +8,9 @@
 #pragma once
 
 
+namespace kiwi
+{
+
 class SharedData
 {
 
@@ -37,12 +40,12 @@ public:
 
 	explicit SharedDataPtr( T* data ) : m_data( data )
 	{
-		incref( m_data )
+		incref( m_data );
 	}
 
 	~SharedDataPtr()
 	{
-		decref( m_data )
+		decref( m_data );
 	}
 
 	T* data()
@@ -150,3 +153,5 @@ private:
 
 	T* m_data;
 };
+
+} // namespace kiwi

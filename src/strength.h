@@ -6,8 +6,11 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
-#include <algorithm.h>
+#include <algorithm>
 
+
+namespace kiwi
+{
 
 namespace strength
 {
@@ -45,4 +48,12 @@ inline double weak()
 	return create( 0.0, 0.0, 1.0 );
 }
 
+
+inline double clip( double value )
+{
+	return std::max( 0.0, std::min( required(), value ) );
+}
+
 } // namespace strength
+
+} // namespace kiwi
