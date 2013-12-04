@@ -81,11 +81,15 @@ private:
 	public:
 
 		VariableData( const std::string& name, Context* context ) :
-			SharedData(), m_name( name ), m_context( context ),
+			SharedData(),
+			m_name( name ),
+			m_context( context ),
 			m_value( 0.0 ) {}
 
 		VariableData( const char* name, Context* context ) :
-			SharedData(), m_name( name ), m_context( context ),
+			SharedData(),
+			m_name( name ),
+			m_context( context ),
 			m_value( 0.0 ) {}
 
 		~VariableData()

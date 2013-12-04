@@ -27,7 +27,9 @@ class Constraint
 public:
 
 	template<typename T, typename U>
-	Constraint( const T& lhs, Op op, const U& rhs,
+	Constraint( const T& lhs,
+				Op op,
+				const U& rhs,
 				double strength = strength::required() ) :
 		m_data( new ConstraintData( lhs , op, rhs, strength ) ) {}
 
