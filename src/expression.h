@@ -23,23 +23,8 @@ public:
 	Expression( const Term& term, double constant=0.0 ) :
 		m_terms( 1, term ), m_constant( constant ) {}
 
-	Expression( const Term& first, const Term& second, double constant=0.0 ) :
-		m_constant( constant )
-	{
-		m_terms.push_back( first );
-		m_terms.push_back( second );
-	}
-
 	Expression( const std::vector<Term>& terms, double constant=0.0 ) :
 		m_terms( terms ), m_constant( constant ) {}
-
-	Expression( const std::vector<Term>& terms,
-				const Term& term,
-				double constant=0.0 ) :
-		m_terms( terms ), m_constant( constant )
-	{
-		m_terms.push_back( term );
-	}
 
 	~Expression() {}
 
