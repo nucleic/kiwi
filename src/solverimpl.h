@@ -15,71 +15,66 @@
 namespace kiwi
 {
 
-class Solver
+class SolverImpl
 {
 
-public:
+private:
 
-	Solver() {}
+	enum VarType
+	{
+		UserVar,
+		SlackVar,
+		ErrorVar
+	};
 
-	~Solver() {}
+	struct Cell
+	{
+		VarType type;
+		double coeff;
+	};
+
+	struct Row
+	{
+		std::vector<Cell> cells;
+		double constant;
+	};
+
+	friend class Solver;
+
+	SolverImpl() {}
+
+	~SolverImpl() {}
 
 	bool addConstraint( const Constraint& constraint )
 	{
-		return m_impl.addConstraint( constraint );
+
 	}
 
 	bool removeConstraint( const Constraint& constraint )
 	{
-		return m_impl.removeConstraint( constraint );
+
 	}
 
 	bool solve()
 	{
-		return m_impl.solve();
+
 	}
 
 	void beginEdit()
 	{
-		m_impl.beginEdit();
+
 	}
 
 	void endEdit()
 	{
-		m_impl.endEdit();
+
 	}
 
-	bool suggestValue( const Variable& variable,
-					   double value,
-					   double strength=strength::strong )
+	bool suggestValue( const Variable& variable, double value, double strength )
 	{
-		return m_impl.suggestValue( variable, value, strength );
+
 	}
 
-private:
-
-	SolverImpl m_impl;
-};
-
-
-class SolverEditGuard
-{
-
-public:
-
-	SolverEditGuard( Solver& solver ) : m_solver( solver )
-	{
-		m_solver.beginEdit();
-	}
-
-	~SolverEditGuard()
-	{
-		m_solver.endEdit();
-	}
-
-private:
-
-	Solver& m_solver;
 };
 
 } // namespace kiwi
