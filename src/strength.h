@@ -25,33 +25,18 @@ inline double create( double a, double b, double c, double w=1.0 )
 }
 
 
-inline double required()
-{
-	return create( 1000.0, 1000.0, 1000.0 );
-}
+const double required = create( 1000.0, 1000.0, 1000.0 );
 
+const double strong = create( 1.0, 0.0, 0.0 );
 
-inline double strong()
-{
-	return create( 1.0, 0.0, 0.0 );
-}
+const double medium = create( 0.0, 1.0, 0.0 );
 
-
-inline double medium()
-{
-	return create( 0.0, 1.0, 0.0 );
-}
-
-
-inline double weak()
-{
-	return create( 0.0, 0.0, 1.0 );
-}
+const double weak = create( 0.0, 0.0, 1.0 );
 
 
 inline double clip( double value )
 {
-	return std::max( 0.0, std::min( required(), value ) );
+	return std::max( 0.0, std::min( required, value ) );
 }
 
 } // namespace strength
