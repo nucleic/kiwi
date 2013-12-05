@@ -9,6 +9,7 @@
 #include "constraint.h"
 #include "debug.h"
 #include "expression.h"
+#include "relation.h"
 #include "shareddata.h"
 #include "strength.h"
 #include "symbolics.h"
