@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include "expression.h"
+#include "relation.h"
 #include "shareddata.h"
 #include "strength.h"
 #include "term.h"
@@ -18,41 +19,35 @@
 namespace kiwi
 {
 
-enum Op { LE, GE, EQ };
-
-
 class Constraint
 {
 
 public:
 
-	template<typename T, typename U>
-	Constraint( const T& lhs,
-				Op op,
-				const U& rhs,
-				double strength = strength::required() ) :
-		m_data( new ConstraintData( lhs , op, rhs, strength ) ) {}
+	Constraint( const Relation& relation,
+				double strength=strength::required ) :
+		m_data( new ConstraintData( relation, strength ) ) {}
+
+	Constraint( const Expression& expression,
+				RelationalOperator op,
+				double strength=strength::required ) :
+		m_data( new ConstraintData( expression, op, strength ) ) {}
 
 	~Constraint() {}
 
-	const Expression& lhs() const
+	const Expression& expression() const
 	{
-		return m_data->m_lhs;
+		return m_data->m_expression;
 	}
 
-	const Expression& rhs() const
+	RelationalOperator op() const
 	{
-		return m_data->m_rhs;
+		return m_data->m_op;
 	}
 
 	double strength() const
 	{
 		return m_data->m_strength;
-	}
-
-	Op op() const
-	{
-		return m_data->m_op;
 	}
 
 	bool operator<( const Constraint& other ) const
@@ -84,19 +79,21 @@ private:
 		return Expression( terms, expression.constant() );
 	}
 
-	static Expression reduce( const Term& term )
+	static Expression reduce( const Relation& relation )
 	{
-		return Expression( term );
-	}
-
-	static Expression reduce( const Variable& variable )
-	{
-		return Expression( Term( variable ) );
-	}
-
-	static Expression reduce( double constant )
-	{
-		return Expression( constant );
+		std::map<Variable, double> vars;
+		typedef std::vector<Term>::const_iterator iter_t;
+		iter_t begin = relation.lhs().terms().begin();
+		iter_t end = relation.lhs().terms().end();
+		for( iter_t it = begin; it != end; ++it )
+			vars[ it->variable() ] += it->coefficient();
+		begin = relation.rhs().terms().begin();
+		end = relation.rhs().terms().end();
+		for( iter_t it = begin; it != end; ++it )
+			vars[ it->variable() ] -= it->coefficient();
+		std::vector<Term> terms( vars.begin(), vars.end() );
+		double c = relation.lhs().constant() - relation.rhs().constant();
+		return Expression( terms, c );
 	}
 
 	class ConstraintData : public SharedData
@@ -104,20 +101,25 @@ private:
 
 	public:
 
-		template<typename T, typename U>
-		ConstraintData( const T& lhs, Op op, const U& rhs, double strength ) :
+		ConstraintData( const Relation& relation, double strength ) :
 			SharedData(),
-			m_lhs( reduce( lhs ) ),
-			m_rhs( reduce( rhs ) ),
+			m_expression( reduce( relation ) ),
+			m_strength( strength::clip( strength ) ),
+			m_op( relation.op() ) {}
+
+		ConstraintData( const Expression& expression,
+					    RelationalOperator op,
+					    double strength ) :
+			SharedData(),
+			m_expression( reduce( expression ) ),
 			m_strength( strength::clip( strength ) ),
 			m_op( op ) {}
 
 		~ConstraintData() {}
 
-		Expression m_lhs;
-		Expression m_rhs;
+		Expression m_expression;
 		double m_strength;
-		Op m_op;
+		RelationalOperator m_op;
 
 	private:
 
