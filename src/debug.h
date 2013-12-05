@@ -21,36 +21,28 @@ namespace debug
 void dump( const Constraint& cn )
 {
 	typedef std::vector<Term>::const_iterator iter_t;
-	iter_t begin = cn.lhs().terms().begin();
-	iter_t end = cn.lhs().terms().end();
+	iter_t begin = cn.expression().terms().begin();
+	iter_t end = cn.expression().terms().end();
 	for( iter_t it = begin; it != end; ++it )
 	{
 		std::cout << it->coefficient() << " * ";
 		std::cout << it->variable().name() << " + ";
 	}
-	std::cout << cn.lhs().constant();
+	std::cout << cn.expression().constant();
 	switch( cn.op() )
 	{
-		case LE:
-			std::cout << " <= ";
+		case OP_LE:
+			std::cout << " <= 0 ";
 			break;
-		case GE:
-			std::cout << " >= ";
+		case OP_GE:
+			std::cout << " >= 0 ";
 			break;
-		case EQ:
-			std::cout << " == ";
+		case OP_EQ:
+			std::cout << " == 0 ";
 			break;
 		default:
 			break;
 	}
-	begin = cn.rhs().terms().begin();
-	end = cn.rhs().terms().end();
-	for( iter_t it = begin; it != end; ++it )
-	{
-		std::cout << it->coefficient() << " * ";
-		std::cout << it->variable().name() << " + ";
-	}
-	std::cout << cn.rhs().constant();
 	std::cout << " | strength = " << cn.strength() << std::endl;
 }
 
