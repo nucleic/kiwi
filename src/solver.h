@@ -58,28 +58,7 @@ public:
 
 private:
 
-	SolverImpl m_impl;
-};
-
-
-class SolverEditGuard
-{
-
-public:
-
-	SolverEditGuard( Solver& solver ) : m_solver( solver )
-	{
-		m_solver.beginEdit();
-	}
-
-	~SolverEditGuard()
-	{
-		m_solver.endEdit();
-	}
-
-private:
-
-	Solver& m_solver;
+	priv::SolverImpl m_impl;
 };
 
 } // namespace kiwi

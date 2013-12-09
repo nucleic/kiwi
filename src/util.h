@@ -6,13 +6,35 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
 #pragma once
-#include "constraint.h"
-#include "debug.h"
-#include "expression.h"
-#include "relation.h"
-#include "shareddata.h"
-#include "solver.h"
-#include "strength.h"
-#include "symbolics.h"
-#include "term.h"
-#include "variable.h"
+
+
+namespace kiwi
+{
+
+inline bool approx( double a, double b )
+{
+ 	const double eps = 1.0e-8;
+ 	return ( a > b ) ? ( a - b ) < eps : ( b - a ) < eps;
+}
+
+} // namespace kiwi
+
+
+namespace kiwi
+{
+
+namespace priv
+{
+
+struct PtrDelete
+{
+	template<typename T>
+	void operator()( T t )
+	{
+		delete t;
+	}
+};
+
+} // namespace priv
+
+} // namespace kiwi
