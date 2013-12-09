@@ -6,35 +6,33 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
 #pragma once
-
-
-namespace kiwi
-{
-
-inline bool approx( double a, double b )
-{
- 	const double eps = 1.0e-8;
- 	return ( a > b ) ? ( a - b ) < eps : ( b - a ) < eps;
-}
-
-} // namespace kiwi
-
+#include <functional>
+#include <map>
+#include <memory>
+#include <utility>
+#include "AssocVector.h"
+#include <allocators>
 
 namespace kiwi
 {
 
-namespace priv
+namespace impl
 {
 
-struct PtrDelete
+template<
+	typename K,
+	typename V,
+	typename C = std::less<K>,
+	typename A = std::allocator<std::pair<K, V>>>
+class MapType
 {
-	template<typename T>
-	void operator()( T t )
-	{
-		delete t;
-	}
+public:
+	typedef Loki::AssocVector<K, V, C, A> Type;
+	//typedef std::map<K, V, C, A> Type;
+private:
+	MapType();
 };
 
-} // namespace priv
+} // namespace impl
 
 } // namespace kiwi

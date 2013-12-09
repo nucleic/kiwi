@@ -7,65 +7,21 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include <algorithm>
-#include <map>
+#include <memory>
 #include <vector>
 #include "constraint.h"
 #include "expression.h"
+#include "maptype.h"
 #include "relation.h"
 #include "term.h"
-#include "util.h"
 #include "variable.h"
 
 
 namespace kiwi
 {
 
-namespace priv
+namespace impl
 {
-
-struct Symbol
-{
-	typedef unsigned long long Id;
-
-	enum Type
-	{
-		Invalid,
-		External,
-		Slack,
-		Artificial,
-		Dummy
-	};
-
-	Symbol() : id( 0 ), type( Invalid ) {}
-
-	Symbol( Type t, Id i ) : id( i ), type( t ) {}
-
-	bool operator<( const Symbol& other ) const
-	{
-		return id < other.id;
-	}
-
-	Id id;
-	Type type;
-};
-
-
-typedef std::map<Symbol, double> CellMap;
-
-
-typedef std::map<Variable, Symbol> VarMap;
-
-
-struct RowExpr
-{
-	RowExpr() : constant( 0.0 ) {}
-	CellMap cells;
-	double constant;
-};
-
-
-typedef std::map<Symbol, RowExpr> RowMap;
-
 
 class SolverImpl
 {
@@ -74,7 +30,13 @@ public:
 
 	SolverImpl() : m_id_tick( 0 ) {}
 
-	~SolverImpl() {}
+	~SolverImpl()
+	{
+		typedef RowMap::iterator iter_t;
+		iter_t end = m_rows.end();
+		for( iter_t it = m_rows.begin(); it != end; ++it )
+			delete it->second;
+	}
 
 	bool addConstraint( const Constraint& constraint )
 	{
@@ -83,18 +45,18 @@ public:
 		if( constraint.expression().terms().size() == 0 )
 			return false;
 
-		RowExpr expr;
-		initializeRow( expr, constraint );
+		std::auto_ptr<Row> rowptr( new Row() );
+		initializeRow( *rowptr, constraint );
 		Symbol slack( Symbol::Slack, m_id_tick++ );
-		expr.cells[ slack ] = constraint.op() == OP_LE ? 1.0 : -1.0;
+		rowptr->cells[ slack ] = constraint.op() == OP_LE ? 1.0 : -1.0;
 
-		Symbol subject( chooseSubject( expr ) );
+		Symbol subject( chooseSubject( *rowptr ) );
 		if( subject.type == Symbol::Invalid )
 			return false;
 
-		solveFor( expr, subject );
-		substituteOut( subject, expr );
-		m_rows[ subject ] = expr;
+		solveRowFor( *rowptr, subject );
+		substituteOut( subject, *rowptr );
+		m_rows[ subject ] = rowptr.release();
 
 		return true;
 	}
@@ -110,29 +72,74 @@ public:
 		return true;
 	}
 
-	void beginEdit()
+	bool beginEdit()
 	{
+		return false;
 	}
 
-	void endEdit()
+	bool endEdit()
 	{
+		return false;
 	}
 
-	bool suggestValue( const Variable& variable, double value, double strength )
+	bool suggestValue( const Variable& var, double value, double strength )
 	{
 		return false;
 	}
 
 private:
 
-	static
-	void merge( RowExpr& target, const RowExpr& row, double coefficient )
+	struct Symbol
+	{
+		typedef unsigned long long Id;
+
+		enum Type
+		{
+			Invalid,
+			External,
+			Slack,
+			Artificial,
+			Dummy
+		};
+
+		Symbol() : id( 0 ), type( Invalid ) {}
+
+		Symbol( Type t, Id i ) : id( i ), type( t ) {}
+
+		bool operator<( const Symbol& other ) const
+		{
+			return id < other.id;
+		}
+
+		Id id;
+		Type type;
+	};
+
+	typedef MapType<Symbol, double>::Type CellMap;
+
+	typedef MapType<Variable, Symbol>::Type VarMap;
+
+	struct Row
+	{
+		Row() : constant( 0.0 ) {}
+		CellMap cells;
+		double constant;
+	};
+
+	typedef MapType<Symbol, Row*>::Type RowMap;
+
+	static bool approx( double a, double b )
+	{
+		const double eps = 1.0e-8;
+		return ( a > b ) ? ( a - b ) < eps : ( b - a ) < eps;
+	}
+
+	static void addToRow( Row& target, const Row& row, double coefficient )
 	{
 		typedef CellMap::const_iterator iter_t;
 		target.constant += row.constant * coefficient;
-		iter_t begin = row.cells.begin();
 		iter_t end = row.cells.end();
-		for( iter_t it = begin; it != end; ++it )
+		for( iter_t it = row.cells.begin(); it != end; ++it )
 		{
 			double coeff = it->second * coefficient;
 			if( approx( target.cells[ it->first ] += coeff, 0.0 ) )
@@ -140,54 +147,57 @@ private:
 		}
 	}
 
-	static
-	void solveFor( RowExpr& row, const Symbol& symbol )
+	static void solveRowFor( Row& row, const Symbol& symbol )
 	{
 		typedef CellMap::iterator iter_t;
 		double coeff = -1.0 / row.cells[ symbol ];
 		row.cells.erase( symbol );
 		row.constant *= coeff;
-		iter_t begin = row.cells.begin();
 		iter_t end = row.cells.end();
-		for( iter_t it = begin; it != end; ++it )
+		for( iter_t it = row.cells.begin(); it != end; ++it )
 			it->second *= coeff;
 	}
 
-	void substituteOut( const Symbol& symbol, const RowExpr& row )
+	void substituteOut( const Symbol& symbol, const Row& row )
 	{
-		typedef RowMap::iterator iter_t;
+		typedef RowMap::iterator row_iter_t;
 		typedef CellMap::iterator cell_iter_t;
-		iter_t begin = m_rows.begin();
-		iter_t end = m_rows.end();
-		for( iter_t it = begin; it != end; ++it )
+		row_iter_t end = m_rows.end();
+		for( row_iter_t it = m_rows.begin(); it != end; ++it )
 		{
-			cell_iter_t c_it = it->second.cells.find( symbol );
-			if( c_it != it->second.cells.end() )
+			Row& target( *it->second );
+			cell_iter_t c_it = target.cells.find( symbol );
+			if( c_it != target.cells.end() )
 			{
 				double coefficient = c_it->second;
-				it->second.cells.erase( c_it );
-				merge( it->second, row, coefficient );
+				target.cells.erase( c_it );
+				addToRow( target, row, coefficient );
 			}
 		}
 	}
 
-	Symbol chooseSubject( RowExpr& row )
+	Symbol chooseSubject( const Row& row )
 	{
-		typedef CellMap::iterator iter_t;
+		typedef CellMap::const_iterator iter_t;
 		Symbol result;
-		iter_t begin = row.cells.begin();
 		iter_t end = row.cells.end();
-		for( iter_t it = begin; it != end; ++it )
+		for( iter_t it = row.cells.begin(); it != end; ++it )
 		{
-			if( it->first.type == Symbol::External )
-				return it->first;
-			if( it->first.type == Symbol::Slack )
-				result = it->first;
+			switch( it->first.type )
+			{
+				case Symbol::External:
+					return it->first;
+				case Symbol::Slack:
+					result = it->first;
+					break;
+				default:
+					break;
+			}
 		}
 		return result;
 	}
 
-	Symbol symbolForVariable( const Variable& variable )
+	Symbol getSymbol( const Variable& variable )
 	{
 		VarMap::iterator it = m_external_vars.find( variable );
 		if( it != m_external_vars.end() )
@@ -197,21 +207,20 @@ private:
 		return symbol;
 	}
 
-	void initializeRow( RowExpr& row, const Constraint& constraint )
+	void initializeRow( Row& row, const Constraint& constraint )
 	{
 		typedef std::vector<Term>::const_iterator iter_t;
 		const Expression& expr( constraint.expression() );
 		row.constant = expr.constant();
-		iter_t begin = expr.terms().begin();
 		iter_t end = expr.terms().end();
-		for( iter_t it = begin; it != end; ++it )
+		for( iter_t it = expr.terms().begin(); it != end; ++it )
 		{
 			if( approx( it->coefficient(), 0.0 ) )
 				continue;
-			Symbol symbol( symbolForVariable( it->variable() ) );
+			Symbol symbol( getSymbol( it->variable() ) );
 			RowMap::const_iterator row_it = m_rows.find( symbol );
 			if( row_it != m_rows.end() )
-				merge( row, row_it->second, it->coefficient() );
+				addToRow( row, *row_it->second, it->coefficient() );
 			else
 				row.cells[ symbol ] += it->coefficient();
 		}
@@ -231,7 +240,7 @@ private:
 			if( row_it == row_end )
 				var.setValue( 0.0 );
 			else
-				var.setValue( row_it->second.constant );
+				var.setValue( row_it->second->constant );
 		}
 	}
 
@@ -240,7 +249,7 @@ private:
 	Symbol::Id m_id_tick;
 };
 
-} // namespace priv
+} // namespace impl
 
 } // namespace kiwi
 

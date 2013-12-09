@@ -39,14 +39,14 @@ public:
 		return m_impl.solve();
 	}
 
-	void beginEdit()
+	bool beginEdit()
 	{
-		m_impl.beginEdit();
+		return m_impl.beginEdit();
 	}
 
-	void endEdit()
+	bool endEdit()
 	{
-		m_impl.endEdit();
+		return m_impl.endEdit();
 	}
 
 	bool suggestValue( const Variable& variable,
@@ -58,7 +58,7 @@ public:
 
 private:
 
-	priv::SolverImpl m_impl;
+	impl::SolverImpl m_impl;
 };
 
 } // namespace kiwi
