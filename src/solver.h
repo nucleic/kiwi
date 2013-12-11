@@ -24,32 +24,51 @@ public:
 
 	~Solver() {}
 
-	bool addConstraint( const Constraint& constraint )
+	/* Add a constraint to the solver.
+
+	If the constraint has already been added, this method is a no-op. If
+	the strength of the constraint is required and the constraint cannot
+	be satisfied, an UnsatisfiableConstraint exception is thrown.
+
+	*/
+	void addConstraint( const Constraint& constraint )
 	{
 		return m_impl.addConstraint( constraint );
 	}
 
-	bool removeConstraint( const Constraint& constraint )
+	/* Remove a constraint from the solver.
+
+	If the constraint does not exist in the solver, this method is a
+	no-op. This method always succeeds.
+
+	*/
+	void removeConstraint( const Constraint& constraint )
 	{
 		return m_impl.removeConstraint( constraint );
 	}
 
-	bool solve()
+	/* Solve the system for the current set of constraints.
+
+	This method will throw an UnboundedObjective exception of the set of
+	constraints has an unbounded solution.
+
+	*/
+	void solve()
 	{
 		return m_impl.solve();
 	}
 
-	bool beginEdit()
+	void beginEdit()
 	{
 		return m_impl.beginEdit();
 	}
 
-	bool endEdit()
+	void endEdit()
 	{
 		return m_impl.endEdit();
 	}
 
-	bool suggestValue( const Variable& variable,
+	void suggestValue( const Variable& variable,
 					   double value,
 					   double strength = strength::strong )
 	{

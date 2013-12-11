@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include "constraint.h"
+#include "errors.h"
 #include "expression.h"
 #include "maptype.h"
 #include "relation.h"
@@ -35,6 +36,8 @@ class SolverImpl
 
 	typedef MapType<Symbol, Row*>::Type RowMap;
 
+	typedef MapType<Constraint, Symbol>::Type CnMap;
+
 public:
 
 	SolverImpl() : m_id_tick( 1 ), m_objective( new Row() ) {}
@@ -47,55 +50,71 @@ public:
 			delete it->second;
 	}
 
-	bool addConstraint( const Constraint& constraint )
+	/* Add a constraint to the solver.
+
+	If the constraint has already been added, this method is a no-op. If
+	the strength of the constraint is required and the constraint cannot
+	be satisfied, an UnsatisfiableConstraint exception is thrown.
+
+	*/
+	void addConstraint( const Constraint& constraint )
 	{
-		// If the constraint has already been added, it's a no-op.
-		//if( m_cns.find( constraint ) != m_cns.end() )
-		//	return true;
+		if( m_cns.find( constraint ) != m_cns.end() )
+			return;
 
-		std::auto_ptr<Row> rowptr( createRow( constraint ) );
+		Symbol marker;
+		std::auto_ptr<Row> rowptr( createRow( constraint, marker ) );
 
-		// An invalid subject means the system would be unsatisfiable.
+		// If constraint is unsatisfiable, the variables which were
+		// added to m_vars as a result of creating the row for the
+		// constraint are not needed and should be removed. In practice,
+		// I doubt this will be of much concern, so i'm not too worried
+		// about implementing that functionality at the moment.
 		Symbol subject( chooseSubject( *rowptr ) );
 		if( subject.type() == Symbol::Invalid )
-			return false;
-			// At this point, the variables which were added to
-			// m_vars as a result of the constraint are no longer
-		    // needed and should be removed.
+			throw UnsatisfiableConstraint( constraint );
 
 		rowptr->solveFor( subject );
-		substituteOut( subject, *rowptr );
+		substitute( subject, *rowptr );
 		subject.setBasic( true );
 		m_rows[ subject ] = rowptr.release();
-
-		return true;
+		m_cns[ constraint ] = marker;
 	}
 
-	bool removeConstraint( const Constraint& constraint )
+	void removeConstraint( const Constraint& constraint )
 	{
-		return false;
+		// constraint not found
+		CnMap::iterator it = m_cns.find( constraint );
+		if( it == m_cns.end() )
+			return;
+
+		// constraint marker is basic
+		RowMap::iterator r_it = m_rows.find( it->second );
+		if( r_it != m_rows.end() )
+		{
+			m_rows.erase( r_it );
+			return;
+		}
+
+
 	}
 
-	bool solve()
+	void solve()
 	{
 		optimize();
 		updateExternalVars();
-		return true;
 	}
 
-	bool beginEdit()
+	void beginEdit()
 	{
-		return false;
 	}
 
-	bool endEdit()
+	void endEdit()
 	{
-		return false;
 	}
 
-	bool suggestValue( const Variable& var, double value, double strength )
+	void suggestValue( const Variable& var, double value, double strength )
 	{
-		return false;
 	}
 
 	void dump()
@@ -179,6 +198,112 @@ private:
 
 	SolverImpl& operator=( const SolverImpl& );
 
+	/* Get the cached symbol for the given variable.
+
+	If a symbol does not exist for the variable, one will be created.
+
+	*/
+	Symbol getSymbol( const Variable& variable )
+	{
+		VarMap::iterator it = m_vars.find( variable );
+		if( it != m_vars.end() )
+			return it->second;
+		Symbol symbol( Symbol::External, m_id_tick++ );
+		m_vars[ variable ] = symbol;
+		return symbol;
+	}
+
+	/* Create a new row object for the given constraint.
+
+	The terms in the constraint will be converted to cells in the row.
+	Any term in the constraint with a coefficient of zero is ignored.
+	This method uses the `getSymbol` method to get the symbol for the
+	variables added to the row. If the symbol for a given variable is
+	currently basic, it will be substituted with the basic row.
+
+	The necessary slack and error variables will be added to the row.
+	If the constant for the row is negative, the sign for the row
+	will be inverted so the constant becomes positive. The tag will
+	be updated with the symbol which can be used to track the effects
+	of the constraint in the tableau.
+
+	*/
+	Row* createRow( const Constraint& constraint, Symbol& marker )
+	{
+		typedef std::vector<Term>::const_iterator iter_t;
+		const Expression& expr( constraint.expression() );
+		Row* row = new Row( expr.constant() );
+
+		iter_t end = expr.terms().end();
+		for( iter_t it = expr.terms().begin(); it != end; ++it )
+		{
+			if( !approx( it->coefficient(), 0.0 ) )
+			{
+				Symbol symbol( getSymbol( it->variable() ) );
+				RowMap::const_iterator row_it = m_rows.find( symbol );
+				if( row_it != m_rows.end() )
+					row->insert( *row_it->second, it->coefficient() );
+				else
+					row->insert( symbol, it->coefficient() );
+			}
+		}
+
+		switch( constraint.op() )
+		{
+			case OP_LE:
+			{
+				Symbol slack( Symbol::Slack, m_id_tick++ );
+				marker = slack;
+				row->insert( slack );
+				if( constraint.strength() < strength::required )
+				{
+					Symbol error( Symbol::Error, m_id_tick++ );
+					row->insert( error, -1.0 );
+					m_objective->insert( error, constraint.strength() );
+				}
+				break;
+			}
+			case OP_GE:
+			{
+				Symbol slack( Symbol::Slack, m_id_tick++ );
+				marker = slack;
+				row->insert( slack, -1.0 );
+				if( constraint.strength() < strength::required )
+				{
+					Symbol error( Symbol::Error, m_id_tick++ );
+					row->insert( error );
+					m_objective->insert( error, constraint.strength() );
+				}
+				break;
+			}
+			case OP_EQ:
+			{
+				if( constraint.strength() < strength::required )
+				{
+					Symbol errplus( Symbol::Error, m_id_tick++ );
+					Symbol errminus( Symbol::Error, m_id_tick++ );
+					marker = errplus;
+					row->insert( errplus, -1.0 );
+					row->insert( errminus, 1.0 );
+					m_objective->insert( errplus, constraint.strength() );
+					m_objective->insert( errminus, constraint.strength() );
+				}
+				else
+				{
+					Symbol dummy( Symbol::Dummy, m_id_tick++ );
+					marker = dummy;
+					row->insert( dummy );
+				}
+				break;
+			}
+		}
+
+		if( row->constant() < 0.0 )
+			row->reverseSign();
+
+		return row;
+	}
+
 	/* Choose the subject for solving for the row.
 
 	This method will choose the best subject for using as the solve
@@ -194,10 +319,10 @@ private:
 	solver will always appear at the end of a row due to monotonically
 	increasing symbol ids. This reduces the need for substitution.
 
-	If a valid subject is not found, an invalid symbol will be returned.
-	Provided that all basic variables have been subtituted into the row,
-	this indicates that the row is a required constraint which cannot be
-	satisfied by the current system.
+	Assuming that this method is called immediately after createRow(),
+	the only time that a valid subject will not be found is when the
+	constraint is required and cannot be satisfied. In that case, this
+	method will return an invalid symbol.
 
 	*/
 	Symbol chooseSubject( const Row& row )
@@ -227,11 +352,11 @@ private:
 
 	/* Substitute all occurence of the symbol with the given row.
 
-	This should be performed when a new row is being added to the
-	system. The symbol represent the basic var for the new row.
+	This should be performed before a row is being added to the table.
+	The symbol represents the basic variable for the new row.
 
 	*/
-	void substituteOut( const Symbol& symbol, const Row& row )
+	void substitute( const Symbol& symbol, const Row& row )
 	{
 		typedef RowMap::iterator iter_t;
 		iter_t end = m_rows.end();
@@ -240,164 +365,92 @@ private:
 		m_objective->substitute( symbol, row );
 	}
 
-	/* Get the symbol for the given variable.
+	/* Optimize the system for the current objective function.
 
-	If the variable has not already been seen by the solver, a new
-	symbol will be created for it.
-
-	*/
-	Symbol getSymbol( const Variable& variable )
-	{
-		VarMap::iterator it = m_vars.find( variable );
-		if( it != m_vars.end() )
-			return it->second;
-		Symbol symbol( Symbol::External, m_id_tick++ );
-		m_vars[ variable ] = symbol;
-		return symbol;
-	}
-
-	/* Create a new row object for the given constraint.
-
-	The terms in the constraint will be converted to cells in the row.
-	Any term in the constraint with a coefficient of zero is ignored.
-	This method uses the `getSymbol` method to get the symbol for the
-	variables added to the row. If the symbol for a given variable is
-	currently basic, it will be substituted with the basic row.
-
-	The necessary slack and error variables will be added to the row.
-	If the constant for the row is negative, the entire row will be
-	multiplied by -1 so that the constant becomes positive.
+	This method performs iteration of Phase 2 of the simplex method
+	until the objective function reaches a minimum. If the objective
+	function is unbounded, an UnboundedObjective exception is thrown.
 
 	*/
-	Row* createRow( const Constraint& constraint )
-	{
-		typedef std::vector<Term>::const_iterator iter_t;
-		const Expression& expr( constraint.expression() );
-		Row* row = new Row( expr.constant() );
-
-		// Copy the terms from the contraint into cells in the row.
-		// Any term which references a basic symbol is substituted
-		// with the row for that symbol.
-		iter_t end = expr.terms().end();
-		for( iter_t it = expr.terms().begin(); it != end; ++it )
-		{
-			if( approx( it->coefficient(), 0.0 ) )
-				continue;
-			Symbol symbol( getSymbol( it->variable() ) );
-			RowMap::const_iterator row_it = m_rows.find( symbol );
-			if( row_it != m_rows.end() )
-				row->insert( *row_it->second, it->coefficient() );
-			else
-				row->insert( symbol, it->coefficient() );
-		}
-
-		// Add the slack and error variables to the row.
-		switch( constraint.op() )
-		{
-			case OP_LE:
-			{
-				Symbol slack( Symbol::Slack, m_id_tick++ );
-				row->insert( slack );
-				if( constraint.strength() < strength::required )
-				{
-					Symbol error( Symbol::Error, m_id_tick++ );
-					row->insert( error, -1.0 );
-					m_objective->insert( error, constraint.strength() );
-				}
-				break;
-			}
-			case OP_GE:
-			{
-				Symbol slack( Symbol::Slack, m_id_tick++ );
-				row->insert( slack, -1.0 );
-				if( constraint.strength() < strength::required )
-				{
-					Symbol error( Symbol::Error, m_id_tick++ );
-					row->insert( error );
-					m_objective->insert( error, constraint.strength() );
-				}
-				break;
-			}
-			case OP_EQ:
-			{
-				if( constraint.strength() < strength::required )
-				{
-					Symbol eplus( Symbol::Error, m_id_tick++ );
-					Symbol eminus( Symbol::Error, m_id_tick++ );
-					row->insert( eplus, -1.0 );  // reverse sign to solve lhs
-					row->insert( eminus, 1.0 );  // reverse sign to solve lhs
-					m_objective->insert( eplus, constraint.strength() );
-					m_objective->insert( eminus, constraint.strength() );
-				}
-				break;
-			}
-		}
-
-		// Invert the row if the constant is negative.
-		if( row->constant() < 0.0 )
-			row->reverseSign();
-
-		return row;
-	}
-
 	void optimize()
 	{
-		const double max_double = std::numeric_limits<double>::max();
-		typedef RowMap::iterator iter_t;
 		while( true )
 		{
-			Symbol sym( getEntrySymbol() );
-			if( sym.type() == Symbol::Invalid )
+			Symbol entering( getEnteringSymbol() );
+			if( entering.type() == Symbol::Invalid )
 				return;
 
-			double c = max_double;
-			double temp = 0.0;
-			iter_t begin = m_rows.begin();
-			iter_t end = m_rows.end();
-			iter_t target = end;
-			for( iter_t it = begin; it != end; ++it )
-			{
-				if( it->second->coefficientFor( sym, temp ) && temp < 0.0 )
-				{
-					double r = -it->second->constant() / temp;
-					if( r < c )
-					{
-						c = r;
-						target = it;
-					}
-				}
-			}
-			if( target == end )
-				return;
+			RowMap::iterator it = getLeavingRow( entering );
+			if( it == m_rows.end() )
+				throw UnboundedObjective();
 
-
-			Row* row = target->second;
-			Symbol m(target->first);
-			m.setBasic( false );
-
-			m_rows.erase( target );
-			row->solveFor( sym );
-			row->insert( m, -1.0 );
-
-			substituteOut( sym, *row );
-			sym.setBasic( true );
-			m_rows[ sym ] = row;
+			Row* row = it->second;
+			Symbol leaving( it->first );
+			leaving.setBasic( false );
+			m_rows.erase( it );
+			row->solveFor( leaving, entering );
+			substitute( entering, *row );
+			entering.setBasic( true );
+			m_rows[ entering ] = row;
 		}
 	}
 
-	Symbol getEntrySymbol()
+	/* Compute the entering variable for a pivot operation.
+
+	This method will return first symbol in the objective function which
+	is non-dummy, non-basic, and has a coefficient less than zero. If no
+	no symbol meets the criteria, it means the objective function is at
+	a minimum, and an invalid symbol is returned.
+
+	*/
+	Symbol getEnteringSymbol()
 	{
 		typedef Row::CellMap::const_iterator iter_t;
 		iter_t begin = m_objective->cells().begin();
 		iter_t end = m_objective->cells().end();
 		for( iter_t it = begin; it != end; ++it )
 		{
-			if( !it->first.isBasic() && it->second < 0.0 )
+			if( it->first.type() != Symbol::Dummy &&
+				!it->first.isBasic() &&
+				it->second < 0.0 )
 				return it->first;
 		}
 		return Symbol();
 	}
 
+	/* Compute the row which holds the exit symbol for a pivot.
+
+	This method will return an iterator to the row in the row map
+	which holds the exit symbol. If no appropriate exit symbol is
+	found, the end() iterator will be returned. This indicates that
+	the objective function is unbounded.
+
+	*/
+	RowMap::iterator getLeavingRow( const Symbol& entering )
+	{
+		typedef RowMap::iterator iter_t;
+		double ratio = std::numeric_limits<double>::max();
+		iter_t end = m_rows.end();
+		iter_t found = m_rows.end();
+		for( iter_t it = m_rows.begin(); it != end; ++it )
+		{
+			double temp = it->second->coefficientFor( entering );
+			if( temp < 0.0 )
+			{
+				double temp_ratio = -it->second->constant() / temp;
+				if( temp_ratio < ratio )
+				{
+					ratio = temp_ratio;
+					found = it;
+				}
+			}
+		}
+		return found;
+	}
+
+	/* Update the external variables with the values from the tableau.
+
+	*/
 	void updateExternalVars()
 	{
 		typedef VarMap::iterator var_iter_t;
@@ -416,6 +469,7 @@ private:
 		}
 	}
 
+	CnMap m_cns;
 	VarMap m_vars;
 	RowMap m_rows;
 	std::auto_ptr<Row> m_objective;
@@ -425,42 +479,3 @@ private:
 } // namespace impl
 
 } // namespace kiwi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
