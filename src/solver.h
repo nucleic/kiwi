@@ -51,7 +51,7 @@ public:
 
 	bool suggestValue( const Variable& variable,
 					   double value,
-					   double strength=strength::strong )
+					   double strength = strength::strong )
 	{
 		return m_impl.suggestValue( variable, value, strength );
 	}

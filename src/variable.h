@@ -25,10 +25,10 @@ public:
 		virtual ~Context() {}
 	};
 
-	Variable( const std::string& name, Context* context=0 ) :
+	Variable( const std::string& name, Context* context = 0 ) :
 		m_data( new VariableData( name, context ) ) {}
 
-	Variable( const char* name, Context* context=0 ) :
+	Variable( const char* name, Context* context = 0 ) :
 		m_data( new VariableData( name, context ) ) {}
 
 	~Variable() {}

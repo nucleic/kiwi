@@ -18,7 +18,7 @@ class Term
 
 public:
 
-	Term( const Variable& variable, double coefficient=1.0 ) :
+	Term( const Variable& variable, double coefficient = 1.0 ) :
 		m_variable( variable ), m_coefficient( coefficient ) {}
 
 	// to facilitate efficient map -> vector copies

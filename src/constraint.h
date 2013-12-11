@@ -25,12 +25,12 @@ class Constraint
 public:
 
 	Constraint( const Relation& relation,
-				double strength=strength::required ) :
+				double strength = strength::required ) :
 		m_data( new ConstraintData( relation, strength ) ) {}
 
 	Constraint( const Expression& expression,
 				RelationalOperator op,
-				double strength=strength::required ) :
+				double strength = strength::required ) :
 		m_data( new ConstraintData( expression, op, strength ) ) {}
 
 	~Constraint() {}

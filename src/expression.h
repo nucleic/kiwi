@@ -18,12 +18,12 @@ class Expression
 
 public:
 
-	Expression( double constant=0.0 ) : m_constant( constant ) {}
+	Expression( double constant = 0.0 ) : m_constant( constant ) {}
 
-	Expression( const Term& term, double constant=0.0 ) :
+	Expression( const Term& term, double constant = 0.0 ) :
 		m_terms( 1, term ), m_constant( constant ) {}
 
-	Expression( const std::vector<Term>& terms, double constant=0.0 ) :
+	Expression( const std::vector<Term>& terms, double constant = 0.0 ) :
 		m_terms( terms ), m_constant( constant ) {}
 
 	~Expression() {}

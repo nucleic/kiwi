@@ -14,7 +14,7 @@ namespace kiwi
 namespace impl
 {
 
-struct Symbol
+class Symbol
 {
 
 public:

@@ -15,7 +15,7 @@ namespace kiwi
 namespace strength
 {
 
-inline double create( double a, double b, double c, double w=1.0 )
+inline double create( double a, double b, double c, double w = 1.0 )
 {
 	double result = 0.0;
 	result += std::max( 0.0, std::min( 1000.0, a * w ) ) * 1000000.0;
