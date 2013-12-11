@@ -56,7 +56,13 @@ public:
 		return m_impl.suggestValue( variable, value, strength );
 	}
 
+	void dump() { m_impl.dump(); }
+
 private:
+
+	Solver( const Solver& );
+
+	Solver& operator=( const Solver& );
 
 	impl::SolverImpl m_impl;
 };
