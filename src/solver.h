@@ -49,7 +49,7 @@ public:
 
 	/* Solve the system for the current set of constraints.
 
-	This method will throw an UnboundedObjective exception of the set of
+	This method will throw an UnboundedObjective exception if the set of
 	constraints has an unbounded solution.
 
 	*/
@@ -75,7 +75,23 @@ public:
 		return m_impl.suggestValue( variable, value, strength );
 	}
 
-	void dump() { m_impl.dump(); }
+	/* Reset the solver to the empty starting condition.
+
+	This method resets the internal solver state to the empty starting
+	condition, as if no constraints have been added. This can be faster
+	than deleting the solver and creating a new one when the system is
+	large, since it avoids unecessary heap (de)allocations.
+
+	*/
+	void reset()
+	{
+		m_impl.reset();
+	}
+
+	void dump()
+	{
+		m_impl.dump();
+	}
 
 private:
 
