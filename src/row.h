@@ -53,7 +53,7 @@ public:
 			m_cells.erase( symbol );
 	}
 
-	/* Insert another row into this row with a given coefficient.
+	/* Insert a row into this row with a given coefficient.
 
 	The constant and the cells of the other row will be multiplied by
 	the coefficient and added to this row. Any cell with a resulting
@@ -71,6 +71,16 @@ public:
 			if( approx( m_cells[ it->first ] += coeff, 0.0 ) )
 				m_cells.erase( it->first );
 		}
+	}
+
+	/* Remove the given symbol from the row.
+
+	*/
+	void remove( const Symbol& symbol )
+	{
+		CellMap::iterator it = m_cells.find( symbol );
+		if( it != m_cells.end() )
+			m_cells.erase( it );
 	}
 
 	/* Reverse the sign of the constant and all cells in the row.
