@@ -26,76 +26,115 @@ public:
 
 	/* Add a constraint to the solver.
 
-	An UnsatisfiableConstraint exception will be thrown if the given
-	constraint cannot be satisfied. A DuplicateConstraint exception will
-	be thrown if the constraint has already been added to the solver.
+	Throws
+	------
+	DuplicateConstraint
+		The given constraint has already been added to the solver.
+
+	UnsatisfiableConstraint
+		The given constraint is required and cannot be satisfied.
 
 	*/
 	void addConstraint( const Constraint& constraint )
 	{
-		return m_impl.addConstraint( constraint );
+		m_impl.addConstraint( constraint );
 	}
 
 	/* Remove a constraint from the solver.
 
-	An UnknownConstraint exception will be thrown if the constraint has
-	not been added to the solver.
+	Throws
+	------
+	UnknownConstraint
+		The given constraint has not been added to the solver.
 
 	*/
 	void removeConstraint( const Constraint& constraint )
 	{
-		return m_impl.removeConstraint( constraint );
+		m_impl.removeConstraint( constraint );
+	}
+
+	/* Test whether a constraint has been added to the solver.
+
+	*/
+	bool hasConstraint( const Constraint& constraint ) const
+	{
+		return m_impl.hasConstraint( constraint );
 	}
 
 	/* Add an edit variable to the solver.
 
-	This method must be called before the `suggestValue` method is used
-	to supply a suggested value for the variable. The given strength must
-	be less than strength::required or a BadRequiredStrength exception
-	will be thrown. A DuplicateEditVariable exception will be thrown if
-	the edit variable has already been added to the solver.
+	This method should be called before the `suggestValue` method is
+	used to supply a suggested value for the given edit variable.
+
+	Throws
+	------
+	DuplicateEditVariable
+		The given edit variable has already been added to the solver.
+
+	BadRequiredStrength
+		The given strength is >= required.
 
 	*/
 	void addEditVariable( const Variable& variable, double strength )
 	{
-		return m_impl.addEditVariable( variable );
+		m_impl.addEditVariable( variable, strength );
 	}
 
 	/* Remove an edit variable from the solver.
 
-	An UnknownEditVariable exception will be thrown if the edit variable
-	has not been added to the solver.
+	Throws
+	------
+	UnknownEditVariable
+		The given edit variable has not been added to the solver.
 
 	*/
 	void removeEditVariable( const Variable& variable )
 	{
-		return m_impl.removeEditVariable( variable );
+		m_impl.removeEditVariable( variable );
+	}
+
+	/* Test whether an edit variable has been added to the solver.
+
+	*/
+	bool hasEditVariable( const Variable& variable ) const
+	{
+		return m_impl.hasEditVariable( variable );
 	}
 
 	/* Suggest a value for the given edit variable.
 
-	An UnknownEditVariable exception will be thrown if the edit variable
-	has not been added to the solver.
+	This method should be used after an edit variable as been added to
+	the solver in order to suggest the value for that variable. After
+	all suggestions have been made, the `solve` method can be used to
+	update the values of all variables.
+
+	Throws
+	------
+	UnknownEditVariable
+		The given edit variable has not been added to the solver.
 
 	*/
 	void suggestValue( const Variable& variable, double value )
 	{
-		return m_impl.suggestValue( variable, value, strength );
+		m_impl.suggestValue( variable, value );
 	}
 
 	/* Solve the system for the current set of constraints.
 
 	The will resolve the system and update the values of the variables
-	according to the current constraints and suggested values. If the
-	current constraints result in an unbounded object function, an
-	UnboundedObjective exception will be thrown.
+	according to the current constraints and suggested values.
 
-	TODO: is it even possible to acheive an unbounded objective?
+	Throws
+	------
+	UnboundedObjective
+		The constraints result in an unbounded object function.
+
+	XXX is it even possible to acheive an unbounded objective?
 
 	*/
 	void solve()
 	{
-		return m_impl.solve();
+		m_impl.solve();
 	}
 
 	/* Reset the solver to the empty starting condition.
