@@ -42,7 +42,7 @@ public:
 
 	const char* what() const
 	{
-		return "The required constraint can not be satisfied.";
+		return "The constraint can not be satisfied.";
 	}
 
 	const Constraint& constraint() const
@@ -68,7 +68,7 @@ public:
 
 	const char* what() const
 	{
-		return "The specified constraint has not been added to the solver.";
+		return "The constraint has not been added to the solver.";
 	}
 
 	const Constraint& constraint() const
@@ -94,7 +94,7 @@ public:
 
 	const char* what() const
 	{
-		return "The specified constraint has already been added to the solver.";
+		return "The constraint has already been added to the solver.";
 	}
 
 	const Constraint& constraint() const
@@ -120,7 +120,7 @@ public:
 
 	const char* what() const
 	{
-		return "The specified variable has not been added to the solver.";
+		return "The edit variable has not been added to the solver.";
 	}
 
 	const Variable& variable() const
@@ -146,7 +146,7 @@ public:
 
 	const char* what() const
 	{
-		return "The specified variable has already been added to the solver.";
+		return "The edit variable has already been added to the solver.";
 	}
 
 	const Variable& variable() const
@@ -171,7 +171,7 @@ public:
 
 	const char* what() const
 	{
-		return "The 'required' strength cannot be used in this context.";
+		return "A required strength cannot be used in this context.";
 	}
 };
 
