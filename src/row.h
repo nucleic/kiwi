@@ -49,7 +49,7 @@ public:
 	*/
 	void insert( const Symbol& symbol, double coefficient = 1.0 )
 	{
-		if( approx( m_cells[ symbol ] += coefficient, 0.0 ) )
+		if( nearZero( m_cells[ symbol ] += coefficient ) )
 			m_cells.erase( symbol );
 	}
 
@@ -68,7 +68,7 @@ public:
 		for( iter_t it = other.m_cells.begin(); it != end; ++it )
 		{
 			double coeff = it->second * coefficient;
-			if( approx( m_cells[ it->first ] += coeff, 0.0 ) )
+			if( nearZero( m_cells[ it->first ] += coeff ) )
 				m_cells.erase( it->first );
 		}
 	}
@@ -121,7 +121,7 @@ public:
 
 	This method assumes the row is of the form x = b * y + c and will
 	solve the row such that y = x / b - c / b. The rhs symbol will be
-	remove from the row, the lhs added, and the result divided by the
+	removed from the row, the lhs added, and the result divided by the
 	negative inverse of the rhs coefficient.
 
 	The lhs symbol *must not* exist in the row, and the rhs symbol

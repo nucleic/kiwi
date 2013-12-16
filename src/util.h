@@ -14,10 +14,10 @@ namespace kiwi
 namespace impl
 {
 
-inline bool approx( double a, double b )
+inline bool nearZero( double value )
 {
 	const double eps = 1.0e-8;
-	return ( a > b ) ? ( a - b ) < eps : ( b - a ) < eps;
+	return value < 0.0 ? -value < eps : value < eps;
 }
 
 } // namespace impl
