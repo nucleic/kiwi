@@ -30,9 +30,9 @@ public:
 		Dummy
 	};
 
-	Symbol() : m_id( 0 ), m_type( Invalid ), m_basic( false ) {}
+	Symbol() : m_id( 0 ), m_type( Invalid ) {}
 
-	Symbol( Type type, Id id ) : m_id( id ), m_type( type ), m_basic( false ) {}
+	Symbol( Type type, Id id ) : m_id( id ), m_type( type ) {}
 
 	~Symbol() {}
 
@@ -44,16 +44,6 @@ public:
 	Type type() const
 	{
 		return m_type;
-	}
-
-	bool isBasic() const
-	{
-		return m_basic;
-	}
-
-	void setBasic( bool basic )
-	{
-		m_basic = basic;
 	}
 
 	bool operator<( const Symbol& other ) const
@@ -70,7 +60,6 @@ private:
 
 	Id m_id;
 	Type m_type;
-	bool m_basic;
 };
 
 } // namespace impl
