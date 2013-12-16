@@ -55,15 +55,19 @@ public:
 
 	/* Add a constraint to the solver.
 
-	If the constraint has already been added, this method is a no-op. If
-	the strength of the constraint is required and the constraint cannot
-	be satisfied, an UnsatisfiableConstraint exception is thrown.
+	Throws
+	------
+	DuplicateConstraint
+		The given constraint has already been added to the solver.
+
+	UnsatisfiableConstraint
+		The given constraint is required and cannot be satisfied.
 
 	*/
 	void addConstraint( const Constraint& constraint )
 	{
 		if( m_cns.find( constraint ) != m_cns.end() )
-			return;
+			throw DuplicateConstraint( constraint );
 
 		CnTag tag;
 		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
@@ -72,64 +76,135 @@ public:
 		// added as a result of creating the row for the constraint are
 		// not needed and should be removed. Code should not typically
 		// add conflicting constraints and its likely that a given var
-		// will be used by multiple constraints anyway. So, I'm not too
-		// worried about this case at the moment.
+		// will be used by multiple constraints anyway, so I'm not too
+		// concerned about handling this edge-case at the moment.
 		Symbol subject( chooseSubject( *rowptr ) );
 		if( subject.type() == Symbol::Invalid )
 			throw UnsatisfiableConstraint( constraint );
 
 		rowptr->solveFor( subject );
 		substitute( subject, *rowptr );
-		subject.setBasic( true );
 		m_rows[ subject ] = rowptr.release();
 		m_cns[ constraint ] = tag;
 	}
 
 	/* Remove a constraint from the solver.
 
-	If the constraint does not exist in the solver, this method is a
-	no-op. This method always succeeds.
+	Throws
+	------
+	UnknownConstraint
+		The given constraint has not been added to the solver.
 
 	*/
 	void removeConstraint( const Constraint& constraint )
 	{
-		CnMap::iterator c_it = m_cns.find( constraint );
-		if( c_it == m_cns.end() )
-			return;
+		CnMap::iterator cn_it = m_cns.find( constraint );
+		if( cn_it == m_cns.end() )
+			throw UnknownConstraint( constraint );
 
-		CnTag tag( c_it->second );
-		m_cns.erase( c_it );
+		CnTag tag( cn_it->second );
+		m_cns.erase( cn_it );
 
-		// Remove the error variables from the object *before* pivoting,
-		// or substitutions into the objective will lead to bad results.
+		// Remove the error variables from the objective function
+		// *before* pivoting, or substitutions into the objective
+		// will lead to incorrect solver results.
 		if( tag.error1.type() != Symbol::Invalid )
 			m_objective->remove( tag.error1 );
 		if( tag.error2.type() != Symbol::Invalid )
 			m_objective->remove( tag.error2 );
 
-		// If the marker is basic, simply drop the row. Otherwise, pivot
-		// the marker symbol into the basis and then drop the row.
+		// If the marker is basic, simply drop the row. Otherwise,
+		// pivot the marker into the basis and then drop the row.
 		Symbol marker( tag.marker );
-		RowMap::iterator r_it = m_rows.find( marker );
-		if( r_it != m_rows.end() )
+		RowMap::iterator row_it = m_rows.find( marker );
+		if( row_it != m_rows.end() )
 		{
-			std::auto_ptr<Row> rowptr( r_it->second );
-			m_rows.erase( r_it );
+			std::auto_ptr<Row> rowptr( row_it->second );
+			m_rows.erase( row_it );
 		}
 		else
 		{
-			r_it = getMarkerLeavingRow( marker );
-			Symbol leaving( r_it->first );
-			std::auto_ptr<Row> rowptr( r_it->second );
-			m_rows.erase( r_it );
+			row_it = getMarkerLeavingRow( marker );
+			Symbol leaving( row_it->first );
+			std::auto_ptr<Row> rowptr( row_it->second );
+			m_rows.erase( row_it );
 			pivot( *rowptr, leaving, marker );
 		}
 	}
 
+	/* Test whether a constraint has been added to the solver.
+
+	*/
+	bool hasConstraint( const Constraint& constraint ) const
+	{
+		return m_cns.find( constraint ) != m_cns.end();
+	}
+
+	/* Add an edit variable to the solver.
+
+	This method should be called before the `suggestValue` method is
+	used to supply a suggested value for the given edit variable.
+
+	Throws
+	------
+	DuplicateEditVariable
+		The given edit variable has already been added to the solver.
+
+	BadRequiredStrength
+		The given strength is >= required.
+
+	*/
+	void addEditVariable( const Variable& variable, double strength )
+	{
+	}
+
+	/* Remove an edit variable from the solver.
+
+	Throws
+	------
+	UnknownEditVariable
+		The given edit variable has not been added to the solver.
+
+	*/
+	void removeEditVariable( const Variable& variable )
+	{
+	}
+
+	/* Test whether an edit variable has been added to the solver.
+
+	*/
+	bool hasEditVariable( const Variable& variable ) const
+	{
+	}
+
+	/* Suggest a value for the given edit variable.
+
+	This method should be used after an edit variable as been added to
+	the solver in order to suggest the value for that variable. After
+	all suggestions have been made, the `solve` method can be used to
+	update the values of all variables.
+
+	Throws
+	------
+	UnknownEditVariable
+		The given edit variable has not been added to the solver.
+
+	*/
+	void suggestValue( const Variable& variable, double value )
+	{
+	}
+
 	/* Solve the system for the current set of constraints.
 
-	This method will throw an UnboundedObjective exception if the set of
-	constraints has an unbounded solution.
+	The will resolve the system and update the values of the variables
+	according to the current constraints and suggested values.
+
+	Throws
+	------
+	UnboundedObjective
+		The constraints result in an unbounded object function.
+
+	XXX is it even possible to acheive an unbounded objective?
 
 	*/
 	void solve()
@@ -138,22 +213,13 @@ public:
 		updateExternalVars();
 	}
 
-	void beginEdit()
-	{
-	}
+	/* Reset the solver to the empty starting condition.
 
-	void endEdit()
-	{
-	}
-
-	void suggestValue( const Variable& var, double value, double strength )
-	{
-	}
-
-	/* Reset the solver to an empty starting condition.
-
+	This method resets the internal solver state to the empty starting
+	condition, as if no constraints or edit variables have been added.
 	This can be faster than deleting the solver and creating a new one
-	when all of the constraints need to be changed.
+	when the entire system must change, since it can avoid unecessary
+	heap (de)allocations.
 
 	*/
 	void reset()
@@ -235,8 +301,6 @@ public:
 				break;
 		}
 		std::cout << symbol.id();
-		if( symbol.isBasic() )
-			std::cout << "!";
 	}
 
 private:
@@ -260,12 +324,12 @@ private:
 		m_rows.clear();
 	}
 
-	/* Get the cached symbol for the given variable.
+	/* Get the symbol for the given variable.
 
 	If a symbol does not exist for the variable, one will be created.
 
 	*/
-	Symbol getSymbol( const Variable& variable )
+	Symbol getVarSymbol( const Variable& variable )
 	{
 		VarMap::iterator it = m_vars.find( variable );
 		if( it != m_vars.end() )
@@ -279,18 +343,17 @@ private:
 
 	The terms in the constraint will be converted to cells in the row.
 	Any term in the constraint with a coefficient of zero is ignored.
-	This method uses the `getSymbol` method to get the symbol for the
-	variables added to the row. If the symbol for a given variable is
-	currently basic, it will be substituted with the basic row.
+	This method uses the `getVarSymbol` method to get the symbol for
+	the variables added to the row. If the symbol for a given cell
+	variable is basic, the cell variable will be substituted with the
+	basic row.
 
 	The necessary slack and error variables will be added to the row.
 	If the constant for the row is negative, the sign for the row
-	will be inverted so the constant becomes positive. The tag will
-	be updated with the symbol which can be used to track the effects
-	of the constraint in the tableau.
+	will be inverted so the constant becomes positive.
 
-	The CnTag arg will be updated with the marker and error symbols to
-	use for tracking the movement of the constraint in the tableau.
+	The tag will be updated with the marker and error symbols to use
+	for tracking the movement of the constraint in the tableau.
 
 	*/
 	Row* createRow( const Constraint& constraint, CnTag& tag )
@@ -302,9 +365,9 @@ private:
 		iter_t end = expr.terms().end();
 		for( iter_t it = expr.terms().begin(); it != end; ++it )
 		{
-			if( !approx( it->coefficient(), 0.0 ) )
+			if( !nearZero( it->coefficient() ) )
 			{
-				Symbol symbol( getSymbol( it->variable() ) );
+				Symbol symbol( getVarSymbol( it->variable() ) );
 				RowMap::const_iterator row_it = m_rows.find( symbol );
 				if( row_it != m_rows.end() )
 					row->insert( *row_it->second, it->coefficient() );
@@ -318,15 +381,15 @@ private:
 			case OP_LE:
 			case OP_GE:
 			{
-				double c = constraint.op() == OP_LE ? 1.0 : -1.0;
+				double coeff = constraint.op() == OP_LE ? 1.0 : -1.0;
 				Symbol slack( Symbol::Slack, m_id_tick++ );
 				tag.marker = slack;
-				row->insert( slack, c );
+				row->insert( slack, coeff );
 				if( constraint.strength() < strength::required )
 				{
 					Symbol error( Symbol::Error, m_id_tick++ );
 					tag.error1 = error;
-					row->insert( error, -c );
+					row->insert( error, -coeff );
 					m_objective->insert( error, constraint.strength() );
 				}
 				break;
@@ -374,9 +437,9 @@ private:
 
 	Rule #2 follows from the fact that variables which are new to the
 	solver will always appear at the end of a row due to monotonically
-	increasing symbol ids. This reduces the need for substitution.
+	increasing symbol ids. This reduces the need for substitutions.
 
-	Assuming that the row has already had its basic symbols removed by
+	Assuming that the row has already had its basic symbols replaced by
 	substitution, the only time that a valid subject will not be found
 	is when the constraint is required and cannot be satisfied. In that
 	case, this method will return an invalid symbol.
@@ -433,8 +496,6 @@ private:
 	*/
 	void pivot( Row& row, Symbol& leaving, Symbol& entering )
 	{
-		leaving.setBasic( false );
-		entering.setBasic( true );
 		row.solveFor( leaving, entering );
 		substitute( entering, row );
 	}
@@ -469,9 +530,9 @@ private:
 	/* Compute the entering variable for a pivot operation.
 
 	This method will return first symbol in the objective function which
-	is non-dummy, non-basic, and has a coefficient less than zero. If no
-	no symbol meets the criteria, it means the objective function is at
-	a minimum, and an invalid symbol is returned.
+	is non-dummy and has a coefficient less than zero. If no symbol meets
+	the criteria, it means the objective function is at a minimum, and an
+	invalid symbol is returned.
 
 	*/
 	Symbol getEnteringSymbol()
@@ -481,9 +542,7 @@ private:
 		iter_t end = m_objective->cells().end();
 		for( iter_t it = begin; it != end; ++it )
 		{
-			if( it->first.type() != Symbol::Dummy &&
-				!it->first.isBasic() &&
-				it->second < 0.0 )
+			if( it->first.type() != Symbol::Dummy && it->second < 0.0 )
 				return it->first;
 		}
 		return Symbol();
