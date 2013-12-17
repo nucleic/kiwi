@@ -31,16 +31,15 @@ namespace impl
 
 class SolverImpl
 {
-	struct CnTag
+	struct Tag
 	{
 		Symbol marker;
-		Symbol errplus;
-		Symbol errminus;
+		Symbol other;
 	};
 
 	struct EditInfo
 	{
-		CnTag tag;
+		Tag tag;
 		Constraint constraint;
 		double constant;
 	};
@@ -49,7 +48,7 @@ class SolverImpl
 
 	typedef MapType<Symbol, Row*>::Type RowMap;
 
-	typedef MapType<Constraint, CnTag>::Type CnMap;
+	typedef MapType<Constraint, Tag>::Type CnMap;
 
 	typedef MapType<Variable, EditInfo>::Type EditMap;
 
@@ -73,12 +72,12 @@ public:
 		The given constraint is required and cannot be satisfied.
 
 	*/
-	double addConstraint( const Constraint& constraint )
+	void addConstraint( const Constraint& constraint )
 	{
 		if( m_cns.find( constraint ) != m_cns.end() )
 			throw DuplicateConstraint( constraint );
 
-		CnTag tag;
+		Tag tag;
 		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
 
 		// If the constraint is unsatisfiable, the variables which were
@@ -87,16 +86,14 @@ public:
 		// add conflicting constraints and its likely that a given var
 		// will be used by multiple constraints anyway, so I'm not too
 		// concerned about handling this edge-case at the moment.
-		const Symbol subject( chooseSubject( *rowptr ) );
+		Symbol subject( chooseSubject( *rowptr ) );
 		if( subject.type() == Symbol::Invalid )
 			throw UnsatisfiableConstraint( constraint );
 
 		rowptr->solveFor( subject );
 		substitute( subject, *rowptr );
-		double c = rowptr->constant();
 		m_rows[ subject ] = rowptr.release();
 		m_cns[ constraint ] = tag;
-		return c;
 	}
 
 	/* Remove a constraint from the solver.
@@ -113,21 +110,20 @@ public:
 		if( cn_it == m_cns.end() )
 			throw UnknownConstraint( constraint );
 
-		CnTag tag( cn_it->second );
+		Tag tag( cn_it->second );
 		m_cns.erase( cn_it );
 
 		// Remove the error variables from the objective function
 		// *before* pivoting, or substitutions into the objective
 		// will lead to incorrect solver results.
-		if( tag.errplus.type() != Symbol::Invalid )
-			m_objective->remove( tag.errplus );
-		if( tag.errminus.type() != Symbol::Invalid )
-			m_objective->remove( tag.errminus );
+		if( tag.marker.type() == Symbol::Error )
+			m_objective->remove( tag.marker );
+		if( tag.other.type() == Symbol::Error )
+			m_objective->remove( tag.other );
 
 		// If the marker is basic, simply drop the row. Otherwise,
 		// pivot the marker into the basis and then drop the row.
-		const Symbol marker( tag.marker );
-		RowMap::iterator row_it = m_rows.find( marker );
+		RowMap::iterator row_it = m_rows.find( tag.marker );
 		if( row_it != m_rows.end() )
 		{
 			std::auto_ptr<Row> rowptr( row_it->second );
@@ -135,11 +131,11 @@ public:
 		}
 		else
 		{
-			row_it = getMarkerLeavingRow( marker );
-			const Symbol leaving( row_it->first );
+			row_it = getMarkerLeavingRow( tag.marker );
+			Symbol leaving( row_it->first );
 			std::auto_ptr<Row> rowptr( row_it->second );
 			m_rows.erase( row_it );
-			pivot( *rowptr, leaving, marker );
+			pivot( *rowptr, leaving, tag.marker );
 		}
 	}
 
@@ -172,11 +168,11 @@ public:
 		strength = strength::clip( strength );
 		if( strength == strength::required )
 			throw BadRequiredStrength();
-		Constraint constraint( Expression( variable ), OP_EQ, strength );
-		double c = addConstraint( constraint );
+		Constraint cn( Expression( variable ), OP_EQ, strength );
+		addConstraint( cn );
 		EditInfo info;
-		info.tag = m_cns[ constraint ];
-		info.constraint = constraint;
+		info.tag = m_cns[ cn ];
+		info.constraint = cn;
 		info.constant = 0.0;
 		m_edits[ variable ] = info;
 	}
@@ -227,23 +223,22 @@ public:
 
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
-		std::cout << "delta: " << delta << std::endl;
 		info.constant = value;
 
-		// Check first if the negative error variable is basic.
-		RowMap::iterator row_it = m_rows.find( info.tag.errminus );
+		// Check first if the positive error variable is basic.
+		RowMap::iterator row_it = m_rows.find( info.tag.marker );
 		if( row_it != m_rows.end() )
 		{
-			if( row_it->second->add( delta ) < 0.0 )
+			if( row_it->second->add( -delta ) < 0.0 )
 				m_infeasible_rows.push_back( row_it->first );
 			return;
 		}
 
-		// Check next if the positive error variable is basic.
-		row_it = m_rows.find( info.tag.errplus );
+		// Check next if the negative error variable is basic.
+		row_it = m_rows.find( info.tag.other );
 		if( row_it != m_rows.end() )
 		{
-			if( row_it->second->add( -delta ) < 0.0 )
+			if( row_it->second->add( delta ) < 0.0 )
 				m_infeasible_rows.push_back( row_it->first );
 			return;
 		}
@@ -252,14 +247,11 @@ public:
 		RowMap::iterator end = m_rows.end();
 		for( row_it = m_rows.begin(); row_it != end; ++row_it )
 		{
-			double coeff = row_it->second->coefficientFor( info.tag.errminus );
-			if( coeff != 0.0 )
-			{
-				double c = coeff < 0.0 ? -delta * coeff : delta * coeff;
-				if( row_it->second->add( c ) < 0.0 &&
-					row_it->first.type() != Symbol::External )
-					m_infeasible_rows.push_back( row_it->first );
-			}
+			double coeff = row_it->second->coefficientFor( info.tag.marker );
+			if( coeff != 0.0 &&
+				row_it->second->add( delta * coeff ) < 0.0 &&
+				row_it->first.type() != Symbol::External )
+				m_infeasible_rows.push_back( row_it->first );
 		}
 	}
 
@@ -272,6 +264,9 @@ public:
 	------
 	UnboundedObjective
 		The constraints result in an unbounded object function.
+
+	InternalSolverError
+		This should never happen. Please report as a bug.
 
 	XXX is it even possible to acheive an unbounded objective?
 
@@ -305,78 +300,6 @@ public:
 		m_id_tick = 1;
 	}
 
-	void dump()
-	{
-		std::cout << "F: ";
-		dump( *m_objective );
-		std::cout << std::endl;
-		dump( m_rows );
-		std::cout << std::endl;
-		dump( m_vars );
-	}
-
-	void dump( const RowMap& rows )
-	{
-		typedef RowMap::const_iterator iter_t;
-		iter_t end = rows.end();
-		for( iter_t it = m_rows.begin(); it != end; ++it )
-		{
-			dump( it->first );
-			std::cout << " | ";
-			dump( *it->second );
-			std::cout << std::endl;
-		}
-	}
-
-	void dump( const VarMap& vars )
-	{
-		typedef VarMap::const_iterator iter_t;
-		iter_t end = m_vars.end();
-		for( iter_t it = m_vars.begin(); it != end; ++it )
-		{
-			std::cout << it->first.name() << " = ";
-			dump( it->second );
-			std::cout << std::endl;
-		}
-	}
-
-	void dump( const Row& row )
-	{
-		typedef Row::CellMap::const_iterator iter_t;
-		std::cout << row.constant();
-		iter_t end = row.cells().end();
-		for( iter_t it = row.cells().begin(); it != end; ++it )
-		{
-			std::cout << " + " << it->second << " * ";
-			dump( it->first );
-		}
-	}
-
-	void dump( const Symbol& symbol )
-	{
-		switch( symbol.type() )
-		{
-			case Symbol::Invalid:
-				std::cout << "i";
-				break;
-			case Symbol::External:
-				std::cout << "v";
-				break;
-			case Symbol::Slack:
-				std::cout << "s";
-				break;
-			case Symbol::Error:
-				std::cout << "e";
-				break;
-			case Symbol::Dummy:
-				std::cout << "d";
-				break;
-			default:
-				break;
-		}
-		std::cout << symbol.id();
-	}
-
 private:
 
 	SolverImpl( const SolverImpl& );
@@ -408,12 +331,12 @@ private:
 		VarMap::iterator it = m_vars.find( variable );
 		if( it != m_vars.end() )
 			return it->second;
-		const Symbol symbol( Symbol::External, m_id_tick++ );
+		Symbol symbol( Symbol::External, m_id_tick++ );
 		m_vars[ variable ] = symbol;
 		return symbol;
 	}
 
-	/* Create a new row object for the given constraint.
+	/* Create a new Row object for the given constraint.
 
 	The terms in the constraint will be converted to cells in the row.
 	Any term in the constraint with a coefficient of zero is ignored.
@@ -430,7 +353,7 @@ private:
 	for tracking the movement of the constraint in the tableau.
 
 	*/
-	Row* createRow( const Constraint& constraint, CnTag& tag )
+	Row* createRow( const Constraint& constraint, Tag& tag )
 	{
 		typedef std::vector<Term>::const_iterator iter_t;
 		const Expression& expr( constraint.expression() );
@@ -441,7 +364,7 @@ private:
 		{
 			if( !nearZero( it->coefficient() ) )
 			{
-				const Symbol symbol( getVarSymbol( it->variable() ) );
+				Symbol symbol( getVarSymbol( it->variable() ) );
 				RowMap::const_iterator row_it = m_rows.find( symbol );
 				if( row_it != m_rows.end() )
 					row->insert( *row_it->second, it->coefficient() );
@@ -456,13 +379,13 @@ private:
 			case OP_GE:
 			{
 				double coeff = constraint.op() == OP_LE ? 1.0 : -1.0;
-				const Symbol slack( Symbol::Slack, m_id_tick++ );
+				Symbol slack( Symbol::Slack, m_id_tick++ );
 				tag.marker = slack;
 				row->insert( slack, coeff );
 				if( constraint.strength() < strength::required )
 				{
-					const Symbol error( Symbol::Error, m_id_tick++ );
-					tag.errplus = error;
+					Symbol error( Symbol::Error, m_id_tick++ );
+					tag.other = error;
 					row->insert( error, -coeff );
 					m_objective->insert( error, constraint.strength() );
 				}
@@ -472,19 +395,18 @@ private:
 			{
 				if( constraint.strength() < strength::required )
 				{
-					const Symbol errplus( Symbol::Error, m_id_tick++ );
-					const Symbol errminus( Symbol::Error, m_id_tick++ );
-					tag.marker = errplus; // arbitrary choice
-					tag.errplus = errplus;
-					tag.errminus = errminus;
-					row->insert( errplus, 1.0 );
-					row->insert( errminus, -1.0 );
+					Symbol errplus( Symbol::Error, m_id_tick++ );
+					Symbol errminus( Symbol::Error, m_id_tick++ );
+					tag.marker = errplus;
+					tag.other = errminus;
+					row->insert( errplus, -1.0 ); // v = eplus - eminus
+					row->insert( errminus, 1.0 ); // v - eplus + eminus = 0
 					m_objective->insert( errplus, constraint.strength() );
 					m_objective->insert( errminus, constraint.strength() );
 				}
 				else
 				{
-					const Symbol dummy( Symbol::Dummy, m_id_tick++ );
+					Symbol dummy( Symbol::Dummy, m_id_tick++ );
 					tag.marker = dummy;
 					row->insert( dummy );
 				}
@@ -589,24 +511,15 @@ private:
 	{
 		while( true )
 		{
-			const Symbol entering( getEnteringSymbol() );
+			Symbol entering( getEnteringSymbol() );
 			if( entering.type() == Symbol::Invalid )
 				return;
-
-			std::cout << "entering on: ";
-			dump( entering );
-			std::cout << std::endl;
 
 			RowMap::iterator it = getLeavingRow( entering );
 			if( it == m_rows.end() )
 				throw UnboundedObjective();
 
-			const Symbol leaving( it->first );
-
-			std::cout << "leaving on: ";
-			dump( leaving );
-			std::cout << std::endl;
-
+			Symbol leaving( it->first );
 			Row* row = it->second;
 			m_rows.erase( it );
 			pivot( *row, leaving, entering );
@@ -624,18 +537,16 @@ private:
 	*/
 	void dualOptimize()
 	{
-		std::cout << "dual optimizing" << std::endl;
 		while( !m_infeasible_rows.empty() )
 		{
-			const Symbol leaving( m_infeasible_rows.back() );
+			Symbol leaving( m_infeasible_rows.back() );
 			m_infeasible_rows.pop_back();
 			RowMap::iterator it = m_rows.find( leaving );
 			if( it != m_rows.end() && it->second->constant() < 0.0 )
 			{
-				const Symbol entering( getDualEnteringSymbol( *it->second ) );
+				Symbol entering( getDualEnteringSymbol( *it->second ) );
 				if( entering.type() == Symbol::Invalid ) // should never happen
 					throw InternalSolverError();
-
 				Row* row = it->second;
 				m_rows.erase( it );
 				pivot( *row, leaving, entering );

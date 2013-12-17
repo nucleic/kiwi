@@ -129,6 +129,9 @@ public:
 	UnboundedObjective
 		The constraints result in an unbounded object function.
 
+	InternalSolverError
+		This should never happen. Please report as a bug.
+
 	XXX is it even possible to acheive an unbounded objective?
 
 	*/
@@ -149,11 +152,6 @@ public:
 	void reset()
 	{
 		m_impl.reset();
-	}
-
-	void dump()
-	{
-		m_impl.dump();
 	}
 
 private:
