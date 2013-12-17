@@ -24,6 +24,8 @@ class Constraint
 
 public:
 
+	Constraint() : m_data( 0 ) {}
+
 	Constraint( const Relation& relation,
 				double strength = strength::required ) :
 		m_data( new ConstraintData( relation, strength ) ) {}
@@ -63,6 +65,11 @@ public:
 	bool operator!=( const Constraint& other ) const
 	{
 		return m_data != other.m_data;
+	}
+
+	bool operator!() const
+	{
+		return !m_data;
 	}
 
 private:
