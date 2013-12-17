@@ -175,4 +175,20 @@ public:
 	}
 };
 
+
+class InternalSolverError : public std::exception
+{
+
+public:
+
+	InternalSolverError() {}
+
+	~InternalSolverError() {}
+
+	const char* what() const
+	{
+		return "An internal solver error occured.";
+	}
+};
+
 } // namespace kiwi
