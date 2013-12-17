@@ -7,6 +7,7 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include "constraint.h"
+#include "debug.h"
 #include "solverimpl.h"
 #include "strength.h"
 #include "variable.h"
@@ -152,6 +153,14 @@ public:
 	void reset()
 	{
 		m_impl.reset();
+	}
+
+	/* Dump a representation of the solver internals to stdout.
+
+	*/
+	void dump()
+	{
+		debug::dump( m_impl );
 	}
 
 private:
