@@ -30,6 +30,8 @@ namespace impl
 
 class SolverImpl
 {
+	friend class DebugHelper;
+
 	struct Tag
 	{
 		Symbol marker;
