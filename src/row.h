@@ -40,6 +40,16 @@ public:
 		return m_constant;
 	}
 
+	/* Add a constant value to the row constant.
+
+	The new value of the constant is returned.
+
+	*/
+	double add( double value )
+	{
+		return m_constant += value;
+	}
+
 	/* Insert a symbol into the row with a given coefficient.
 
 	If the symbol already exists in the row, the coefficient will be
