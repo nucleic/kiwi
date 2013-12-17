@@ -21,9 +21,9 @@ public:
 
 	UnboundedObjective() {}
 
-	~UnboundedObjective() {}
+	~UnboundedObjective() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "The objective function is unbounded.";
 	}
@@ -38,9 +38,9 @@ public:
 	UnsatisfiableConstraint( const Constraint& constraint ) :
 		m_constraint( constraint ) {}
 
-	~UnsatisfiableConstraint() {}
+	~UnsatisfiableConstraint() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "The constraint can not be satisfied.";
 	}
@@ -64,9 +64,9 @@ public:
 	UnknownConstraint( const Constraint& constraint ) :
 		m_constraint( constraint ) {}
 
-	~UnknownConstraint() {}
+	~UnknownConstraint() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "The constraint has not been added to the solver.";
 	}
@@ -90,9 +90,9 @@ public:
 	DuplicateConstraint( const Constraint& constraint ) :
 		m_constraint( constraint ) {}
 
-	~DuplicateConstraint() {}
+	~DuplicateConstraint() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "The constraint has already been added to the solver.";
 	}
@@ -116,9 +116,9 @@ public:
 	UnknownEditVariable( const Variable& variable ) :
 		m_variable( variable ) {}
 
-	~UnknownEditVariable() {}
+	~UnknownEditVariable() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "The edit variable has not been added to the solver.";
 	}
@@ -142,9 +142,9 @@ public:
 	DuplicateEditVariable( const Variable& variable ) :
 		m_variable( variable ) {}
 
-	~DuplicateEditVariable() {}
+	~DuplicateEditVariable() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "The edit variable has already been added to the solver.";
 	}
@@ -167,9 +167,9 @@ public:
 
 	BadRequiredStrength() {}
 
-	~BadRequiredStrength() {}
+	~BadRequiredStrength() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "A required strength cannot be used in this context.";
 	}
@@ -183,9 +183,9 @@ public:
 
 	InternalSolverError() {}
 
-	~InternalSolverError() {}
+	~InternalSolverError() throw() {}
 
-	const char* what() const
+	const char* what() const throw()
 	{
 		return "An internal solver error occured.";
 	}
