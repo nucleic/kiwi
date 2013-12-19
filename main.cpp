@@ -224,28 +224,24 @@ int main( int argc, char* argv[] )
 
 	kiwi::Solver solver;
 
-	clock_gettime( CLOCK_REALTIME, &start );
-	for(int i = 0; i < 500; ++i )
+	for( const kiwi::Constraint& cn : cns )
+		solver.addConstraint( cn );
+
+	solver.addEditVariable( w0, kiwi::strength::weak );
+	solver.addEditVariable( h0, kiwi::strength::weak );
+
+	for(int i = 100; i < 600; ++i )
 	{
-		solver.reset();
 
-		for( const kiwi::Constraint& cn : cns )
-			solver.addConstraint( cn );
-
-		solver.addEditVariable( w0, kiwi::strength::weak );
-		solver.addEditVariable( h0, kiwi::strength::weak );
-
-
-		solver.suggestValue( w0, 40 );
-		solver.suggestValue( h0, 40 );
-
+		clock_gettime( CLOCK_REALTIME, &start );
+		solver.suggestValue( w0, i );
+		solver.suggestValue( h0, i );
 		solver.solve();
+		clock_gettime( CLOCK_REALTIME, &end );
+		std::cout << "nano: " << end.tv_nsec - start.tv_nsec << std::endl;
 	}
 
-	clock_gettime( CLOCK_REALTIME, &end );
 
-	std::cout << "secs: " << end.tv_sec - start.tv_sec << std::endl;
-	std::cout << "nano: " << end.tv_nsec - start.tv_nsec << std::endl;
 
 	kiwi::Variable vars[] = {
 		x0, y0, w0, h0,
