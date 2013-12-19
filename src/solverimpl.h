@@ -55,7 +55,7 @@ class SolverImpl
 
 public:
 
-	SolverImpl() : m_id_tick( 1 ), m_objective( new Row() ) {}
+	SolverImpl() : m_id_tick( 1 ), m_objective( new Row() ), m_dirty( false ) {}
 
 	~SolverImpl()
 	{
@@ -78,6 +78,9 @@ public:
 		if( m_cns.find( constraint ) != m_cns.end() )
 			throw DuplicateConstraint( constraint );
 
+		// Must be feasible before adding constraint.
+		ensureDualOptimized();
+
 		Tag tag;
 		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
 
@@ -95,6 +98,7 @@ public:
 		substitute( subject, *rowptr );
 		m_rows[ subject ] = rowptr.release();
 		m_cns[ constraint ] = tag;
+		m_dirty = true;
 	}
 
 	/* Remove a constraint from the solver.
@@ -111,8 +115,12 @@ public:
 		if( cn_it == m_cns.end() )
 			throw UnknownConstraint( constraint );
 
+		// Must be feasible before removing constraint.
+		ensureDualOptimized();
+
 		Tag tag( cn_it->second );
 		m_cns.erase( cn_it );
+		m_dirty = true;
 
 		// Remove the error variables from the objective function
 		// *before* pivoting, or substitutions into the objective
@@ -222,6 +230,9 @@ public:
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
+		// Must be optimized before suggesting value.
+		ensureOptimized();
+
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
 		info.constant = value;
@@ -274,10 +285,10 @@ public:
 	*/
 	void solve()
 	{
-		if( m_infeasible_rows.empty() )
-			optimize();
-		else
-			dualOptimize();
+		// The solver should never be both unoptimized and infeasible,
+		// but the checks are cheap, and work is only done when dirty.
+		ensureOptimized();
+		ensureDualOptimized();
 		updateExternalVars();
 	}
 
@@ -299,6 +310,7 @@ public:
 		m_infeasible_rows.clear();
 		m_objective.reset( new Row() );
 		m_id_tick = 1;
+		m_dirty = false;
 	}
 
 private:
@@ -725,6 +737,27 @@ private:
 		}
 	}
 
+	/* Ensure that the solver is optimized.
+
+	*/
+	void ensureOptimized()
+	{
+		if( m_dirty )
+		{
+			optimize();
+			m_dirty = false;
+		}
+	}
+
+	/* Ensure that the solver is dual optimized.
+
+	*/
+	void ensureDualOptimized()
+	{
+		if( !m_infeasible_rows.empty() )
+			dualOptimize();
+	}
+
 	CnMap m_cns;
 	RowMap m_rows;
 	VarMap m_vars;
@@ -732,6 +765,7 @@ private:
 	std::vector<Symbol> m_infeasible_rows;
 	std::auto_ptr<Row> m_objective;
 	Symbol::Id m_id_tick;
+	bool m_dirty;
 };
 
 } // namespace impl
