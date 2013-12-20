@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
 #pragma once
+#include <memory>
 #include <string>
 #include "shareddata.h"
 
@@ -38,14 +39,24 @@ public:
 		return m_data->m_name;
 	}
 
-	Context* context()
+	void setName( const char* name )
 	{
-		return m_data->m_context;
+		m_data->m_name = name;
 	}
 
-	const Context* context() const
+	void setName( const std::string& name )
 	{
-		return m_data->m_context;
+		m_data->m_name = name;
+	}
+
+	Context* context() const
+	{
+		return m_data->m_context.get();
+	}
+
+	void setContext( Context* context )
+	{
+		m_data->m_context.reset( context );
 	}
 
 	double value() const
@@ -92,13 +103,10 @@ private:
 			m_context( context ),
 			m_value( 0.0 ) {}
 
-		~VariableData()
-		{
-			delete m_context;
-		}
+		~VariableData() {}
 
 		std::string m_name;
-		Context* m_context;
+		std::auto_ptr<Context> m_context;
 		double m_value;
 
 	private:
