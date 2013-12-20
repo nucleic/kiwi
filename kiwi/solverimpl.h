@@ -55,7 +55,7 @@ class SolverImpl
 
 public:
 
-	SolverImpl() : m_id_tick( 1 ), m_objective( new Row() ), m_dirty( false ) {}
+	SolverImpl() : m_objective( new Row() ), m_id_tick( 1 ), m_dirty( false ) {}
 
 	~SolverImpl()
 	{
