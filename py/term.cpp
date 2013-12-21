@@ -5,169 +5,162 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
-#include <iostream>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
 #include "symbolics.h"
+#include "term.h"
 #include "variable.h"
 
 
 using namespace PythonHelpers;
 
 
-static PyObject*
-Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
+static bool
+to_double( PyObject* obj, double& out )
 {
-	static const char *kwlist[] = { "name", "context", 0 };
-	PyObject* name;
-	PyObject* context = 0;
+	if( PyFloat_Check( obj ) )
+	{
+		out = PyFloat_AS_DOUBLE( obj );
+		return true;
+	}
+	if( PyInt_Check( obj ) )
+	{
+		out = double( PyInt_AsLong( obj ) );
+		return true;
+	}
+	if( PyLong_Check( obj ) )
+	{
+		out = PyLong_AsDouble( obj );
+		if( out == -1.0 && PyErr_Occurred() )
+			return false;
+		return true;
+	}
+	return false;
+}
+
+
+static PyObject*
+Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
+{
+	static const char *kwlist[] = { "variable", "coefficient", 0 };
+	PyObject* pyvar;
+	PyObject* pycoeff = 0;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "S|O:__new__", const_cast<char**>( kwlist ), // grr
-		&name, &context ) )
+		args, kwargs, "O|O:__new__", const_cast<char**>( kwlist ), // grr
+		&pyvar, &pycoeff ) )
 		return 0;
-	PyObject* pyvar = PyType_GenericNew( type, args, kwargs );
-	if( !pyvar )
+	if( !Variable::TypeCheck( pyvar ) )
+		return py_expected_type_fail( pyvar, "Variable" );
+	double coefficient = 1.0;
+	if( pycoeff && !to_double( pycoeff, coefficient ) )
+	{
+		if( PyErr_Occurred() )
+			return 0;
+		return py_expected_type_fail( pycoeff, "float, int, or long" );
+	}
+	PyObject* pyterm = PyType_GenericNew( type, args, kwargs );
+	if( !pyterm )
 		return 0;
-	Variable* self = reinterpret_cast<Variable*>( pyvar );
-	self->context = xnewref( context );
-	new( &self->variable ) kiwi::Variable( PyString_AS_STRING( name ) );
-	return pyvar;
+	Term* self = reinterpret_cast<Term*>( pyterm );
+	self->variable = newref( pyvar );
+	self->coefficient = coefficient;
+	return pyterm;
 }
 
 
 static void
-Variable_clear( Variable* self )
+Term_clear( Term* self )
 {
-	Py_CLEAR( self->context );
+	Py_CLEAR( self->variable );
 }
 
 
 static int
-Variable_traverse( Variable* self, visitproc visit, void* arg )
+Term_traverse( Term* self, visitproc visit, void* arg )
 {
-	Py_VISIT( self->context );
+	Py_VISIT( self->variable );
 	return 0;
 }
 
 
 static void
-Variable_dealloc( Variable* self )
+Term_dealloc( Term* self )
 {
 	PyObject_GC_UnTrack( self );
-	Variable_clear( self );
-	self->variable.~Variable();
+	Term_clear( self );
 	self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
 
 static PyObject*
-Variable_name( Variable* self )
+Term_variable( Term* self )
 {
-	return PyString_FromString( self->variable.name().c_str() );
+	return newref( self->variable );
 }
 
 
 static PyObject*
-Variable_setName( Variable* self, PyObject* pystr )
+Term_coefficient( Term* self )
 {
-	if( !PyString_Check( pystr ) )
-		return py_expected_type_fail( pystr, "str" );
-	self->variable.setName( PyString_AS_STRING( pystr ) );
-	Py_RETURN_NONE;
+	return PyFloat_FromDouble( self->coefficient );
 }
 
 
 static PyObject*
-Variable_context( Variable* self )
+Term_add( PyObject* first, PyObject* second )
 {
-	if( self->context )
-		return newref( self->context );
-	Py_RETURN_NONE;
+	return BinaryOp<BinaryAdd, Term>()( first, second );
 }
 
 
 static PyObject*
-Variable_setContext( Variable* self, PyObject* value )
+Term_sub( PyObject* first, PyObject* second )
 {
-	if( value != self->context )
-	{
-		PyObject* temp = self->context;
-		self->context = newref( value );
-		Py_XDECREF( temp );
-	}
-	Py_RETURN_NONE;
+	return BinaryOp<BinarySub, Term>()( first, second );
 }
 
 
 static PyObject*
-Variable_value( Variable* self )
+Term_mul( PyObject* first, PyObject* second )
 {
-	return PyFloat_FromDouble( self->variable.value() );
+	return BinaryOp<BinaryMul, Term>()( first, second );
 }
 
 
 static PyObject*
-Variable_add( PyObject* first, PyObject* second )
+Term_div( PyObject* first, PyObject* second )
 {
-	std::cout << "called"  << std::endl;
-	return BinaryOp<BinaryAdd, Variable>()( first, second );
+	return BinaryOp<BinaryDiv, Term>()( first, second );
 }
 
 
 static PyObject*
-Variable_sub( PyObject* first, PyObject* second )
+Term_neg( PyObject* value )
 {
-	return BinaryOp<BinarySub, Variable>()( first, second );
-}
-
-
-static PyObject*
-Variable_mul( PyObject* first, PyObject* second )
-{
-	return BinaryOp<BinaryMul, Variable>()( first, second );
-}
-
-
-static PyObject*
-Variable_div( PyObject* first, PyObject* second )
-{
-	return BinaryOp<BinaryDiv, Variable>()( first, second );
-}
-
-
-static PyObject*
-Variable_neg( PyObject* value )
-{
-	return UnaryOp<UnaryNeg, Variable>()( value );
+	return UnaryOp<UnaryNeg, Term>()( value );
 }
 
 
 static PyMethodDef
-Variable_methods[] = {
-	{ "name", ( PyCFunction )Variable_name, METH_NOARGS,
-	  "Get the name of the variable." },
-	{ "setName", ( PyCFunction )Variable_setName, METH_O,
-	  "Set the name of the variable." },
-	{ "context", ( PyCFunction )Variable_context, METH_NOARGS,
-	  "Get the context object associated with the variable." },
-	{ "setContext", ( PyCFunction )Variable_setContext, METH_O,
-	  "Set the context object associated with the variable." },
-	{ "value", ( PyCFunction )Variable_value, METH_NOARGS,
-	  "Get the current value of the variable." },
+Term_methods[] = {
+	{ "variable", ( PyCFunction )Term_variable, METH_NOARGS,
+	  "Get the variable for the term." },
+	{ "coefficient", ( PyCFunction )Term_coefficient, METH_NOARGS,
+	  "Get the coefficient for the term." },
 	{ 0 } // sentinel
 };
 
 
 static PyNumberMethods
-Variable_as_number = {
-	(binaryfunc)Variable_add,   /* nb_add */
-	(binaryfunc)Variable_sub,   /* nb_subtract */
-	(binaryfunc)Variable_mul,   /* nb_multiply */
-	(binaryfunc)Variable_div,   /* nb_divide */
+Term_as_number = {
+	(binaryfunc)Term_add,       /* nb_add */
+	(binaryfunc)Term_sub,       /* nb_subtract */
+	(binaryfunc)Term_mul,       /* nb_multiply */
+	(binaryfunc)Term_div,       /* nb_divide */
 	0,                          /* nb_remainder */
 	0,                          /* nb_divmod */
 	0,                          /* nb_power */
-	(unaryfunc)Variable_neg,    /* nb_negative */
+	(unaryfunc)Term_neg,        /* nb_negative */
 	0,                          /* nb_positive */
 	0,                          /* nb_absolute */
 	0,                          /* nb_nonzero */
@@ -202,19 +195,19 @@ Variable_as_number = {
 };
 
 
-PyTypeObject Variable_Type = {
+PyTypeObject Term_Type = {
 	PyObject_HEAD_INIT( 0 )
 	0,                                      /* ob_size */
-	"pykiwi.Variable",                      /* tp_name */
-	sizeof( Variable ),                     /* tp_basicsize */
+	"pykiwi.Term",                          /* tp_name */
+	sizeof( Term ),                         /* tp_basicsize */
 	0,                                      /* tp_itemsize */
-	(destructor)Variable_dealloc,           /* tp_dealloc */
+	(destructor)Term_dealloc,               /* tp_dealloc */
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
 	(cmpfunc)0,                             /* tp_compare */
 	(reprfunc)0,                            /* tp_repr */
-	(PyNumberMethods*)&Variable_as_number,  /* tp_as_number */
+	(PyNumberMethods*)&Term_as_number,      /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
 	(PyMappingMethods*)0,                   /* tp_as_mapping */
 	(hashfunc)0,                            /* tp_hash */
@@ -225,13 +218,13 @@ PyTypeObject Variable_Type = {
 	(PyBufferProcs*)0,                      /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
 	0,                                      /* Documentation string */
-	(traverseproc)Variable_traverse,        /* tp_traverse */
-	(inquiry)Variable_clear,                /* tp_clear */
+	(traverseproc)Term_traverse,            /* tp_traverse */
+	(inquiry)Term_clear,                    /* tp_clear */
 	(richcmpfunc)0,                         /* tp_richcompare */
 	0,                                      /* tp_weaklistoffset */
 	(getiterfunc)0,                         /* tp_iter */
 	(iternextfunc)0,                        /* tp_iternext */
-	(struct PyMethodDef*)Variable_methods,  /* tp_methods */
+	(struct PyMethodDef*)Term_methods,      /* tp_methods */
 	(struct PyMemberDef*)0,                 /* tp_members */
 	0,                                      /* tp_getset */
 	0,                                      /* tp_base */
@@ -241,7 +234,7 @@ PyTypeObject Variable_Type = {
 	0,                                      /* tp_dictoffset */
 	(initproc)0,                            /* tp_init */
 	(allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-	(newfunc)Variable_new,                  /* tp_new */
+	(newfunc)Term_new,                      /* tp_new */
 	(freefunc)PyObject_GC_Del,              /* tp_free */
 	(inquiry)0,                             /* tp_is_gc */
 	0,                                      /* tp_bases */
@@ -253,7 +246,7 @@ PyTypeObject Variable_Type = {
 };
 
 
-int import_variable()
+int import_term()
 {
-	return PyType_Ready( &Variable_Type );
+	return PyType_Ready( &Term_Type );
 }
