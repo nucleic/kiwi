@@ -5,7 +5,6 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
-#include <iostream>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
 #include "symbolics.h"
@@ -109,7 +108,6 @@ Variable_value( Variable* self )
 static PyObject*
 Variable_add( PyObject* first, PyObject* second )
 {
-	std::cout << "called"  << std::endl;
 	return BinaryOp<BinaryAdd, Variable>()( first, second );
 }
 
