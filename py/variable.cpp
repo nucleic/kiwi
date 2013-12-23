@@ -108,35 +108,35 @@ Variable_value( Variable* self )
 static PyObject*
 Variable_add( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinaryAdd, Variable>()( first, second );
+	return BinaryInvoke<BinaryAdd, Variable>()( first, second );
 }
 
 
 static PyObject*
 Variable_sub( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinarySub, Variable>()( first, second );
+	return BinaryInvoke<BinarySub, Variable>()( first, second );
 }
 
 
 static PyObject*
 Variable_mul( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinaryMul, Variable>()( first, second );
+	return BinaryInvoke<BinaryMul, Variable>()( first, second );
 }
 
 
 static PyObject*
 Variable_div( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinaryDiv, Variable>()( first, second );
+	return BinaryInvoke<BinaryDiv, Variable>()( first, second );
 }
 
 
 static PyObject*
 Variable_neg( PyObject* value )
 {
-	return UnaryOp<UnaryNeg, Variable>()( value );
+	return UnaryInvoke<UnaryNeg, Variable>()( value );
 }
 
 

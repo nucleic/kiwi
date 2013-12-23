@@ -9,34 +9,11 @@
 #include "pythonhelpers.h"
 #include "symbolics.h"
 #include "term.h"
+#include "util.h"
 #include "variable.h"
 
 
 using namespace PythonHelpers;
-
-
-static bool
-to_double( PyObject* obj, double& out )
-{
-	if( PyFloat_Check( obj ) )
-	{
-		out = PyFloat_AS_DOUBLE( obj );
-		return true;
-	}
-	if( PyInt_Check( obj ) )
-	{
-		out = double( PyInt_AsLong( obj ) );
-		return true;
-	}
-	if( PyLong_Check( obj ) )
-	{
-		out = PyLong_AsDouble( obj );
-		if( out == -1.0 && PyErr_Occurred() )
-			return false;
-		return true;
-	}
-	return false;
-}
 
 
 static PyObject*
@@ -52,7 +29,7 @@ Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	if( !Variable::TypeCheck( pyvar ) )
 		return py_expected_type_fail( pyvar, "Variable" );
 	double coefficient = 1.0;
-	if( pycoeff && !to_double( pycoeff, coefficient ) )
+	if( pycoeff && !convert_to_double( pycoeff, coefficient ) )
 	{
 		if( PyErr_Occurred() )
 			return 0;
@@ -109,35 +86,35 @@ Term_coefficient( Term* self )
 static PyObject*
 Term_add( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinaryAdd, Term>()( first, second );
+	return BinaryInvoke<BinaryAdd, Term>()( first, second );
 }
 
 
 static PyObject*
 Term_sub( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinarySub, Term>()( first, second );
+	return BinaryInvoke<BinarySub, Term>()( first, second );
 }
 
 
 static PyObject*
 Term_mul( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinaryMul, Term>()( first, second );
+	return BinaryInvoke<BinaryMul, Term>()( first, second );
 }
 
 
 static PyObject*
 Term_div( PyObject* first, PyObject* second )
 {
-	return BinaryOp<BinaryDiv, Term>()( first, second );
+	return BinaryInvoke<BinaryDiv, Term>()( first, second );
 }
 
 
 static PyObject*
 Term_neg( PyObject* value )
 {
-	return UnaryOp<UnaryNeg, Term>()( value );
+	return UnaryInvoke<UnaryNeg, Term>()( value );
 }
 
 
