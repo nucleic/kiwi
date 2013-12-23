@@ -14,7 +14,6 @@
 #include "errors.h"
 #include "expression.h"
 #include "maptype.h"
-#include "relation.h"
 #include "row.h"
 #include "symbol.h"
 #include "term.h"

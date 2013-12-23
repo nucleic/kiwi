@@ -9,7 +9,6 @@
 #include <vector>
 #include "constraint.h"
 #include "expression.h"
-#include "relation.h"
 #include "term.h"
 #include "variable.h"
 
@@ -349,84 +348,84 @@ Expression operator-( double constant, const Variable& variable )
 // Expression relations
 
 inline
-Relation operator==( const Expression& first, const Expression& second )
+Constraint operator==( const Expression& first, const Expression& second )
 {
-	return Relation( first, second, OP_EQ );
+	return Constraint( first - second, OP_EQ );
 }
 
 
 inline
-Relation operator==( const Expression& expression, const Term& term )
+Constraint operator==( const Expression& expression, const Term& term )
 {
 	return expression == Expression( term );
 }
 
 
 inline
-Relation operator==( const Expression& expression, const Variable& variable )
+Constraint operator==( const Expression& expression, const Variable& variable )
 {
 	return expression == Term( variable );
 }
 
 
 inline
-Relation operator==( const Expression& expression, double constant )
+Constraint operator==( const Expression& expression, double constant )
 {
 	return expression == Expression( constant );
 }
 
 
 inline
-Relation operator<=( const Expression& first, const Expression& second )
+Constraint operator<=( const Expression& first, const Expression& second )
 {
-	return Relation( first, second, OP_LE );
+	return Constraint( first - second, OP_LE );
 }
 
 
 inline
-Relation operator<=( const Expression& expression, const Term& term )
+Constraint operator<=( const Expression& expression, const Term& term )
 {
 	return expression <= Expression( term );
 }
 
 
 inline
-Relation operator<=( const Expression& expression, const Variable& variable )
+Constraint operator<=( const Expression& expression, const Variable& variable )
 {
 	return expression <= Term( variable );
 }
 
 
 inline
-Relation operator<=( const Expression& expression, double constant )
+Constraint operator<=( const Expression& expression, double constant )
 {
 	return expression <= Expression( constant );
 }
 
 
 inline
-Relation operator>=( const Expression& first, const Expression& second )
+Constraint operator>=( const Expression& first, const Expression& second )
 {
-	return Relation( first, second, OP_GE );
+	return Constraint( first - second, OP_GE );
 }
 
 
 inline
-Relation operator>=( const Expression& expression, const Term& term )
+Constraint operator>=( const Expression& expression, const Term& term )
 {
 	return expression >= Expression( term );
 }
 
 
 inline
-Relation operator>=( const Expression& expression, const Variable& variable )
+Constraint operator>=( const Expression& expression, const Variable& variable )
 {
 	return expression >= Term( variable );
 }
 
 
 inline
-Relation operator>=( const Expression& expression, double constant )
+Constraint operator>=( const Expression& expression, double constant )
 {
 	return expression >= Expression( constant );
 }
@@ -435,84 +434,84 @@ Relation operator>=( const Expression& expression, double constant )
 // Term relations
 
 inline
-Relation operator==( const Term& term, const Expression& expression )
+Constraint operator==( const Term& term, const Expression& expression )
 {
 	return expression == term;
 }
 
 
 inline
-Relation operator==( const Term& first, const Term& second )
+Constraint operator==( const Term& first, const Term& second )
 {
 	return Expression( first ) == second;
 }
 
 
 inline
-Relation operator==( const Term& term, const Variable& variable )
+Constraint operator==( const Term& term, const Variable& variable )
 {
 	return Expression( term ) == variable;
 }
 
 
 inline
-Relation operator==( const Term& term, double constant )
+Constraint operator==( const Term& term, double constant )
 {
 	return Expression( term ) == constant;
 }
 
 
 inline
-Relation operator<=( const Term& term, const Expression& expression )
+Constraint operator<=( const Term& term, const Expression& expression )
 {
 	return expression >= term;
 }
 
 
 inline
-Relation operator<=( const Term& first, const Term& second )
+Constraint operator<=( const Term& first, const Term& second )
 {
 	return Expression( first ) <= second;
 }
 
 
 inline
-Relation operator<=( const Term& term, const Variable& variable )
+Constraint operator<=( const Term& term, const Variable& variable )
 {
 	return Expression( term ) <= variable;
 }
 
 
 inline
-Relation operator<=( const Term& term, double constant )
+Constraint operator<=( const Term& term, double constant )
 {
 	return Expression( term ) <= constant;
 }
 
 
 inline
-Relation operator>=( const Term& term, const Expression& expression )
+Constraint operator>=( const Term& term, const Expression& expression )
 {
 	return expression <= term;
 }
 
 
 inline
-Relation operator>=( const Term& first, const Term& second )
+Constraint operator>=( const Term& first, const Term& second )
 {
 	return Expression( first ) >= second;
 }
 
 
 inline
-Relation operator>=( const Term& term, const Variable& variable )
+Constraint operator>=( const Term& term, const Variable& variable )
 {
 	return Expression( term ) >= variable;
 }
 
 
 inline
-Relation operator>=( const Term& term, double constant )
+Constraint operator>=( const Term& term, double constant )
 {
 	return Expression( term ) >= constant;
 }
@@ -520,77 +519,84 @@ Relation operator>=( const Term& term, double constant )
 
 // Variable relations
 inline
-Relation operator==( const Variable& variable, const Expression& expression )
+Constraint operator==( const Variable& variable, const Expression& expression )
 {
 	return expression == variable;
 }
 
 
 inline
-Relation operator==( const Variable& variable, const Term& term )
+Constraint operator==( const Variable& variable, const Term& term )
 {
 	return term == variable;
 }
 
 
 inline
-Relation operator==( const Variable& variable, double constant )
+Constraint operator==( const Variable& first, const Variable& second )
+{
+	return Term( first ) == second;
+}
+
+
+inline
+Constraint operator==( const Variable& variable, double constant )
 {
 	return Term( variable ) == constant;
 }
 
 
 inline
-Relation operator<=( const Variable& variable, const Expression& expression )
+Constraint operator<=( const Variable& variable, const Expression& expression )
 {
 	return expression >= variable;
 }
 
 
 inline
-Relation operator<=( const Variable& variable, const Term& term )
+Constraint operator<=( const Variable& variable, const Term& term )
 {
 	return term >= variable;
 }
 
 
 inline
-Relation operator<=( const Variable& first, const Variable& second )
+Constraint operator<=( const Variable& first, const Variable& second )
 {
 	return Term( first ) <= second;
 }
 
 
 inline
-Relation operator<=( const Variable& variable, double constant )
+Constraint operator<=( const Variable& variable, double constant )
 {
 	return Term( variable ) <= constant;
 }
 
 
 inline
-Relation operator>=( const Variable& variable, const Expression& expression )
+Constraint operator>=( const Variable& variable, const Expression& expression )
 {
 	return expression <= variable;
 }
 
 
 inline
-Relation operator>=( const Variable& variable, const Term& term )
+Constraint operator>=( const Variable& variable, const Term& term )
 {
 	return term <= variable;
 }
 
 
 inline
-Relation operator>=( const Variable& first, const Variable& second )
+Constraint operator>=( const Variable& first, const Variable& second )
 {
 	return Term( first ) >= second;
 }
 
 
 inline
-Relation operator>=( const Variable& variable, double constant )
+Constraint operator>=( const Variable& variable, double constant )
 {
 	return Term( variable ) >= constant;
 }
@@ -599,65 +605,74 @@ Relation operator>=( const Variable& variable, double constant )
 // Double relations
 
 inline
-Relation operator==( double constant, const Expression& expression )
+Constraint operator==( double constant, const Expression& expression )
 {
 	return expression == constant;
 }
 
 
 inline
-Relation operator==( double constant, const Term& term )
+Constraint operator==( double constant, const Term& term )
 {
 	return term == constant;
 }
 
 
 inline
-Relation operator==( double constant, const Variable& variable )
+Constraint operator==( double constant, const Variable& variable )
 {
 	return variable == constant;
 }
 
 
 inline
-Relation operator<=( double constant, const Expression& expression )
+Constraint operator<=( double constant, const Expression& expression )
 {
 	return expression >= constant;
 }
 
 
 inline
-Relation operator<=( double constant, const Term& term )
+Constraint operator<=( double constant, const Term& term )
 {
 	return term >= constant;
 }
 
 
 inline
-Relation operator<=( double constant, const Variable& variable )
+Constraint operator<=( double constant, const Variable& variable )
 {
 	return variable >= constant;
 }
 
 
 inline
-Relation operator>=( double constant, const Expression& expression )
+Constraint operator>=( double constant, const Expression& expression )
 {
 	return expression <= constant;
 }
 
 
 inline
-Relation operator>=( double constant, const Term& term )
+Constraint operator>=( double constant, const Term& term )
 {
 	return term <= constant;
 }
 
 
 inline
-Relation operator>=( double constant, const Variable& variable )
+Constraint operator>=( double constant, const Variable& variable )
 {
 	return variable <= constant;
+}
+
+
+// Constraint strength modifier
+
+inline
+Constraint operator|( const Constraint& constraint, double strength )
+{
+	return Constraint( constraint, strength );
 }
 
 } // namespace kiwi

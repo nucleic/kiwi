@@ -69,19 +69,15 @@ public:
 		m_data->m_value = value;
 	}
 
-	bool operator<( const Variable& other ) const
-	{
-		return m_data < other.m_data;
-	}
-
-	bool operator==( const Variable& other ) const
+	// operator== is used for symbolics
+	bool equals( const Variable& other )
 	{
 		return m_data == other.m_data;
 	}
 
-	bool operator!=( const Variable& other ) const
+	bool operator<( const Variable& other ) const
 	{
-		return m_data != other.m_data;
+		return m_data < other.m_data;
 	}
 
 private:
