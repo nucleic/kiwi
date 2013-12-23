@@ -5,13 +5,12 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
-#include <kiwi/kiwi.h>
+#include <sstream>
+#include <Python.h>
 #include "pythonhelpers.h"
-#include "expression.h"
 #include "symbolics.h"
-#include "term.h"
+#include "types.h"
 #include "util.h"
-#include "variable.h"
 
 
 using namespace PythonHelpers;
@@ -24,7 +23,7 @@ Expression_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     PyObject* pyterms;
     PyObject* pyconstant = 0;
     if( !PyArg_ParseTupleAndKeywords(
-        args, kwargs, "O|O:__new__", const_cast<char**>( kwlist ), // grr
+        args, kwargs, "O|O:__new__", const_cast<char**>( kwlist ),
         &pyterms, &pyconstant ) )
         return 0;
     PyObjectPtr terms( PySequence_Tuple( pyterms ) );
@@ -75,6 +74,24 @@ Expression_dealloc( Expression* self )
     PyObject_GC_UnTrack( self );
     Expression_clear( self );
     self->ob_type->tp_free( pyobject_cast( self ) );
+}
+
+
+static PyObject*
+Expression_repr( Expression* self )
+{
+    std::stringstream stream;
+    Py_ssize_t end = PyTuple_GET_SIZE( self->terms );
+    for( Py_ssize_t i = 0; i < end; ++i )
+    {
+        PyObject* item = PyTuple_GET_ITEM( self->terms, i );
+        Term* term = reinterpret_cast<Term*>( item );
+        stream << term->coefficient << " * ";
+        stream << reinterpret_cast<Variable*>( term->variable )->variable.name();
+        stream << " + ";
+    }
+    stream << self->constant;
+    return PyString_FromString( stream.str().c_str() );
 }
 
 
@@ -192,7 +209,7 @@ PyTypeObject Expression_Type = {
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
     (cmpfunc)0,                             /* tp_compare */
-    (reprfunc)0,                            /* tp_repr */
+    (reprfunc)Expression_repr,              /* tp_repr */
     (PyNumberMethods*)&Expression_as_number,/* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
     (PyMappingMethods*)0,                   /* tp_as_mapping */

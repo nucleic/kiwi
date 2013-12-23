@@ -5,10 +5,11 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
+#include <Python.h>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
 #include "symbolics.h"
-#include "variable.h"
+#include "types.h"
 
 
 using namespace PythonHelpers;
@@ -21,7 +22,7 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	PyObject* name;
 	PyObject* context = 0;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "S|O:__new__", const_cast<char**>( kwlist ), // grr
+		args, kwargs, "S|O:__new__", const_cast<char**>( kwlist ),
 		&name, &context ) )
 		return 0;
 	PyObject* pyvar = PyType_GenericNew( type, args, kwargs );
@@ -56,6 +57,13 @@ Variable_dealloc( Variable* self )
 	Variable_clear( self );
 	self->variable.~Variable();
 	self->ob_type->tp_free( pyobject_cast( self ) );
+}
+
+
+static PyObject*
+Variable_repr( Variable* self )
+{
+	return PyString_FromString( self->variable.name().c_str() );
 }
 
 
@@ -211,7 +219,7 @@ PyTypeObject Variable_Type = {
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
 	(cmpfunc)0,                             /* tp_compare */
-	(reprfunc)0,                            /* tp_repr */
+	(reprfunc)Variable_repr,                /* tp_repr */
 	(PyNumberMethods*)&Variable_as_number,  /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
 	(PyMappingMethods*)0,                   /* tp_as_mapping */

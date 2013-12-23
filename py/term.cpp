@@ -5,12 +5,12 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
-#include <kiwi/kiwi.h>
+#include <sstream>
+#include <Python.h>
 #include "pythonhelpers.h"
 #include "symbolics.h"
-#include "term.h"
+#include "types.h"
 #include "util.h"
-#include "variable.h"
 
 
 using namespace PythonHelpers;
@@ -23,7 +23,7 @@ Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	PyObject* pyvar;
 	PyObject* pycoeff = 0;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "O|O:__new__", const_cast<char**>( kwlist ), // grr
+		args, kwargs, "O|O:__new__", const_cast<char**>( kwlist ),
 		&pyvar, &pycoeff ) )
 		return 0;
 	if( !Variable::TypeCheck( pyvar ) )
@@ -66,6 +66,16 @@ Term_dealloc( Term* self )
 	PyObject_GC_UnTrack( self );
 	Term_clear( self );
 	self->ob_type->tp_free( pyobject_cast( self ) );
+}
+
+
+static PyObject*
+Term_repr( Term* self )
+{
+	std::stringstream stream;
+	stream << self->coefficient << " * ";
+	stream << reinterpret_cast<Variable*>( self->variable )->variable.name();
+	return PyString_FromString( stream.str().c_str() );
 }
 
 
@@ -183,7 +193,7 @@ PyTypeObject Term_Type = {
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
 	(cmpfunc)0,                             /* tp_compare */
-	(reprfunc)0,                            /* tp_repr */
+	(reprfunc)Term_repr,                    /* tp_repr */
 	(PyNumberMethods*)&Term_as_number,      /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
 	(PyMappingMethods*)0,                   /* tp_as_mapping */
