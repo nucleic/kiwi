@@ -6,11 +6,9 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
 #pragma once
-#include <algorithm>
+#include <Python.h>
 #include "pythonhelpers.h"
-#include "expression.h"
-#include "term.h"
-#include "variable.h"
+#include "types.h"
 
 
 template<typename Op, typename T>
@@ -71,26 +69,6 @@ struct BinaryInvoke
 				return 0;
 			return Invk()( primary, v );
 		}
-		Py_RETURN_NOTIMPLEMENTED;
-	}
-};
-
-
-struct BinaryAdd
-{
-	template<typename T, typename U>
-	PyObject* operator()( T first, U second )
-	{
-		Py_RETURN_NOTIMPLEMENTED;
-	}
-};
-
-
-struct BinarySub
-{
-	template<typename T, typename U>
-	PyObject* operator()( T first, U second )
-	{
 		Py_RETURN_NOTIMPLEMENTED;
 	}
 };
@@ -255,4 +233,300 @@ template<> inline
 PyObject* UnaryNeg::operator()( Expression* value )
 {
 	return BinaryMul()( value, -1.0 );
+}
+
+
+struct BinaryAdd
+{
+	template<typename T, typename U>
+	PyObject* operator()( T first, U second )
+	{
+		Py_RETURN_NOTIMPLEMENTED;
+	}
+};
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Expression* first, Expression* second )
+{
+	PythonHelpers::PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	if( !pyexpr )
+		return 0;
+	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
+	expr->constant = first->constant + second->constant;
+	expr->terms = PySequence_Concat( first->terms, second->terms );
+	if( !expr->terms )
+		return 0;
+	return pyexpr.release();
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Expression* first, Term* second )
+{
+	using namespace PythonHelpers;
+	PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	if( !pyexpr )
+		return 0;
+	PyObject* terms = PyTuple_New( PyTuple_GET_SIZE( first->terms ) + 1 );
+	if( !terms )
+		return 0;
+	Py_ssize_t end = PyTuple_GET_SIZE( first->terms );
+	for( Py_ssize_t i = 0; i < end; ++i )
+	{
+		PyObject* item = PyTuple_GET_ITEM( first->terms, i );
+		PyTuple_SET_ITEM( terms, i, newref( item ) );
+	}
+	PyTuple_SET_ITEM( terms, end, newref( pyobject_cast( second ) ) );
+	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
+	expr->terms = terms;
+	expr->constant = first->constant;
+	return pyexpr.release();
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Expression* first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( BinaryMul()( second, 1.0 ) );
+	return operator()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Expression* first, double second )
+{
+	using namespace PythonHelpers;
+	PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	if( !pyexpr )
+		return 0;
+	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
+	expr->terms = newref( first->terms );
+	expr->constant = first->constant + second;
+	return pyexpr.release();
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Term* first, double second )
+{
+	PythonHelpers::PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	if( !pyexpr )
+		return 0;
+	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
+	expr->constant = second;
+	expr->terms = PyTuple_Pack( 1, first );
+	if( !expr->terms )
+		return 0;
+	return pyexpr.release();
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Term* first, Expression* second )
+{
+	return operator()( second, first );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Term* first, Term* second )
+{
+	PythonHelpers::PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	if( !pyexpr )
+		return 0;
+	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
+	expr->constant = 0.0;
+	expr->terms = PyTuple_Pack( 2, first, second );
+	if( !expr->terms )
+		return 0;
+	return pyexpr.release();
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Term* first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( BinaryMul()( second, 1.0 ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Variable* first, double second )
+{
+	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Variable* first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Variable* first, Term* second )
+{
+	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( Variable* first, Expression* second )
+{
+	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( double first, Variable* second )
+{
+	return operator()( second, first );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( double first, Term* second )
+{
+	return operator()( second, first );
+}
+
+
+template<> inline
+PyObject* BinaryAdd::operator()( double first, Expression* second )
+{
+	return operator()( second, first );
+}
+
+
+struct BinarySub
+{
+	template<typename T, typename U>
+	PyObject* operator()( T first, U second )
+	{
+		Py_RETURN_NOTIMPLEMENTED;
+	}
+};
+
+
+template<> inline
+PyObject* BinarySub::operator()( Variable* first, double second )
+{
+	return BinaryAdd()( first, -second );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Variable* first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Variable* first, Term* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Variable* first, Expression* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Term* first, double second )
+{
+	return BinaryAdd()( first, -second );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Term* first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Term* first, Term* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Term* first, Expression* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Expression* first, double second )
+{
+	return BinaryAdd()( first, -second );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Expression* first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Expression* first, Term* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( Expression* first, Expression* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( double first, Variable* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( double first, Term* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
+}
+
+
+template<> inline
+PyObject* BinarySub::operator()( double first, Expression* second )
+{
+	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
 }
