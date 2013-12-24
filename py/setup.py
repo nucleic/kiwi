@@ -12,7 +12,8 @@ import sipdistutils
 ext_modules = [
     Extension(
         'pykiwi',
-        ['expression.cpp',
+        ['constraint.cpp',
+         'expression.cpp',
          'pykiwi.cpp',
          'term.cpp',
          'variable.cpp'],
