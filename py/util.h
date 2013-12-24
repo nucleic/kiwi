@@ -7,6 +7,7 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include <Python.h>
+#include "pythonhelpers.h"
 
 
 inline bool
@@ -29,5 +30,6 @@ convert_to_double( PyObject* obj, double& out )
             return false;
         return true;
     }
+    py_expected_type_fail( obj, "float, int, or long" );
     return false;
 }

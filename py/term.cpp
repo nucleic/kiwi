@@ -30,11 +30,7 @@ Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		return py_expected_type_fail( pyvar, "Variable" );
 	double coefficient = 1.0;
 	if( pycoeff && !convert_to_double( pycoeff, coefficient ) )
-	{
-		if( PyErr_Occurred() )
-			return 0;
-		return py_expected_type_fail( pycoeff, "float, int, or long" );
-	}
+		return 0;
 	PyObject* pyterm = PyType_GenericNew( type, args, kwargs );
 	if( !pyterm )
 		return 0;

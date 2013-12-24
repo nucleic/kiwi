@@ -38,11 +38,7 @@ Expression_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     }
     double constant = 0.0;
     if( pyconstant && !convert_to_double( pyconstant, constant ) )
-    {
-        if( PyErr_Occurred() )
-            return 0;
-        return py_expected_type_fail( pyconstant, "float, int, or long" );
-    }
+        return 0;
     PyObject* pyexpr = PyType_GenericNew( type, args, kwargs );
     if( !pyexpr )
         return 0;
