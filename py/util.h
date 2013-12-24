@@ -7,6 +7,7 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include <map>
+#include <string>
 #include <Python.h>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
@@ -35,6 +36,66 @@ convert_to_double( PyObject* obj, double& out )
     }
     PythonHelpers::py_expected_type_fail( obj, "float, int, or long" );
     return false;
+}
+
+
+inline bool
+convert_to_strength( PyObject* value, double& out )
+{
+    if( PyString_Check( value ) )
+    {
+        std::string str( PyString_AS_STRING( value ) );
+        if( str == "required" )
+            out = kiwi::strength::required;
+        else if( str == "strong" )
+            out = kiwi::strength::strong;
+        else if( str == "medium" )
+            out = kiwi::strength::medium;
+        else if( str == "weak" )
+            out = kiwi::strength::weak;
+        else
+        {
+            PyErr_Format(
+                PyExc_ValueError,
+                "string strength must be 'required', 'strong', 'medium', "
+                "or 'weak', not '%s'",
+                str.c_str()
+            );
+            return false;
+        }
+        return true;
+    }
+    if( !convert_to_double( value, out ) )
+        return false;
+    return true;
+}
+
+
+inline bool
+convert_to_relational_op( PyObject* value, kiwi::RelationalOperator& out )
+{
+    if( !PyString_Check( value ) )
+    {
+        PythonHelpers::py_expected_type_fail( value, "str" );
+        return false;
+    }
+    std::string str( PyString_AS_STRING( value ) );
+    if( str == "==" )
+        out = kiwi::OP_EQ;
+    else if( str == "<=" )
+        out = kiwi::OP_LE;
+    else if( str == ">=" )
+        out = kiwi::OP_GE;
+    else
+    {
+        PyErr_Format(
+            PyExc_ValueError,
+            "relational operator must be '==', '<=', or '>=', not '%s'",
+            str.c_str()
+        );
+        return false;
+    }
+    return true;
 }
 
 
