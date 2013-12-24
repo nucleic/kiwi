@@ -33,8 +33,11 @@ initpykiwi( void )
         return;
     if( import_constraint() < 0 )
         return;
+    if( import_solver() < 0 )
+        return;
     PyModule_AddObject( mod, "Variable", newref( pyobject_cast( &Variable_Type ) ) );
     PyModule_AddObject( mod, "Term", newref( pyobject_cast( &Term_Type ) ) );
     PyModule_AddObject( mod, "Expression", newref( pyobject_cast( &Expression_Type ) ) );
     PyModule_AddObject( mod, "Constraint", newref( pyobject_cast( &Constraint_Type ) ) );
+    PyModule_AddObject( mod, "Solver", newref( pyobject_cast( &Solver_Type ) ) );
 }

@@ -18,6 +18,8 @@ int import_expression();
 
 int import_constraint();
 
+int import_solver();
+
 
 extern PyTypeObject Variable_Type;
 
@@ -26,6 +28,8 @@ extern PyTypeObject Term_Type;
 extern PyTypeObject Expression_Type;
 
 extern PyTypeObject Constraint_Type;
+
+extern PyTypeObject Solver_Type;
 
 
 struct Variable
@@ -76,5 +80,17 @@ struct Constraint
 	static bool TypeCheck( PyObject* obj )
 	{
 		return PyObject_TypeCheck( obj, &Constraint_Type ) != 0;
+	}
+};
+
+
+struct Solver
+{
+	PyObject_HEAD
+	kiwi::Solver solver;
+
+	static bool TypeCheck( PyObject* obj )
+	{
+		return PyObject_TypeCheck( obj, &Solver_Type ) != 0;
 	}
 };

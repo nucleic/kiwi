@@ -15,6 +15,7 @@ ext_modules = [
         ['constraint.cpp',
          'expression.cpp',
          'pykiwi.cpp',
+         'solver.cpp',
          'term.cpp',
          'variable.cpp'],
         include_dirs=['../'],
