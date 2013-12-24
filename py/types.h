@@ -31,6 +31,20 @@ extern PyTypeObject Constraint_Type;
 
 extern PyTypeObject Solver_Type;
 
+extern PyObject* DuplicateConstraint;
+
+extern PyObject* UnsatisfiableConstraint;
+
+extern PyObject* UnknownConstraint;
+
+extern PyObject* DuplicateEditVariable;
+
+extern PyObject* UnknownEditVariable;
+
+extern PyObject* BadRequiredStrength;
+
+extern PyObject* UnboundedObjective;
+
 
 struct Variable
 {

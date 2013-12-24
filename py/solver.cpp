@@ -49,9 +49,13 @@ Solver_addConstraint( Solver* self, PyObject* other )
 	}
 	catch( const kiwi::DuplicateConstraint& )
 	{
+		PyErr_SetObject( DuplicateConstraint, other );
+		return 0;
 	}
 	catch( const kiwi::UnsatisfiableConstraint& )
 	{
+		PyErr_SetObject( UnsatisfiableConstraint, other );
+		return 0;
 	}
 	Py_RETURN_NONE;
 }
@@ -69,6 +73,8 @@ Solver_removeConstraint( Solver* self, PyObject* other )
 	}
 	catch( const kiwi::UnknownConstraint& )
 	{
+		PyErr_SetObject( UnknownConstraint, other );
+		return 0;
 	}
 	Py_RETURN_NONE;
 }
@@ -103,11 +109,13 @@ Solver_addEditVariable( Solver* self, PyObject* args )
 	}
 	catch( const kiwi::DuplicateEditVariable& )
 	{
-
+		PyErr_SetObject( DuplicateEditVariable, pyvar );
+		return 0;
 	}
-	catch( const kiwi::BadRequiredStrength& )
+	catch( const kiwi::BadRequiredStrength& e )
 	{
-
+		PyErr_SetString( BadRequiredStrength, e.what() );
+		return 0;
 	}
 	Py_RETURN_NONE;
 }
@@ -125,6 +133,8 @@ Solver_removeEditVariable( Solver* self, PyObject* other )
 	}
 	catch( const kiwi::UnknownEditVariable& )
 	{
+		PyErr_SetObject( UnknownEditVariable, other );
+		return 0;
 	}
 	Py_RETURN_NONE;
 }
@@ -159,6 +169,8 @@ Solver_suggestValue( Solver* self, PyObject* args )
 	}
 	catch( const kiwi::UnknownEditVariable& )
 	{
+		PyErr_SetObject( UnknownEditVariable, pyvar );
+		return 0;
 	}
 	Py_RETURN_NONE;
 }
@@ -167,7 +179,15 @@ Solver_suggestValue( Solver* self, PyObject* args )
 static PyObject*
 Solver_solve( Solver* self )
 {
-	self->solver.solve();
+	try
+	{
+		self->solver.solve();
+	}
+	catch( const kiwi::UnboundedObjective& e )
+	{
+		PyErr_SetString( UnboundedObjective, e.what() );
+		return 0;
+	}
 	Py_RETURN_NONE;
 }
 
@@ -255,7 +275,50 @@ PyTypeObject Solver_Type = {
 };
 
 
+PyObject* DuplicateConstraint;
+
+PyObject* UnsatisfiableConstraint;
+
+PyObject* UnknownConstraint;
+
+PyObject* DuplicateEditVariable;
+
+PyObject* UnknownEditVariable;
+
+PyObject* BadRequiredStrength;
+
+PyObject* UnboundedObjective;
+
+
 int import_solver()
 {
+ 	DuplicateConstraint = PyErr_NewException(
+ 		const_cast<char*>( "pykiwi.DuplicateConstraint" ), 0, 0 );
+ 	if( !DuplicateConstraint )
+ 		return -1;
+  	UnsatisfiableConstraint = PyErr_NewException(
+  		const_cast<char*>( "pykiwi.UnsatisfiableConstraint" ), 0, 0 );
+ 	if( !UnsatisfiableConstraint )
+ 		return -1;
+  	UnknownConstraint = PyErr_NewException(
+  		const_cast<char*>( "pykiwi.UnknownConstraint" ), 0, 0 );
+ 	if( !UnknownConstraint )
+ 		return -1;
+  	DuplicateEditVariable = PyErr_NewException(
+  		const_cast<char*>( "pykiwi.DuplicateEditVariable" ), 0, 0 );
+ 	if( !DuplicateEditVariable )
+ 		return -1;
+  	UnknownEditVariable = PyErr_NewException(
+  		const_cast<char*>( "pykiwi.UnknownEditVariable" ), 0, 0 );
+ 	if( !UnknownEditVariable )
+ 		return -1;
+  	BadRequiredStrength = PyErr_NewException(
+  		const_cast<char*>( "pykiwi.BadRequiredStrength" ), 0, 0 );
+ 	if( !BadRequiredStrength )
+ 		return -1;
+  	UnboundedObjective = PyErr_NewException(
+  		const_cast<char*>( "pykiwi.UnboundedObjective" ), 0, 0 );
+ 	if( !UnboundedObjective )
+ 		return -1;
 	return PyType_Ready( &Solver_Type );
 }

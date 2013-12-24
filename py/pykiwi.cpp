@@ -40,4 +40,11 @@ initpykiwi( void )
     PyModule_AddObject( mod, "Expression", newref( pyobject_cast( &Expression_Type ) ) );
     PyModule_AddObject( mod, "Constraint", newref( pyobject_cast( &Constraint_Type ) ) );
     PyModule_AddObject( mod, "Solver", newref( pyobject_cast( &Solver_Type ) ) );
+    PyModule_AddObject( mod, "DuplicateConstraint", newref( DuplicateConstraint ) );
+    PyModule_AddObject( mod, "UnsatisfiableConstraint", newref( UnsatisfiableConstraint ) );
+    PyModule_AddObject( mod, "UnknownConstraint", newref( UnknownConstraint ) );
+    PyModule_AddObject( mod, "DuplicateEditVariable", newref( DuplicateEditVariable ) );
+    PyModule_AddObject( mod, "UnknownEditVariable", newref( UnknownEditVariable ) );
+    PyModule_AddObject( mod, "BadRequiredStrength", newref( BadRequiredStrength ) );
+    PyModule_AddObject( mod, "UnboundedObjective", newref( UnboundedObjective ) );
 }
