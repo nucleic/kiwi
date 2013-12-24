@@ -124,6 +124,32 @@ Term_neg( PyObject* value )
 }
 
 
+static PyObject*
+Term_richcmp( PyObject* first, PyObject* second, int op )
+{
+	switch( op )
+	{
+		case Py_EQ:
+			return BinaryInvoke<CmpEQ, Term>()( first, second );
+		case Py_LE:
+			return BinaryInvoke<CmpLE, Term>()( first, second );
+		case Py_GE:
+			return BinaryInvoke<CmpGE, Term>()( first, second );
+		default:
+			break;
+	}
+	PyErr_Format(
+		PyExc_TypeError,
+		"unsupported operand type(s) for %s: "
+		"'%.100s' and '%.100s'",
+		pyop_str( op ),
+		first->ob_type->tp_name,
+		second->ob_type->tp_name
+	);
+	return 0;
+}
+
+
 static PyMethodDef
 Term_methods[] = {
 	{ "variable", ( PyCFunction )Term_variable, METH_NOARGS,
@@ -203,7 +229,7 @@ PyTypeObject Term_Type = {
 	0,                                      /* Documentation string */
 	(traverseproc)Term_traverse,            /* tp_traverse */
 	(inquiry)Term_clear,                    /* tp_clear */
-	(richcmpfunc)0,                         /* tp_richcompare */
+	(richcmpfunc)Term_richcmp,              /* tp_richcompare */
 	0,                                      /* tp_weaklistoffset */
 	(getiterfunc)0,                         /* tp_iter */
 	(iternextfunc)0,                        /* tp_iternext */

@@ -9,6 +9,7 @@
 #include <Python.h>
 #include "pythonhelpers.h"
 #include "types.h"
+#include "util.h"
 
 
 template<typename Op, typename T>
@@ -289,6 +290,8 @@ template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( BinaryMul()( second, 1.0 ) );
+	if( !temp )
+		return 0;
 	return operator()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -348,6 +351,8 @@ template<> inline
 PyObject* BinaryAdd::operator()( Term* first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( BinaryMul()( second, 1.0 ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -356,6 +361,8 @@ template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, double second )
 {
 	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	if( !temp )
+		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
 }
 
@@ -364,6 +371,8 @@ template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	if( !temp )
+		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
 }
 
@@ -372,6 +381,8 @@ template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, Term* second )
 {
 	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	if( !temp )
+		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
 }
 
@@ -380,6 +391,8 @@ template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, Expression* second )
 {
 	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	if( !temp )
+		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
 }
 
@@ -426,6 +439,8 @@ template<> inline
 PyObject* BinarySub::operator()( Variable* first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -434,6 +449,8 @@ template<> inline
 PyObject* BinarySub::operator()( Variable* first, Term* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -442,6 +459,8 @@ template<> inline
 PyObject* BinarySub::operator()( Variable* first, Expression* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
 }
 
@@ -457,6 +476,8 @@ template<> inline
 PyObject* BinarySub::operator()( Term* first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -465,6 +486,8 @@ template<> inline
 PyObject* BinarySub::operator()( Term* first, Term* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -473,6 +496,8 @@ template<> inline
 PyObject* BinarySub::operator()( Term* first, Expression* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
 }
 
@@ -488,6 +513,8 @@ template<> inline
 PyObject* BinarySub::operator()( Expression* first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -496,6 +523,8 @@ template<> inline
 PyObject* BinarySub::operator()( Expression* first, Term* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -504,6 +533,8 @@ template<> inline
 PyObject* BinarySub::operator()( Expression* first, Expression* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
 }
 
@@ -512,6 +543,8 @@ template<> inline
 PyObject* BinarySub::operator()( double first, Variable* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -520,6 +553,8 @@ template<> inline
 PyObject* BinarySub::operator()( double first, Term* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
 }
 
@@ -528,5 +563,56 @@ template<> inline
 PyObject* BinarySub::operator()( double first, Expression* second )
 {
 	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	if( !temp )
+		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
 }
+
+
+template<typename T, typename U>
+PyObject* makecn( T first, U second, kiwi::RelationalOperator op )
+{
+	PythonHelpers::PyObjectPtr pyexpr( BinarySub()( first, second ) );
+	if( !pyexpr )
+		return 0;
+	PythonHelpers::PyObjectPtr pycn( PyType_GenericNew( &Constraint_Type, 0, 0 ) );
+	if( !pycn )
+		return 0;
+	Constraint* cn = reinterpret_cast<Constraint*>( pycn.get() );
+	cn->expression = reduce_expression( pyexpr.get() );
+	if( !cn->expression )
+		return 0;
+	kiwi::Expression expr( convert_to_kiwi_expression( cn->expression ) );
+	new( &cn->constraint ) kiwi::Constraint( expr, op, kiwi::strength::required );
+	return pycn.release();
+}
+
+
+struct CmpEQ
+{
+	template<typename T, typename U>
+	PyObject* operator()( T first, U second )
+	{
+		return makecn( first, second, kiwi::OP_EQ );
+	}
+};
+
+
+struct CmpLE
+{
+	template<typename T, typename U>
+	PyObject* operator()( T first, U second )
+	{
+		return makecn( first, second, kiwi::OP_LE );
+	}
+};
+
+
+struct CmpGE
+{
+	template<typename T, typename U>
+	PyObject* operator()( T first, U second )
+	{
+		return makecn( first, second, kiwi::OP_GE );
+	}
+};

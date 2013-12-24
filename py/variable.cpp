@@ -10,6 +10,7 @@
 #include "pythonhelpers.h"
 #include "symbolics.h"
 #include "types.h"
+#include "util.h"
 
 
 using namespace PythonHelpers;
@@ -148,6 +149,32 @@ Variable_neg( PyObject* value )
 }
 
 
+static PyObject*
+Variable_richcmp( PyObject* first, PyObject* second, int op )
+{
+	switch( op )
+	{
+		case Py_EQ:
+			return BinaryInvoke<CmpEQ, Variable>()( first, second );
+		case Py_LE:
+			return BinaryInvoke<CmpLE, Variable>()( first, second );
+		case Py_GE:
+			return BinaryInvoke<CmpGE, Variable>()( first, second );
+		default:
+			break;
+	}
+	PyErr_Format(
+		PyExc_TypeError,
+		"unsupported operand type(s) for %s: "
+		"'%.100s' and '%.100s'",
+		pyop_str( op ),
+		first->ob_type->tp_name,
+		second->ob_type->tp_name
+	);
+	return 0;
+}
+
+
 static PyMethodDef
 Variable_methods[] = {
 	{ "name", ( PyCFunction )Variable_name, METH_NOARGS,
@@ -233,7 +260,7 @@ PyTypeObject Variable_Type = {
 	0,                                      /* Documentation string */
 	(traverseproc)Variable_traverse,        /* tp_traverse */
 	(inquiry)Variable_clear,                /* tp_clear */
-	(richcmpfunc)0,                         /* tp_richcompare */
+	(richcmpfunc)Variable_richcmp,          /* tp_richcompare */
 	0,                                      /* tp_weaklistoffset */
 	(getiterfunc)0,                         /* tp_iter */
 	(iternextfunc)0,                        /* tp_iternext */

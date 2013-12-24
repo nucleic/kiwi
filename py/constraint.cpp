@@ -78,24 +78,6 @@ convert_to_strength( PyObject* value, double& out )
 }
 
 
-// pyexpr must be an Expression
-static kiwi::Expression
-convert_to_kiwi_expression( PyObject* pyexpr )
-{
-    Expression* expr = reinterpret_cast<Expression*>( pyexpr );
-    std::vector<kiwi::Term> kterms;
-    Py_ssize_t size = PyTuple_GET_SIZE( expr->terms );
-    for( Py_ssize_t i = 0; i < size; ++i )
-    {
-        PyObject* item = PyTuple_GET_ITEM( expr->terms, i );
-        Term* term = reinterpret_cast<Term*>( item );
-        Variable* var = reinterpret_cast<Variable*>( term->variable );
-        kterms.push_back( kiwi::Term( var->variable, term->coefficient ) );
-    }
-    return kiwi::Expression( kterms, expr->constant );
-}
-
-
 static PyObject*
 Constraint_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {

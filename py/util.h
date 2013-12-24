@@ -8,6 +8,7 @@
 #pragma once
 #include <map>
 #include <Python.h>
+#include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
 #include "types.h"
 
@@ -86,4 +87,44 @@ reduce_expression( PyObject* pyexpr )  // pyexpr must be an Expression
     newexpr->terms = terms.release();
     newexpr->constant = expr->constant;
     return pynewexpr;
+}
+
+
+inline kiwi::Expression
+convert_to_kiwi_expression( PyObject* pyexpr )  // pyexpr must be an Expression
+{
+    Expression* expr = reinterpret_cast<Expression*>( pyexpr );
+    std::vector<kiwi::Term> kterms;
+    Py_ssize_t size = PyTuple_GET_SIZE( expr->terms );
+    for( Py_ssize_t i = 0; i < size; ++i )
+    {
+        PyObject* item = PyTuple_GET_ITEM( expr->terms, i );
+        Term* term = reinterpret_cast<Term*>( item );
+        Variable* var = reinterpret_cast<Variable*>( term->variable );
+        kterms.push_back( kiwi::Term( var->variable, term->coefficient ) );
+    }
+    return kiwi::Expression( kterms, expr->constant );
+}
+
+
+inline const char*
+pyop_str( int op )
+{
+    switch( op )
+    {
+        case Py_LT:
+            return "<";
+        case Py_LE:
+            return "<=";
+        case Py_EQ:
+            return "==";
+        case Py_NE:
+            return "!=";
+        case Py_GT:
+            return ">";
+        case Py_GE:
+            return ">=";
+        default:
+            return "";
+    }
 }

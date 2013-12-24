@@ -140,6 +140,32 @@ Expression_neg( PyObject* value )
 }
 
 
+static PyObject*
+Expression_richcmp( PyObject* first, PyObject* second, int op )
+{
+    switch( op )
+    {
+        case Py_EQ:
+            return BinaryInvoke<CmpEQ, Expression>()( first, second );
+        case Py_LE:
+            return BinaryInvoke<CmpLE, Expression>()( first, second );
+        case Py_GE:
+            return BinaryInvoke<CmpGE, Expression>()( first, second );
+        default:
+            break;
+    }
+    PyErr_Format(
+        PyExc_TypeError,
+        "unsupported operand type(s) for %s: "
+        "'%.100s' and '%.100s'",
+        pyop_str( op ),
+        first->ob_type->tp_name,
+        second->ob_type->tp_name
+    );
+    return 0;
+}
+
+
 static PyMethodDef
 Expression_methods[] = {
     { "terms", ( PyCFunction )Expression_terms, METH_NOARGS,
@@ -219,7 +245,7 @@ PyTypeObject Expression_Type = {
     0,                                      /* Documentation string */
     (traverseproc)Expression_traverse,      /* tp_traverse */
     (inquiry)Expression_clear,              /* tp_clear */
-    (richcmpfunc)0,                         /* tp_richcompare */
+    (richcmpfunc)Expression_richcmp,        /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
     (getiterfunc)0,                         /* tp_iter */
     (iternextfunc)0,                        /* tp_iternext */
