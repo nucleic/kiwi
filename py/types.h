@@ -70,8 +70,7 @@ struct Expression
 struct Constraint
 {
 	PyObject_HEAD
-	PyObject* lhs;
-	PyObject* rhs;
+	PyObject* expression;
 	kiwi::Constraint constraint;
 
 	static bool TypeCheck( PyObject* obj )
