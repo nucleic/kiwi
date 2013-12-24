@@ -6,8 +6,10 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |-----------------------------------------------------------------------------*/
 #pragma once
+#include <map>
 #include <Python.h>
 #include "pythonhelpers.h"
+#include "types.h"
 
 
 inline bool
@@ -30,6 +32,58 @@ convert_to_double( PyObject* obj, double& out )
             return false;
         return true;
     }
-    py_expected_type_fail( obj, "float, int, or long" );
+    PythonHelpers::py_expected_type_fail( obj, "float, int, or long" );
     return false;
+}
+
+
+inline PyObject*
+make_terms( const std::map<PyObject*, double>& coeffs )
+{
+    typedef std::map<PyObject*, double>::const_iterator iter_t;
+    PythonHelpers::PyObjectPtr terms( PyTuple_New( coeffs.size() ) );
+    if( !terms )
+        return 0;
+    Py_ssize_t size = PyTuple_GET_SIZE( terms.get() );
+    for( Py_ssize_t i = 0; i < size; ++i ) // zero tuple for safe early return
+        PyTuple_SET_ITEM( terms.get(), i, 0 );
+    Py_ssize_t i = 0;
+    iter_t it = coeffs.begin();
+    iter_t end = coeffs.end();
+    for( ; it != end; ++it, ++i )
+    {
+        PyObject* pyterm = PyType_GenericNew( &Term_Type, 0, 0 );
+        if( !pyterm )
+            return 0;
+        Term* term = reinterpret_cast<Term*>( pyterm );
+        term->variable = PythonHelpers::newref( it->first );
+        term->coefficient = it->second;
+        PyTuple_SET_ITEM( terms.get(), i, pyterm );
+    }
+    return terms.release();
+}
+
+
+inline PyObject*
+reduce_expression( PyObject* pyexpr )  // pyexpr must be an Expression
+{
+    Expression* expr = reinterpret_cast<Expression*>( pyexpr );
+    std::map<PyObject*, double> coeffs;
+    Py_ssize_t size = PyTuple_GET_SIZE( expr->terms );
+    for( Py_ssize_t i = 0; i < size; ++i )
+    {
+        PyObject* item = PyTuple_GET_ITEM( expr->terms, i );
+        Term* term = reinterpret_cast<Term*>( item );
+        coeffs[ term->variable ] += term->coefficient;
+    }
+    PythonHelpers::PyObjectPtr terms( make_terms( coeffs ) );
+    if( !terms )
+        return 0;
+    PyObject* pynewexpr = PyType_GenericNew( &Expression_Type, 0, 0 );
+    if( !pynewexpr )
+        return 0;
+    Expression* newexpr = reinterpret_cast<Expression*>( pynewexpr );
+    newexpr->terms = terms.release();
+    newexpr->constant = expr->constant;
+    return pynewexpr;
 }
