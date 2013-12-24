@@ -675,4 +675,11 @@ Constraint operator|( const Constraint& constraint, double strength )
 	return Constraint( constraint, strength );
 }
 
+
+inline
+Constraint operator|( double strength, const Constraint& constraint )
+{
+	return constraint | strength;
+}
+
 } // namespace kiwi
