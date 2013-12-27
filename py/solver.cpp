@@ -33,7 +33,7 @@ static void
 Solver_dealloc( Solver* self )
 {
 	self->solver.~Solver();
-	self->ob_type->tp_free( pyobject_cast( self ) );
+	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -225,8 +225,7 @@ Solver_methods[] = {
 
 
 PyTypeObject Solver_Type = {
-	PyObject_HEAD_INIT( 0 )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"pykiwi.Solver",                        /* tp_name */
 	sizeof( Solver ),                       /* tp_basicsize */
 	0,                                      /* tp_itemsize */

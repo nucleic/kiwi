@@ -61,7 +61,7 @@ Term_dealloc( Term* self )
 {
 	PyObject_GC_UnTrack( self );
 	Term_clear( self );
-	self->ob_type->tp_free( pyobject_cast( self ) );
+	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -71,7 +71,11 @@ Term_repr( Term* self )
 	std::stringstream stream;
 	stream << self->coefficient << " * ";
 	stream << reinterpret_cast<Variable*>( self->variable )->variable.name();
-	return PyString_FromString( stream.str().c_str() );
+	#if PY_MAJOR_VERSION >= 3
+		return PyUnicode_FromString( stream.str().c_str() );
+	#else
+		return PyString_FromString( stream.str().c_str() );
+	#endif
 }
 
 
@@ -165,30 +169,42 @@ Term_as_number = {
 	(binaryfunc)Term_add,       /* nb_add */
 	(binaryfunc)Term_sub,       /* nb_subtract */
 	(binaryfunc)Term_mul,       /* nb_multiply */
+	#if PY_MAJOR_VERSION < 3
 	(binaryfunc)Term_div,       /* nb_divide */
+	#endif
 	0,                          /* nb_remainder */
 	0,                          /* nb_divmod */
 	0,                          /* nb_power */
 	(unaryfunc)Term_neg,        /* nb_negative */
 	0,                          /* nb_positive */
 	0,                          /* nb_absolute */
+	#if PY_MAJOR_VERSION > 3
+	0,							/* nb_bool */
+	#else
 	0,                          /* nb_nonzero */
+	#endif
 	0,                          /* nb_invert */
 	0,                          /* nb_lshift */
 	0,                          /* nb_rshift */
 	0,                          /* nb_and */
 	0,                          /* nb_xor */
-	0,                          /* nb_or */
+	(binaryfunc)0,              /* nb_or */
+	#if PY_MAJOR_VERSION < 3
 	0,                          /* nb_coerce */
+	#endif
 	0,                          /* nb_int */
 	0,                          /* nb_long */
 	0,                          /* nb_float */
+	#if PY_MAJOR_VERSION < 3
 	0,                          /* nb_oct */
 	0,                          /* nb_hex */
+	#endif
 	0,                          /* nb_inplace_add */
 	0,                          /* nb_inplace_subtract */
 	0,                          /* nb_inplace_multiply */
+	#if PY_MAJOR_VERSION < 3
 	0,                          /* nb_inplace_divide */
+	#endif
 	0,                          /* nb_inplace_remainder */
 	0,                          /* nb_inplace_power */
 	0,                          /* nb_inplace_lshift */
@@ -196,17 +212,18 @@ Term_as_number = {
 	0,                          /* nb_inplace_and */
 	0,                          /* nb_inplace_xor */
 	0,                          /* nb_inplace_or */
-	0,                          /* nb_floor_divide */
-	0,                          /* nb_true_divide */
+	(binaryfunc)0,              /* nb_floor_divide */
+	(binaryfunc)0,              /* nb_true_divide */
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
-	0,                          /* nb_index */
+	#if PY_VERSION_HEX >= 0x02050000
+	(unaryfunc)0,               /* nb_index */
+	#endif
 };
 
 
 PyTypeObject Term_Type = {
-	PyObject_HEAD_INIT( 0 )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"pykiwi.Term",                          /* tp_name */
 	sizeof( Term ),                         /* tp_basicsize */
 	0,                                      /* tp_itemsize */
@@ -225,7 +242,11 @@ PyTypeObject Term_Type = {
 	(getattrofunc)0,                        /* tp_getattro */
 	(setattrofunc)0,                        /* tp_setattro */
 	(PyBufferProcs*)0,                      /* tp_as_buffer */
+	#if PY_MAJOR_VERSION >= 3
+	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
+	#else
 	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
+	#endif
 	0,                                      /* Documentation string */
 	(traverseproc)Term_traverse,            /* tp_traverse */
 	(inquiry)Term_clear,                    /* tp_clear */

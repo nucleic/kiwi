@@ -70,7 +70,7 @@ Constraint_dealloc( Constraint* self )
     PyObject_GC_UnTrack( self );
     Constraint_clear( self );
     self->constraint.~Constraint();
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -102,7 +102,11 @@ Constraint_repr( Constraint* self )
             break;
     }
     stream << " | strength = " << self->constraint.strength();
-    return PyString_FromString( stream.str().c_str() );
+    #if PY_MAJOR_VERSION >= 3
+        return PyUnicode_FromString( stream.str().c_str() );
+    #else
+        return PyString_FromString( stream.str().c_str() );
+    #endif
 }
 
 
@@ -120,13 +124,25 @@ Constraint_op( Constraint* self )
     switch( self->constraint.op() )
     {
         case kiwi::OP_EQ:
-            res = PyString_FromString( "==" );
+            #if PY_MAJOR_VERSION >= 3
+                res = PyUnicode_FromString( "==" );
+            #else 
+                res = PyString_FromString( "==" );
+            #endif
             break;
         case kiwi::OP_LE:
-            res = PyString_FromString( "<=" );
+            #if PY_MAJOR_VERSION >= 3
+                res = PyUnicode_FromString( "<=" );
+            #else
+                res = PyString_FromString( "<=" );
+            #endif
             break;
         case kiwi::OP_GE:
-            res = PyString_FromString( ">=" );
+            #if PY_MAJOR_VERSION >= 3
+                res = PyUnicode_FromString( ">=" );
+            #else
+                res = PyString_FromString( ">=" );
+            #endif
             break;
     }
     return res;
@@ -176,30 +192,42 @@ Constraint_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
+    #if PY_MAJOR_VERSION < 3
     0,                          /* nb_divide */
+    #endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
     0,                          /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
+    #if PY_MAJOR_VERSION > 3
+    0,                          /* nb_bool */
+    #else
     0,                          /* nb_nonzero */
+    #endif
     0,                          /* nb_invert */
     0,                          /* nb_lshift */
     0,                          /* nb_rshift */
     0,                          /* nb_and */
     0,                          /* nb_xor */
     (binaryfunc)Constraint_or,  /* nb_or */
+    #if PY_MAJOR_VERSION < 3
     0,                          /* nb_coerce */
+    #endif
     0,                          /* nb_int */
     0,                          /* nb_long */
     0,                          /* nb_float */
+    #if PY_MAJOR_VERSION < 3
     0,                          /* nb_oct */
     0,                          /* nb_hex */
+    #endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
+    #if PY_MAJOR_VERSION < 3
     0,                          /* nb_inplace_divide */
+    #endif
     0,                          /* nb_inplace_remainder */
     0,                          /* nb_inplace_power */
     0,                          /* nb_inplace_lshift */
@@ -207,17 +235,18 @@ Constraint_as_number = {
     0,                          /* nb_inplace_and */
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
-    0,                          /* nb_floor_divide */
-    0,                          /* nb_true_divide */
+    (binaryfunc)0,              /* nb_floor_divide */
+    (binaryfunc)0,              /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
-    0,                          /* nb_index */
+    #if PY_VERSION_HEX >= 0x02050000
+    (unaryfunc)0,                          /* nb_index */
+    #endif
 };
 
 
 PyTypeObject Constraint_Type = {
-    PyObject_HEAD_INIT( 0 )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )    
     "pykiwi.Constraint",                    /* tp_name */
     sizeof( Constraint ),                   /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -236,7 +265,11 @@ PyTypeObject Constraint_Type = {
     (getattrofunc)0,                        /* tp_getattro */
     (setattrofunc)0,                        /* tp_setattro */
     (PyBufferProcs*)0,                      /* tp_as_buffer */
+    #if PY_MAJOR_VERSION >= 3
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
+    #else
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
+    #endif
     0,                                      /* Documentation string */
     (traverseproc)Constraint_traverse,      /* tp_traverse */
     (inquiry)Constraint_clear,              /* tp_clear */
