@@ -7,6 +7,7 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include <algorithm>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <vector>
@@ -54,7 +55,7 @@ class SolverImpl
 
 public:
 
-	SolverImpl() : m_objective( new Row() ), m_id_tick( 1 ), m_dirty( false ) {}
+	SolverImpl() : m_objective( new Row() ), m_id_tick( 1 ) {}
 
 	~SolverImpl()
 	{
@@ -77,9 +78,6 @@ public:
 		if( m_cns.find( constraint ) != m_cns.end() )
 			throw DuplicateConstraint( constraint );
 
-		// Must be feasible before adding constraint.
-		ensureDualOptimized();
-
 		Tag tag;
 		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
 
@@ -97,7 +95,11 @@ public:
 		substitute( subject, *rowptr );
 		m_rows[ subject ] = rowptr.release();
 		m_cns[ constraint ] = tag;
-		m_dirty = true;
+
+		// Optimizing after each new constraint performs less aggregate
+		// work due to a smaller average system size. It also ensures
+		// that the solver remains in a consistent state.
+		optimize();
 	}
 
 	/* Remove a constraint from the solver.
@@ -114,12 +116,8 @@ public:
 		if( cn_it == m_cns.end() )
 			throw UnknownConstraint( constraint );
 
-		// Must be feasible before removing constraint.
-		ensureDualOptimized();
-
 		Tag tag( cn_it->second );
 		m_cns.erase( cn_it );
-		m_dirty = true;
 
 		// Remove the error variables from the objective function
 		// *before* pivoting, or substitutions into the objective
@@ -145,6 +143,12 @@ public:
 			m_rows.erase( row_it );
 			pivot( *rowptr, leaving, tag.marker );
 		}
+
+		// Optimizing after each removed constraint ensures that the
+		// solver remains consistent. It makes the solver api easier
+		// to use at a small tradeoff for speed. However, removing
+		// a constraint is an infrequent operation in practice.
+		optimize();
 	}
 
 	/* Test whether a constraint has been added to the solver.
@@ -229,9 +233,6 @@ public:
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
-		// Must be optimized before suggesting value.
-		ensureOptimized();
-
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
 		info.constant = value;
@@ -241,7 +242,7 @@ public:
 		if( row_it != m_rows.end() )
 		{
 			if( row_it->second->add( -delta ) < 0.0 )
-				m_infeasible_rows.push_back( row_it->first );
+				dualOptimize( row_it->first );
 			return;
 		}
 
@@ -250,11 +251,12 @@ public:
 		if( row_it != m_rows.end() )
 		{
 			if( row_it->second->add( delta ) < 0.0 )
-				m_infeasible_rows.push_back( row_it->first );
+				dualOptimize( row_it->first );
 			return;
 		}
 
 		// Otherwise update each row where the error variables exist.
+		std::vector<Symbol> infeasible_rows;
 		RowMap::iterator end = m_rows.end();
 		for( row_it = m_rows.begin(); row_it != end; ++row_it )
 		{
@@ -262,8 +264,10 @@ public:
 			if( coeff != 0.0 &&
 				row_it->second->add( delta * coeff ) < 0.0 &&
 				row_it->first.type() != Symbol::External )
-				m_infeasible_rows.push_back( row_it->first );
+				infeasible_rows.push_back( row_it->first );
 		}
+		if( !infeasible_rows.empty() )
+			dualOptimize( infeasible_rows );
 	}
 
 	/* Solve the system for the current set of constraints.
@@ -276,18 +280,9 @@ public:
 	UnboundedObjective
 		The constraints result in an unbounded object function.
 
-	InternalSolverError
-		This should never happen. Please report as a bug.
-
-	XXX is it even possible to acheive an unbounded objective?
-
 	*/
 	void solve()
 	{
-		// The solver should never be both unoptimized and infeasible,
-		// but the checks are cheap, and work is only done when dirty.
-		ensureOptimized();
-		ensureDualOptimized();
 		updateExternalVars();
 	}
 
@@ -306,10 +301,8 @@ public:
 		m_cns.clear();
 		m_vars.clear();
 		m_edits.clear();
-		m_infeasible_rows.clear();
 		m_objective.reset( new Row() );
 		m_id_tick = 1;
-		m_dirty = false;
 	}
 
 private:
@@ -526,11 +519,9 @@ private:
 			Symbol entering( getEnteringSymbol() );
 			if( entering.type() == Symbol::Invalid )
 				return;
-
 			RowMap::iterator it = getLeavingRow( entering );
 			if( it == m_rows.end() )
 				throw UnboundedObjective();
-
 			Symbol leaving( it->first );
 			Row* row = it->second;
 			m_rows.erase( it );
@@ -543,28 +534,32 @@ private:
 
 	The current state of the system should be such that the objective
 	function is optimal, but not feasible. This method will perform
-	iterations of the dual simplex method until no infeasible rows
-	remain, thus making the solution optimal and feasible.
+	an iteration of the dual simplex method to make the solution both
+	optimal and feasible.
 
 	*/
-	void dualOptimize()
+	// Pass by value in case the pivot invalidates an iterator
+	void dualOptimize( const Symbol leaving )
 	{
-		while( !m_infeasible_rows.empty() )
+		RowMap::iterator it = m_rows.find( leaving );
+		if( it != m_rows.end() && it->second->constant() < 0.0 )
 		{
-			Symbol leaving( m_infeasible_rows.back() );
-			m_infeasible_rows.pop_back();
-			RowMap::iterator it = m_rows.find( leaving );
-			if( it != m_rows.end() && it->second->constant() < 0.0 )
-			{
-				Symbol entering( getDualEnteringSymbol( *it->second ) );
-				if( entering.type() == Symbol::Invalid ) // should never happen
-					throw InternalSolverError();
-				Row* row = it->second;
-				m_rows.erase( it );
-				pivot( *row, leaving, entering );
-				m_rows[ entering ] = row;
-			}
+			Symbol entering( getDualEnteringSymbol( *it->second ) );
+			if( entering.type() == Symbol::Invalid )
+				throw InternalSolverError();
+			Row* row = it->second;
+			m_rows.erase( it );
+			pivot( *row, leaving, entering );
+			m_rows[ entering ] = row;
 		}
+	}
+
+	void dualOptimize( const std::vector<Symbol>& infeasible_rows )
+	{
+		typedef std::vector<Symbol>::const_iterator iter_t;
+		iter_t end = infeasible_rows.end();
+		for( iter_t it = infeasible_rows.begin(); it != end; ++it )
+			dualOptimize( *it );
 	}
 
 	/* Compute the entering variable for a pivot operation.
@@ -736,35 +731,12 @@ private:
 		}
 	}
 
-	/* Ensure that the solver is optimized.
-
-	*/
-	void ensureOptimized()
-	{
-		if( m_dirty )
-		{
-			optimize();
-			m_dirty = false;
-		}
-	}
-
-	/* Ensure that the solver is dual optimized.
-
-	*/
-	void ensureDualOptimized()
-	{
-		if( !m_infeasible_rows.empty() )
-			dualOptimize();
-	}
-
 	CnMap m_cns;
 	RowMap m_rows;
 	VarMap m_vars;
 	EditMap m_edits;
-	std::vector<Symbol> m_infeasible_rows;
 	std::auto_ptr<Row> m_objective;
 	Symbol::Id m_id_tick;
-	bool m_dirty;
 };
 
 } // namespace impl
