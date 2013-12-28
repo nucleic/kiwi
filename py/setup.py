@@ -25,8 +25,8 @@ ext_modules = [
 
 
 setup(
-    name='atom',
-    version='0.3.2',
+    name='pykiwi',
+    version='0.0.1',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
