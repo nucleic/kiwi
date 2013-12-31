@@ -43,8 +43,6 @@ extern PyObject* UnknownEditVariable;
 
 extern PyObject* BadRequiredStrength;
 
-extern PyObject* UnboundedObjective;
-
 
 struct Variable
 {

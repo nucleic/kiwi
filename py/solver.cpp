@@ -177,17 +177,9 @@ Solver_suggestValue( Solver* self, PyObject* args )
 
 
 static PyObject*
-Solver_solve( Solver* self )
+Solver_updateVariables( Solver* self )
 {
-	try
-	{
-		self->solver.solve();
-	}
-	catch( const kiwi::UnboundedObjective& e )
-	{
-		PyErr_SetString( UnboundedObjective, e.what() );
-		return 0;
-	}
+	self->solver.updateVariables();
 	Py_RETURN_NONE;
 }
 
@@ -216,8 +208,8 @@ Solver_methods[] = {
 	  "Check whether the solver contains an edit variable." },
 	{ "suggestValue", ( PyCFunction )Solver_suggestValue, METH_VARARGS,
 	  "Suggest a desired value for an edit variable." },
-	{ "solve", ( PyCFunction )Solver_solve, METH_NOARGS,
-	  "Solve the system for the current constraints and suggested values." },
+	{ "updateVariables", ( PyCFunction )Solver_updateVariables, METH_NOARGS,
+	  "Update the values of the solver variables." },
 	{ "reset", ( PyCFunction )Solver_reset, METH_NOARGS,
 	  "Reset the solver to the initial empty starting condition." },
 	{ 0 } // sentinel
@@ -287,8 +279,6 @@ PyObject* UnknownEditVariable;
 
 PyObject* BadRequiredStrength;
 
-PyObject* UnboundedObjective;
-
 
 int import_solver()
 {
@@ -315,10 +305,6 @@ int import_solver()
   	BadRequiredStrength = PyErr_NewException(
   		const_cast<char*>( "pykiwi.BadRequiredStrength" ), 0, 0 );
  	if( !BadRequiredStrength )
- 		return -1;
-  	UnboundedObjective = PyErr_NewException(
-  		const_cast<char*>( "pykiwi.UnboundedObjective" ), 0, 0 );
- 	if( !UnboundedObjective )
  		return -1;
 	return PyType_Ready( &Solver_Type );
 }

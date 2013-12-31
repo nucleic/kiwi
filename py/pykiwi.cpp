@@ -46,5 +46,4 @@ initpykiwi( void )
     PyModule_AddObject( mod, "DuplicateEditVariable", newref( DuplicateEditVariable ) );
     PyModule_AddObject( mod, "UnknownEditVariable", newref( UnknownEditVariable ) );
     PyModule_AddObject( mod, "BadRequiredStrength", newref( BadRequiredStrength ) );
-    PyModule_AddObject( mod, "UnboundedObjective", newref( UnboundedObjective ) );
 }
