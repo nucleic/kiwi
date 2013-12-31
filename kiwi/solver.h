@@ -120,25 +120,12 @@ public:
 		m_impl.suggestValue( variable, value );
 	}
 
-	/* Solve the system for the current set of constraints.
-
-	The will resolve the system and update the values of the variables
-	according to the current constraints and suggested values.
-
-	Throws
-	------
-	UnboundedObjective
-		The constraints result in an unbounded object function.
-
-	InternalSolverError
-		This should never happen. Please report as a bug.
-
-	XXX is it even possible to acheive an unbounded objective?
+	/* Update the values of the external solver variables.
 
 	*/
-	void solve()
+	void updateVariables()
 	{
-		m_impl.solve();
+		m_impl.updateVariables();
 	}
 
 	/* Reset the solver to the empty starting condition.

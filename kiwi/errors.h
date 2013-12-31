@@ -7,27 +7,13 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include <exception>
+#include <string>
 #include "constraint.h"
 #include "variable.h"
 
 
 namespace kiwi
 {
-
-class UnboundedObjective : public std::exception
-{
-
-public:
-
-	UnboundedObjective() {}
-
-	~UnboundedObjective() throw() {}
-
-	const char* what() const throw()
-	{
-		return "The objective function is unbounded.";
-	}
-};
 
 
 class UnsatisfiableConstraint : public std::exception
@@ -181,14 +167,22 @@ class InternalSolverError : public std::exception
 
 public:
 
-	InternalSolverError() {}
+	InternalSolverError() : m_msg( "An internal solver error ocurred." ) {}
+
+	InternalSolverError( const char* msg ) : m_msg( msg ) {}
+
+	InternalSolverError( const std::string& msg ) : m_msg( msg ) {}
 
 	~InternalSolverError() throw() {}
 
 	const char* what() const throw()
 	{
-		return "An internal solver error occured.";
+		return m_msg.c_str();
 	}
+
+private:
+
+	std::string m_msg;
 };
 
 } // namespace kiwi

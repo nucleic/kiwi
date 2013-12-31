@@ -146,8 +146,8 @@ public:
 
 		// Optimizing after each removed constraint ensures that the
 		// solver remains consistent. It makes the solver api easier
-		// to use at a small tradeoff for speed. However, removing
-		// a constraint is an infrequent operation in practice.
+		// to use at a small tradeoff for speed. However, removing a
+		// constraint is an infrequent operation in practice.
 		optimize();
 	}
 
@@ -270,20 +270,24 @@ public:
 			dualOptimize( infeasible_rows );
 	}
 
-	/* Solve the system for the current set of constraints.
-
-	The will resolve the system and update the values of the variables
-	according to the current constraints and suggested values.
-
-	Throws
-	------
-	UnboundedObjective
-		The constraints result in an unbounded object function.
+	/* Update the values of the external solver variables.
 
 	*/
-	void solve()
+	void updateVariables()
 	{
-		updateExternalVars();
+		typedef RowMap::iterator row_iter_t;
+		typedef VarMap::iterator var_iter_t;
+		row_iter_t row_end = m_rows.end();
+		var_iter_t var_end = m_vars.end();
+		for( var_iter_t var_it = m_vars.begin(); var_it != var_end; ++var_it )
+		{
+			Variable& var( const_cast<Variable&>( var_it->first ) );
+			row_iter_t row_it = m_rows.find( var_it->second );
+			if( row_it == row_end )
+				var.setValue( 0.0 );
+			else
+				var.setValue( row_it->second->constant() );
+		}
 	}
 
 	/* Reset the solver to the empty starting condition.
@@ -508,7 +512,7 @@ private:
 
 	Throws
 	------
-	UnboundedObjective
+	InternalSolverError
 		The value of the objective function is unbounded.
 
 	*/
@@ -521,7 +525,7 @@ private:
 				return;
 			RowMap::iterator it = getLeavingRow( entering );
 			if( it == m_rows.end() )
-				throw UnboundedObjective();
+				throw InternalSolverError( "The objective is unbounded." );
 			Symbol leaving( it->first );
 			Row* row = it->second;
 			m_rows.erase( it );
@@ -537,6 +541,11 @@ private:
 	an iteration of the dual simplex method to make the solution both
 	optimal and feasible.
 
+	Throws
+	------
+	InternalSolverError
+		The system cannot be dual optimized.
+
 	*/
 	// Pass by value in case the pivot invalidates an iterator
 	void dualOptimize( const Symbol leaving )
@@ -546,7 +555,7 @@ private:
 		{
 			Symbol entering( getDualEnteringSymbol( *it->second ) );
 			if( entering.type() == Symbol::Invalid )
-				throw InternalSolverError();
+				throw InternalSolverError( "Dual optimize failed." );
 			Row* row = it->second;
 			m_rows.erase( it );
 			pivot( *row, leaving, entering );
@@ -708,27 +717,6 @@ private:
 		if( second != end )
 			return second;
 		return third;
-	}
-
-	/* Update the external variables with the values from the tableau.
-
-	*/
-	void updateExternalVars()
-	{
-		typedef VarMap::iterator var_iter_t;
-		typedef RowMap::iterator row_iter_t;
-		var_iter_t var_begin = m_vars.begin();
-		var_iter_t var_end = m_vars.end();
-		row_iter_t row_end = m_rows.end();
-		for( var_iter_t var_it = var_begin; var_it != var_end; ++var_it )
-		{
-			Variable& var( const_cast<Variable&>( var_it->first ) );
-			row_iter_t row_it = m_rows.find( var_it->second );
-			if( row_it == row_end )
-				var.setValue( 0.0 );
-			else
-				var.setValue( row_it->second->constant() );
-		}
 	}
 
 	CnMap m_cns;
