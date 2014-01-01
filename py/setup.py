@@ -16,6 +16,7 @@ ext_modules = [
          'expression.cpp',
          'kiwisolver.cpp',
          'solver.cpp',
+         'strength.cpp',
          'term.cpp',
          'variable.cpp'],
         include_dirs=['../'],

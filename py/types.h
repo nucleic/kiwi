@@ -20,6 +20,8 @@ int import_constraint();
 
 int import_solver();
 
+int import_strength();
+
 
 extern PyTypeObject Variable_Type;
 
@@ -30,6 +32,8 @@ extern PyTypeObject Expression_Type;
 extern PyTypeObject Constraint_Type;
 
 extern PyTypeObject Solver_Type;
+
+extern PyTypeObject strength_Type;
 
 extern PyObject* DuplicateConstraint;
 
