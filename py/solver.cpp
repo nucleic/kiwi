@@ -219,7 +219,7 @@ Solver_methods[] = {
 PyTypeObject Solver_Type = {
 	PyObject_HEAD_INIT( 0 )
 	0,                                      /* ob_size */
-	"pykiwi.Solver",                        /* tp_name */
+	"kiwisolver.Solver",                    /* tp_name */
 	sizeof( Solver ),                       /* tp_basicsize */
 	0,                                      /* tp_itemsize */
 	(destructor)Solver_dealloc,             /* tp_dealloc */
@@ -283,27 +283,27 @@ PyObject* BadRequiredStrength;
 int import_solver()
 {
  	DuplicateConstraint = PyErr_NewException(
- 		const_cast<char*>( "pykiwi.DuplicateConstraint" ), 0, 0 );
+ 		const_cast<char*>( "kiwisolver.DuplicateConstraint" ), 0, 0 );
  	if( !DuplicateConstraint )
  		return -1;
   	UnsatisfiableConstraint = PyErr_NewException(
-  		const_cast<char*>( "pykiwi.UnsatisfiableConstraint" ), 0, 0 );
+  		const_cast<char*>( "kiwisolver.UnsatisfiableConstraint" ), 0, 0 );
  	if( !UnsatisfiableConstraint )
  		return -1;
   	UnknownConstraint = PyErr_NewException(
-  		const_cast<char*>( "pykiwi.UnknownConstraint" ), 0, 0 );
+  		const_cast<char*>( "kiwisolver.UnknownConstraint" ), 0, 0 );
  	if( !UnknownConstraint )
  		return -1;
   	DuplicateEditVariable = PyErr_NewException(
-  		const_cast<char*>( "pykiwi.DuplicateEditVariable" ), 0, 0 );
+  		const_cast<char*>( "kiwisolver.DuplicateEditVariable" ), 0, 0 );
  	if( !DuplicateEditVariable )
  		return -1;
   	UnknownEditVariable = PyErr_NewException(
-  		const_cast<char*>( "pykiwi.UnknownEditVariable" ), 0, 0 );
+  		const_cast<char*>( "kiwisolver.UnknownEditVariable" ), 0, 0 );
  	if( !UnknownEditVariable )
  		return -1;
   	BadRequiredStrength = PyErr_NewException(
-  		const_cast<char*>( "pykiwi.BadRequiredStrength" ), 0, 0 );
+  		const_cast<char*>( "kiwisolver.BadRequiredStrength" ), 0, 0 );
  	if( !BadRequiredStrength )
  		return -1;
 	return PyType_Ready( &Solver_Type );

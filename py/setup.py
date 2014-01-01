@@ -11,10 +11,10 @@ import sipdistutils
 
 ext_modules = [
     Extension(
-        'pykiwi',
+        'kiwisolver',
         ['constraint.cpp',
          'expression.cpp',
-         'pykiwi.cpp',
+         'kiwisolver.cpp',
          'solver.cpp',
          'term.cpp',
          'variable.cpp'],
@@ -25,7 +25,7 @@ ext_modules = [
 
 
 setup(
-    name='pykiwi',
+    name='kiwisolver',
     version='0.0.1',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',

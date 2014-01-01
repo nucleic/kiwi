@@ -207,7 +207,7 @@ Term_as_number = {
 PyTypeObject Term_Type = {
 	PyObject_HEAD_INIT( 0 )
 	0,                                      /* ob_size */
-	"pykiwi.Term",                          /* tp_name */
+	"kiwisolver.Term",                      /* tp_name */
 	sizeof( Term ),                         /* tp_basicsize */
 	0,                                      /* tp_itemsize */
 	(destructor)Term_dealloc,               /* tp_dealloc */

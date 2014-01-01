@@ -218,7 +218,7 @@ Constraint_as_number = {
 PyTypeObject Constraint_Type = {
     PyObject_HEAD_INIT( 0 )
     0,                                      /* ob_size */
-    "pykiwi.Constraint",                    /* tp_name */
+    "kiwisolver.Constraint",                /* tp_name */
     sizeof( Constraint ),                   /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)Constraint_dealloc,         /* tp_dealloc */

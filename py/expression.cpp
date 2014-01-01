@@ -223,7 +223,7 @@ Expression_as_number = {
 PyTypeObject Expression_Type = {
     PyObject_HEAD_INIT( 0 )
     0,                                      /* ob_size */
-    "pykiwi.Expression",                    /* tp_name */
+    "kiwisolver.Expression",                /* tp_name */
     sizeof( Expression ),                   /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)Expression_dealloc,         /* tp_dealloc */

@@ -238,7 +238,7 @@ Variable_as_number = {
 PyTypeObject Variable_Type = {
 	PyObject_HEAD_INIT( 0 )
 	0,                                      /* ob_size */
-	"pykiwi.Variable",                      /* tp_name */
+	"kiwisolver.Variable",                  /* tp_name */
 	sizeof( Variable ),                     /* tp_basicsize */
 	0,                                      /* tp_itemsize */
 	(destructor)Variable_dealloc,           /* tp_dealloc */

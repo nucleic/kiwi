@@ -14,15 +14,15 @@ using namespace PythonHelpers;
 
 
 static PyMethodDef
-pykiwi_methods[] = {
+kiwisolver_methods[] = {
     { 0 } // Sentinel
 };
 
 
 PyMODINIT_FUNC
-initpykiwi( void )
+initkiwisolver( void )
 {
-    PyObject* mod = Py_InitModule( "pykiwi", pykiwi_methods );
+    PyObject* mod = Py_InitModule( "kiwisolver", kiwisolver_methods );
     if( !mod )
         return;
     if( import_variable() < 0 )
