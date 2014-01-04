@@ -90,6 +90,14 @@ Term_coefficient( Term* self )
 
 
 static PyObject*
+Term_value( Term* self )
+{
+	Variable* pyvar = reinterpret_cast<Variable*>( self->variable );
+	return PyFloat_FromDouble( self->coefficient * pyvar->variable.value() );
+}
+
+
+static PyObject*
 Term_add( PyObject* first, PyObject* second )
 {
 	return BinaryInvoke<BinaryAdd, Term>()( first, second );
@@ -156,6 +164,8 @@ Term_methods[] = {
 	  "Get the variable for the term." },
 	{ "coefficient", ( PyCFunction )Term_coefficient, METH_NOARGS,
 	  "Get the coefficient for the term." },
+	{ "value", ( PyCFunction )Term_value, METH_NOARGS,
+	  "Get the value for the term." },
 	{ 0 } // sentinel
 };
 

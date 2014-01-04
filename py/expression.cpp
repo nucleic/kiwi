@@ -106,6 +106,22 @@ Expression_constant( Expression* self )
 
 
 static PyObject*
+Expression_value( Expression* self )
+{
+    double result = self->constant;
+    Py_ssize_t size = PyTuple_GET_SIZE( self->terms );
+    for( Py_ssize_t i = 0; i < size; ++i )
+    {
+        PyObject* item = PyTuple_GET_ITEM( self->terms, i );
+        Term* term = reinterpret_cast<Term*>( item );
+        Variable* pyvar = reinterpret_cast<Variable*>( term->variable );
+        result += term->coefficient * pyvar->variable.value();
+    }
+    return PyFloat_FromDouble( result );
+}
+
+
+static PyObject*
 Expression_add( PyObject* first, PyObject* second )
 {
     return BinaryInvoke<BinaryAdd, Expression>()( first, second );
@@ -172,6 +188,8 @@ Expression_methods[] = {
       "Get the tuple of terms for the expression." },
     { "constant", ( PyCFunction )Expression_constant, METH_NOARGS,
       "Get the constant for the expression." },
+    { "value", ( PyCFunction )Expression_value, METH_NOARGS,
+      "Get the value for the expression." },
     { 0 } // sentinel
 };
 

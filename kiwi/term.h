@@ -37,6 +37,11 @@ public:
 		return m_coefficient;
 	}
 
+	double value() const
+	{
+		return m_coefficient * m_variable.value();
+	}
+
 private:
 
 	Variable m_variable;
