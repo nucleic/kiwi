@@ -119,13 +119,10 @@ public:
 		Tag tag( cn_it->second );
 		m_cns.erase( cn_it );
 
-		// Remove the error variables from the objective function
+		// Remove the error effects from the objective function
 		// *before* pivoting, or substitutions into the objective
 		// will lead to incorrect solver results.
-		if( tag.marker.type() == Symbol::Error )
-			m_objective->remove( tag.marker );
-		if( tag.other.type() == Symbol::Error )
-			m_objective->remove( tag.other );
+		removeConstraintEffect( constraint, tag );
 
 		// If the marker is basic, simply drop the row. Otherwise,
 		// pivot the marker into the basis and then drop the row.
@@ -717,6 +714,29 @@ private:
 		if( second != end )
 			return second;
 		return third;
+	}
+
+	/* Remove the effect of a constraint on the objective function.
+
+	*/
+	void removeConstraintEffect( const Constraint& cn, const Tag& tag )
+	{
+		if( tag.marker.type() == Symbol::Error )
+			removeMarkerEffect( tag.marker, cn.strength() );
+		if( tag.other.type() == Symbol::Error )
+			removeMarkerEffect( tag.other, cn.strength() );
+	}
+
+	/* Remove the effect of an error marker on the objective function.
+
+	*/
+	void removeMarkerEffect( const Symbol& marker, double strength )
+	{
+		RowMap::iterator row_it = m_rows.find( marker );
+		if( row_it != m_rows.end() )
+			m_objective->insert( *row_it->second, -strength );
+		else
+			m_objective->insert( marker, -strength );
 	}
 
 	CnMap m_cns;
