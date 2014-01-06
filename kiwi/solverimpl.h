@@ -256,7 +256,7 @@ public:
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
-		DualOptimizeGuard( *this );
+		DualOptimizeGuard guard( *this );
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
 		info.constant = value;
