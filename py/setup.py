@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-------------------------------------------------------------------------------
 from setuptools import setup, Extension
-import sipdistutils
 
 
 ext_modules = [
