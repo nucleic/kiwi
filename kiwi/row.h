@@ -28,6 +28,9 @@ public:
 
 	Row( double constant ) : m_constant( constant ) {}
 
+	Row( const Row& other ) :
+		m_cells( other.m_cells ), m_constant( other.m_constant ) {}
+
 	~Row() {}
 
 	const CellMap& cells() const

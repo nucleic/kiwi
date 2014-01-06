@@ -192,6 +192,13 @@ Solver_reset( Solver* self )
 }
 
 
+static PyObject*
+Solver_dump( Solver* self )
+{
+	self->solver.dump();
+	Py_RETURN_NONE;
+}
+
 static PyMethodDef
 Solver_methods[] = {
 	{ "addConstraint", ( PyCFunction )Solver_addConstraint, METH_O,
@@ -212,6 +219,7 @@ Solver_methods[] = {
 	  "Update the values of the solver variables." },
 	{ "reset", ( PyCFunction )Solver_reset, METH_NOARGS,
 	  "Reset the solver to the initial empty starting condition." },
+	{ "dump", ( PyCFunction )Solver_dump, METH_NOARGS, "" },
 	{ 0 } // sentinel
 };
 

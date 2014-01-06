@@ -28,6 +28,10 @@ namespace kiwi
 namespace impl
 {
 
+template<typename T>
+void dump( const T& value );
+
+
 class SolverImpl
 {
 	friend class DebugHelper;
@@ -52,6 +56,13 @@ class SolverImpl
 	typedef MapType<Constraint, Tag>::Type CnMap;
 
 	typedef MapType<Variable, EditInfo>::Type EditMap;
+
+	struct DualOptGuard
+	{
+		DualOptGuard( SolverImpl& impl ) : m_impl( impl ) {}
+		~DualOptGuard() { m_impl.dualOptimize(); }
+		SolverImpl& m_impl;
+	};
 
 public:
 
@@ -87,15 +98,53 @@ public:
 		// add conflicting constraints and its likely that a given var
 		// will be used by multiple constraints anyway, so I'm not too
 		// concerned about handling this edge-case at the moment.
-		Symbol subject( chooseSubject( *rowptr ) );
+		Symbol subject( chooseSubject( *rowptr, tag ) );
 		if( subject.type() == Symbol::Invalid )
-			throw UnsatisfiableConstraint( constraint );
+		{
+			// try artificial variable approach
+			Symbol art( Symbol::Slack, m_id_tick++ );
+			Row* old_row = m_objective.release();
 
-		rowptr->solveFor( subject );
-		substitute( subject, *rowptr );
-		m_rows[ subject ] = rowptr.release();
+			m_objective.reset( rowptr.release() );
+			m_rows[ art ] = new Row( *m_objective );
+
+			optimize();
+
+			bool is_zero = nearZero( m_objective->constant() );
+
+			// remove the artificial variable
+			RowMap::iterator it = m_rows.find( art );
+			if( it != m_rows.end() )
+			{
+				Row* temp = it->second;
+				m_rows.erase( it );
+				delete temp;
+			}
+			else
+			{
+				RowMap::iterator end = m_rows.end();
+				for( it = m_rows.begin(); it != end; ++it )
+					it->second->remove( art );
+			}
+
+			m_objective.reset( old_row );
+
+			if( !is_zero )
+				throw UnsatisfiableConstraint( constraint );
+
+			std::cout << "add with artificial" << std::endl;
+		}
+		else
+		{
+			rowptr->solveFor( subject );
+			substitute( subject, *rowptr );
+			m_rows[ subject ] = rowptr.release();
+		}
+
+
 		m_cns[ constraint ] = tag;
 
+		std::cout << "add cn: " << m_infeasible_rows.empty() << std::endl;
 		// Optimizing after each new constraint performs less aggregate
 		// work due to a smaller average system size. It also ensures
 		// that the solver remains in a consistent state.
@@ -234,12 +283,16 @@ public:
 		double delta = value - info.constant;
 		info.constant = value;
 
+		DualOptGuard( *this );
+		std::cout << variable.name() << " " << delta << std::endl;
+
 		// Check first if the positive error variable is basic.
 		RowMap::iterator row_it = m_rows.find( info.tag.marker );
 		if( row_it != m_rows.end() )
 		{
+			std::cout << "here1" << std::endl;
 			if( row_it->second->add( -delta ) < 0.0 )
-				dualOptimize( row_it->first );
+				m_infeasible_rows.push_back( row_it->first );
 			return;
 		}
 
@@ -247,13 +300,15 @@ public:
 		row_it = m_rows.find( info.tag.other );
 		if( row_it != m_rows.end() )
 		{
+			std::cout << "here2" << std::endl;
 			if( row_it->second->add( delta ) < 0.0 )
-				dualOptimize( row_it->first );
+				m_infeasible_rows.push_back( row_it->first );
 			return;
 		}
 
+		std::cout << "here3 " << info.tag.marker.id() << std::endl;
+
 		// Otherwise update each row where the error variables exist.
-		std::vector<Symbol> infeasible_rows;
 		RowMap::iterator end = m_rows.end();
 		for( row_it = m_rows.begin(); row_it != end; ++row_it )
 		{
@@ -261,10 +316,8 @@ public:
 			if( coeff != 0.0 &&
 				row_it->second->add( delta * coeff ) < 0.0 &&
 				row_it->first.type() != Symbol::External )
-				infeasible_rows.push_back( row_it->first );
+				m_infeasible_rows.push_back( row_it->first );
 		}
-		if( !infeasible_rows.empty() )
-			dualOptimize( infeasible_rows );
 	}
 
 	/* Update the values of the external solver variables.
@@ -302,6 +355,7 @@ public:
 		m_cns.clear();
 		m_vars.clear();
 		m_edits.clear();
+		m_infeasible_rows.clear();
 		m_objective.reset( new Row() );
 		m_id_tick = 1;
 	}
@@ -447,7 +501,7 @@ private:
 	case, this method will return an invalid symbol.
 
 	*/
-	Symbol chooseSubject( const Row& row )
+	Symbol chooseSubject( const Row& row, const Tag& tag )
 	{
 		typedef Row::CellMap::const_iterator iter_t;
 		Symbol result;
@@ -462,8 +516,11 @@ private:
 				case Symbol::Error:
 				{
 					if( it->second < 0.0 )
-						result = it->first;
-					break;
+					{
+						if( it->first == tag.marker || it->first == tag.other )
+							result = it->first;
+							break;
+					}
 				}
 				default:
 					break;
@@ -483,7 +540,17 @@ private:
 		typedef RowMap::iterator iter_t;
 		iter_t end = m_rows.end();
 		for( iter_t it = m_rows.begin(); it != end; ++it )
+		{
 			it->second->substitute( symbol, row );
+			if( it->first.type() != Symbol::External && it->second->constant() < 0.0 )
+			{
+				m_infeasible_rows.push_back( it->first );
+				std::cout << "infeasible: ";
+				dump( *it->second );
+				dump( *this );
+				std::cout << std::endl;
+			}
+		}
 		m_objective->substitute( symbol, row );
 	}
 
@@ -545,27 +612,28 @@ private:
 
 	*/
 	// Pass by value in case the pivot invalidates an iterator
-	void dualOptimize( const Symbol leaving )
+	void dualOptimize()
 	{
-		RowMap::iterator it = m_rows.find( leaving );
-		if( it != m_rows.end() && it->second->constant() < 0.0 )
+		while( !m_infeasible_rows.empty() )
 		{
-			Symbol entering( getDualEnteringSymbol( *it->second ) );
-			if( entering.type() == Symbol::Invalid )
-				throw InternalSolverError( "Dual optimize failed." );
-			Row* row = it->second;
-			m_rows.erase( it );
-			pivot( *row, leaving, entering );
-			m_rows[ entering ] = row;
-		}
-	}
 
-	void dualOptimize( const std::vector<Symbol>& infeasible_rows )
-	{
-		typedef std::vector<Symbol>::const_iterator iter_t;
-		iter_t end = infeasible_rows.end();
-		for( iter_t it = infeasible_rows.begin(); it != end; ++it )
-			dualOptimize( *it );
+			Symbol leaving( m_infeasible_rows.back() );
+			m_infeasible_rows.pop_back();
+			std::cout << "dual opt" << leaving.id() << std::endl;
+			RowMap::iterator it = m_rows.find( leaving );
+			if( it != m_rows.end() && it->second->constant() < 0.0 )
+			{
+				Symbol entering( getDualEnteringSymbol( *it->second ) );
+				std::cout << "entering " << entering.id() << std::endl;
+				if( entering.type() == Symbol::Invalid )
+					throw InternalSolverError( "Dual optimize failed." );
+				Row* row = it->second;
+				m_rows.erase( it );
+				pivot( *row, leaving, entering );
+				std::cout << "const: " << row->constant() << std::endl;
+				m_rows[ entering ] = row;
+			}
+		}
 	}
 
 	/* Compute the entering variable for a pivot operation.
@@ -743,6 +811,7 @@ private:
 	RowMap m_rows;
 	VarMap m_vars;
 	EditMap m_edits;
+	std::vector<Symbol> m_infeasible_rows;
 	std::auto_ptr<Row> m_objective;
 	Symbol::Id m_id_tick;
 };

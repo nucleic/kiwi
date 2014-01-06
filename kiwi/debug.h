@@ -156,6 +156,12 @@ public:
 	}
 };
 
+template<typename T>
+void dump( const T& value )
+{
+	DebugHelper::dump( value );
+}
+
 } // namespace impl
 
 
