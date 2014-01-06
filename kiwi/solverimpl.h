@@ -7,7 +7,6 @@
 |-----------------------------------------------------------------------------*/
 #pragma once
 #include <algorithm>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <vector>
@@ -27,10 +26,6 @@ namespace kiwi
 
 namespace impl
 {
-
-template<typename T>
-void dump( const T& value );
-
 
 class SolverImpl
 {
@@ -57,10 +52,10 @@ class SolverImpl
 
 	typedef MapType<Variable, EditInfo>::Type EditMap;
 
-	struct DualOptGuard
+	struct DualOptimizeGuard
 	{
-		DualOptGuard( SolverImpl& impl ) : m_impl( impl ) {}
-		~DualOptGuard() { m_impl.dualOptimize(); }
+		DualOptimizeGuard( SolverImpl& impl ) : m_impl( impl ) {}
+		~DualOptimizeGuard() { m_impl.dualOptimize(); }
 		SolverImpl& m_impl;
 	};
 
@@ -68,10 +63,7 @@ public:
 
 	SolverImpl() : m_objective( new Row() ), m_id_tick( 1 ) {}
 
-	~SolverImpl()
-	{
-		clearRows();
-	}
+	~SolverImpl() { clearRows(); }
 
 	/* Add a constraint to the solver.
 
@@ -89,50 +81,37 @@ public:
 		if( m_cns.find( constraint ) != m_cns.end() )
 			throw DuplicateConstraint( constraint );
 
+		// Creating a row causes symbols to reserved for the variables
+		// in the constraint. If this method exits with an exception,
+		// then its possible those variables will linger in the var map.
+		// Since its likely that those variables will be used in other
+		// constraints and since exceptional conditions are uncommon,
+		// i'm not too worried about aggressive cleanup of the var map.
 		Tag tag;
 		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
-
-		// If the constraint is unsatisfiable, the variables which were
-		// added as a result of creating the row for the constraint are
-		// not needed and should be removed. Code should not typically
-		// add conflicting constraints and its likely that a given var
-		// will be used by multiple constraints anyway, so I'm not too
-		// concerned about handling this edge-case at the moment.
 		Symbol subject( chooseSubject( *rowptr, tag ) );
+
+		// If chooseSubject could find a valid entering symbol, one
+		// last option is available if the entire row is composed of
+		// dummy variables. If the constant of the row is zero, then
+		// this represents redundant constraints and the new dummy
+		// marker can enter the basis. If the constant is non-zero,
+		// then it represents an unsatisfiable constraint.
+		if( subject.type() == Symbol::Invalid && allDummies( *rowptr ) )
+		{
+			if( !nearZero( rowptr->constant() ) )
+				throw UnsatisfiableConstraint( constraint );
+			else
+				subject = tag.marker;
+		}
+
+		// If an entering symbol still isn't found, then the row must
+		// be added using an artificial variable. If that fails, then
+		// the row represents an unsatisfiable constraint.
 		if( subject.type() == Symbol::Invalid )
 		{
-			// try artificial variable approach
-			Symbol art( Symbol::Slack, m_id_tick++ );
-			Row* old_row = m_objective.release();
-
-			m_objective.reset( rowptr.release() );
-			m_rows[ art ] = new Row( *m_objective );
-
-			optimize();
-
-			bool is_zero = nearZero( m_objective->constant() );
-
-			// remove the artificial variable
-			RowMap::iterator it = m_rows.find( art );
-			if( it != m_rows.end() )
-			{
-				Row* temp = it->second;
-				m_rows.erase( it );
-				delete temp;
-			}
-			else
-			{
-				RowMap::iterator end = m_rows.end();
-				for( it = m_rows.begin(); it != end; ++it )
-					it->second->remove( art );
-			}
-
-			m_objective.reset( old_row );
-
-			if( !is_zero )
+			if( !addWithArtificialVariable( *rowptr ) )
 				throw UnsatisfiableConstraint( constraint );
-
-			std::cout << "add with artificial" << std::endl;
 		}
 		else
 		{
@@ -141,14 +120,12 @@ public:
 			m_rows[ subject ] = rowptr.release();
 		}
 
-
 		m_cns[ constraint ] = tag;
 
-		std::cout << "add cn: " << m_infeasible_rows.empty() << std::endl;
-		// Optimizing after each new constraint performs less aggregate
-		// work due to a smaller average system size. It also ensures
-		// that the solver remains in a consistent state.
-		optimize();
+		// Optimizing after each constraint is added performs less
+		// aggregate work due to a smaller average system size. It
+		// also ensures the solver remains in a consistent state.
+		optimize( *m_objective );
 	}
 
 	/* Remove a constraint from the solver.
@@ -171,7 +148,7 @@ public:
 		// Remove the error effects from the objective function
 		// *before* pivoting, or substitutions into the objective
 		// will lead to incorrect solver results.
-		removeConstraintEffect( constraint, tag );
+		removeConstraintEffects( constraint, tag );
 
 		// If the marker is basic, simply drop the row. Otherwise,
 		// pivot the marker into the basis and then drop the row.
@@ -184,17 +161,19 @@ public:
 		else
 		{
 			row_it = getMarkerLeavingRow( tag.marker );
+			if( row_it == m_rows.end() )
+				throw InternalSolverError( "failed to find leaving row" );
 			Symbol leaving( row_it->first );
 			std::auto_ptr<Row> rowptr( row_it->second );
 			m_rows.erase( row_it );
-			pivot( *rowptr, leaving, tag.marker );
+			rowptr->solveFor( leaving, tag.marker );
+			substitute( tag.marker, *rowptr );
 		}
 
-		// Optimizing after each removed constraint ensures that the
-		// solver remains consistent. It makes the solver api easier
-		// to use at a small tradeoff for speed. However, removing a
-		// constraint is an infrequent operation in practice.
-		optimize();
+		// Optimizing after each constraint is removed ensures that the
+		// solver remains consistent. It makes the solver api easier to
+		// use at a small tradeoff for speed.
+		optimize( *m_objective );
 	}
 
 	/* Test whether a constraint has been added to the solver.
@@ -263,9 +242,7 @@ public:
 	/* Suggest a value for the given edit variable.
 
 	This method should be used after an edit variable as been added to
-	the solver in order to suggest the value for that variable. After
-	all suggestions have been made, the `solve` method can be used to
-	update the values of all variables.
+	the solver in order to suggest the value for that variable.
 
 	Throws
 	------
@@ -279,18 +256,15 @@ public:
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
+		DualOptimizeGuard( *this );
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
 		info.constant = value;
-
-		DualOptGuard( *this );
-		std::cout << variable.name() << " " << delta << std::endl;
 
 		// Check first if the positive error variable is basic.
 		RowMap::iterator row_it = m_rows.find( info.tag.marker );
 		if( row_it != m_rows.end() )
 		{
-			std::cout << "here1" << std::endl;
 			if( row_it->second->add( -delta ) < 0.0 )
 				m_infeasible_rows.push_back( row_it->first );
 			return;
@@ -300,13 +274,10 @@ public:
 		row_it = m_rows.find( info.tag.other );
 		if( row_it != m_rows.end() )
 		{
-			std::cout << "here2" << std::endl;
 			if( row_it->second->add( delta ) < 0.0 )
 				m_infeasible_rows.push_back( row_it->first );
 			return;
 		}
-
-		std::cout << "here3 " << info.tag.marker.id() << std::endl;
 
 		// Otherwise update each row where the error variables exist.
 		RowMap::iterator end = m_rows.end();
@@ -357,6 +328,7 @@ public:
 		m_edits.clear();
 		m_infeasible_rows.clear();
 		m_objective.reset( new Row() );
+		m_artificial.reset();
 		m_id_tick = 1;
 	}
 
@@ -369,10 +341,7 @@ private:
 	struct RowDeleter
 	{
 		template<typename T>
-		void operator()( T& pair )
-		{
-			delete pair.second;
-		}
+		void operator()( T& pair ) { delete pair.second; }
 	};
 
 	void clearRows()
@@ -419,6 +388,7 @@ private:
 		const Expression& expr( constraint.expression() );
 		Row* row = new Row( expr.constant() );
 
+		// Substitute the current basic variables into the row.
 		iter_t end = expr.terms().end();
 		for( iter_t it = expr.terms().begin(); it != end; ++it )
 		{
@@ -433,6 +403,7 @@ private:
 			}
 		}
 
+		// Add the necessary slack, error, and dummy variables.
 		switch( constraint.op() )
 		{
 			case OP_LE:
@@ -474,6 +445,7 @@ private:
 			}
 		}
 
+		// Ensure the row as a positive constant.
 		if( row->constant() < 0.0 )
 			row->reverseSign();
 
@@ -489,45 +461,67 @@ private:
 	The symbols are chosen according to the following precedence:
 
 	1) The first symbol representing an external variable.
-	2) The last negative slack or error variable.
+	2) A negative slack or error tag variable.
 
-	Rule #2 follows from the fact that variables which are new to the
-	solver will always appear at the end of a row due to monotonically
-	increasing symbol ids. This reduces the need for substitutions.
-
-	Assuming that the row has already had its basic symbols replaced by
-	substitution, the only time that a valid subject will not be found
-	is when the constraint is required and cannot be satisfied. In that
-	case, this method will return an invalid symbol.
+	If a subject cannot be found, an invalid symbol will be returned.
 
 	*/
 	Symbol chooseSubject( const Row& row, const Tag& tag )
 	{
 		typedef Row::CellMap::const_iterator iter_t;
-		Symbol result;
 		iter_t end = row.cells().end();
 		for( iter_t it = row.cells().begin(); it != end; ++it )
 		{
-			switch( it->first.type() )
-			{
-				case Symbol::External:
-					return it->first;
-				case Symbol::Slack:
-				case Symbol::Error:
-				{
-					if( it->second < 0.0 )
-					{
-						if( it->first == tag.marker || it->first == tag.other )
-							result = it->first;
-							break;
-					}
-				}
-				default:
-					break;
-			}
+			if( it->first.type() == Symbol::External )
+				return it->first;
 		}
-		return result;
+		if( tag.marker.type() == Symbol::Slack || tag.marker.type() == Symbol::Error )
+		{
+			if( row.coefficientFor( tag.marker ) < 0.0 )
+				return tag.marker;
+		}
+		if( tag.other.type() == Symbol::Slack || tag.other.type() == Symbol::Error )
+		{
+			if( row.coefficientFor( tag.other ) < 0.0 )
+				return tag.other;
+		}
+		return Symbol();
 	}
+
+ 	/* Add the row to the tableau using an artificial variable.
+
+	This will return false if the constraint cannot be satisfied.
+
+ 	*/
+ 	bool addWithArtificialVariable( const Row& row )
+ 	{
+		// Create and add the artificial variable to the tableau
+		Symbol art( Symbol::Slack, m_id_tick++ );
+		m_rows[ art ] = new Row( row );
+		m_artificial.reset( new Row( row ) );
+
+		// Optimize the artificial objective
+		optimize( *m_artificial );
+		bool success = nearZero( m_artificial->constant() );
+
+		// Remove the artificial variable from the tableau
+		RowMap::iterator it = m_rows.find( art );
+		if( it != m_rows.end() )
+		{
+			std::auto_ptr<Row> rowptr( it->second );
+			m_rows.erase( it );
+		}
+		else
+		{
+			RowMap::iterator end = m_rows.end();
+			for( it = m_rows.begin(); it != end; ++it )
+				it->second->remove( art );
+			m_objective->remove( art );
+		}
+
+		m_artificial.reset();
+		return success;
+ 	}
 
 	/* Substitute the parametric symbol with the given row.
 
@@ -542,34 +536,16 @@ private:
 		for( iter_t it = m_rows.begin(); it != end; ++it )
 		{
 			it->second->substitute( symbol, row );
-			if( it->first.type() != Symbol::External && it->second->constant() < 0.0 )
-			{
+			if( it->first.type() != Symbol::External &&
+				it->second->constant() < 0.0 )
 				m_infeasible_rows.push_back( it->first );
-				std::cout << "infeasible: ";
-				dump( *it->second );
-				dump( *this );
-				std::cout << std::endl;
-			}
 		}
 		m_objective->substitute( symbol, row );
+		if( m_artificial.get() )
+			m_artificial->substitute( symbol, row );
 	}
 
-	/* Perform a pivot of the given row and symbols.
-
-	This method will pivot the tableau with the given row so that the
-	leaving symbol will leave the basis, and the entering symbol will
-	enter the basis. The entering symbol *must* exist in the row, and
-	the row *must not* currently be in the tableau. The caller is
-	responsible for adding the row back to the tableau if needed.
-
-	*/
-	void pivot( Row& row, const Symbol& leaving, const Symbol& entering )
-	{
-		row.solveFor( leaving, entering );
-		substitute( entering, row );
-	}
-
-	/* Optimize the system for the current objective function.
+	/* Optimize the system for the given objective function.
 
 	This method performs iterations of Phase 2 of the simplex method
 	until the objective function reaches a minimum.
@@ -580,20 +556,22 @@ private:
 		The value of the objective function is unbounded.
 
 	*/
-	void optimize()
+	void optimize( const Row& objective )
 	{
 		while( true )
 		{
-			Symbol entering( getEnteringSymbol() );
+			Symbol entering( getEnteringSymbol( objective ) );
 			if( entering.type() == Symbol::Invalid )
 				return;
 			RowMap::iterator it = getLeavingRow( entering );
 			if( it == m_rows.end() )
 				throw InternalSolverError( "The objective is unbounded." );
+			// pivot the entering symbol into the basis
 			Symbol leaving( it->first );
 			Row* row = it->second;
 			m_rows.erase( it );
-			pivot( *row, leaving, entering );
+			row->solveFor( leaving, entering );
+			substitute( entering, *row );
 			m_rows[ entering ] = row;
 		}
 	}
@@ -611,7 +589,6 @@ private:
 		The system cannot be dual optimized.
 
 	*/
-	// Pass by value in case the pivot invalidates an iterator
 	void dualOptimize()
 	{
 		while( !m_infeasible_rows.empty() )
@@ -619,18 +596,17 @@ private:
 
 			Symbol leaving( m_infeasible_rows.back() );
 			m_infeasible_rows.pop_back();
-			std::cout << "dual opt" << leaving.id() << std::endl;
 			RowMap::iterator it = m_rows.find( leaving );
 			if( it != m_rows.end() && it->second->constant() < 0.0 )
 			{
 				Symbol entering( getDualEnteringSymbol( *it->second ) );
-				std::cout << "entering " << entering.id() << std::endl;
 				if( entering.type() == Symbol::Invalid )
 					throw InternalSolverError( "Dual optimize failed." );
+				// pivot the entering symbol into the basis
 				Row* row = it->second;
 				m_rows.erase( it );
-				pivot( *row, leaving, entering );
-				std::cout << "const: " << row->constant() << std::endl;
+				row->solveFor( leaving, entering );
+				substitute( entering, *row );
 				m_rows[ entering ] = row;
 			}
 		}
@@ -644,12 +620,11 @@ private:
 	invalid symbol is returned.
 
 	*/
-	Symbol getEnteringSymbol()
+	Symbol getEnteringSymbol( const Row& objective )
 	{
 		typedef Row::CellMap::const_iterator iter_t;
-		iter_t begin = m_objective->cells().begin();
-		iter_t end = m_objective->cells().end();
-		for( iter_t it = begin; it != end; ++it )
+		iter_t end = objective.cells().end();
+		for( iter_t it = objective.cells().begin(); it != end; ++it )
 		{
 			if( it->first.type() != Symbol::Dummy && it->second < 0.0 )
 				return it->first;
@@ -657,7 +632,7 @@ private:
 		return Symbol();
 	}
 
-	/* Compute the entering symbol for the dual solve operation.
+	/* Compute the entering symbol for the dual optimize operation.
 
 	This method will return the symbol in the row which has a positive
 	coefficient and yields the minimum ratio for its respective symbol
@@ -735,21 +710,22 @@ private:
 
 	3) The last unrestricted row which contains the marker.
 
-	The marker *must* exist in at least one row.
+	If the marker does not exist in any row, the row map end() iterator
+	will be returned. This indicates an internal solver error since
+	the marker *should* exist somewhere in the tableau.
 
 	*/
 	RowMap::iterator getMarkerLeavingRow( const Symbol& marker )
 	{
 		const double dmax = std::numeric_limits<double>::max();
 		typedef RowMap::iterator iter_t;
-		iter_t begin = m_rows.begin();
-		iter_t end = m_rows.end();
-		iter_t first = m_rows.end();
-		iter_t second = m_rows.end();
-		iter_t third = m_rows.end();
 		double r1 = dmax;
 		double r2 = dmax;
-		for( iter_t it = begin; it != end; ++it )
+		iter_t end = m_rows.end();
+		iter_t first = end;
+		iter_t second = end;
+		iter_t third = end;
+		for( iter_t it = m_rows.begin(); it != end; ++it )
 		{
 			double c = it->second->coefficientFor( marker );
 			if( c == 0.0 )
@@ -784,21 +760,21 @@ private:
 		return third;
 	}
 
-	/* Remove the effect of a constraint on the objective function.
+	/* Remove the effects of a constraint on the objective function.
 
 	*/
-	void removeConstraintEffect( const Constraint& cn, const Tag& tag )
+	void removeConstraintEffects( const Constraint& cn, const Tag& tag )
 	{
 		if( tag.marker.type() == Symbol::Error )
-			removeMarkerEffect( tag.marker, cn.strength() );
+			removeMarkerEffects( tag.marker, cn.strength() );
 		if( tag.other.type() == Symbol::Error )
-			removeMarkerEffect( tag.other, cn.strength() );
+			removeMarkerEffects( tag.other, cn.strength() );
 	}
 
-	/* Remove the effect of an error marker on the objective function.
+	/* Remove the effects of an error marker on the objective function.
 
 	*/
-	void removeMarkerEffect( const Symbol& marker, double strength )
+	void removeMarkerEffects( const Symbol& marker, double strength )
 	{
 		RowMap::iterator row_it = m_rows.find( marker );
 		if( row_it != m_rows.end() )
@@ -807,12 +783,28 @@ private:
 			m_objective->insert( marker, -strength );
 	}
 
+	/* Test whether a row is composed of all dummy variables.
+
+	*/
+	bool allDummies( const Row& row )
+	{
+		typedef Row::CellMap::const_iterator iter_t;
+		iter_t end = row.cells().end();
+		for( iter_t it = row.cells().begin(); it != end; ++it )
+		{
+			if( it->first.type() != Symbol::Dummy )
+				return false;
+		}
+		return true;
+	}
+
 	CnMap m_cns;
 	RowMap m_rows;
 	VarMap m_vars;
 	EditMap m_edits;
 	std::vector<Symbol> m_infeasible_rows;
 	std::auto_ptr<Row> m_objective;
+	std::auto_ptr<Row> m_artificial;
 	Symbol::Id m_id_tick;
 };
 
