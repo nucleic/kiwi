@@ -34,6 +34,10 @@ public:
 		std::cout << "-------" << std::endl;
 		dump( solver.m_rows );
 		std::cout << std::endl;
+		std::cout << "Infeasible" << std::endl;
+		std::cout << "----------" << std::endl;
+		dump( solver.m_infeasible_rows );
+		std::cout << std::endl;
 		std::cout << "Variables" << std::endl;
 		std::cout << "---------" << std::endl;
 		dump( solver.m_vars );
@@ -58,6 +62,17 @@ public:
 			dump( it->first );
 			std::cout << " | ";
 			dump( *it->second );
+		}
+	}
+
+	static void dump( const std::vector<Symbol>& symbols )
+	{
+		typedef std::vector<Symbol>::const_iterator iter_t;
+		iter_t end = symbols.end();
+		for( iter_t it = symbols.begin(); it != end; ++it )
+		{
+			dump( *it );
+			std::cout << std::endl;
 		}
 	}
 
