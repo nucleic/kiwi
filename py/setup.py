@@ -26,9 +26,11 @@ ext_modules = [
 
 setup(
     name='kiwisolver',
-    version='0.0.1',
+    version='0.1.0',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
+    description='A fast implementation of the Cassowary constraint solver',
+    install_requires=['distribute'],
     ext_modules=ext_modules,
 )
