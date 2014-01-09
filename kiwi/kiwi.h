@@ -16,3 +16,4 @@
 #include "symbolics.h"
 #include "term.h"
 #include "variable.h"
+#include "version.h"
