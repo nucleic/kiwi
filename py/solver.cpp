@@ -18,7 +18,7 @@ using namespace PythonHelpers;
 static PyObject*
 Solver_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	if( PyTuple_GET_SIZE( args ) != 0 || kwargs )
+	if( PyTuple_GET_SIZE( args ) != 0 || ( kwargs && PyDict_Size( kwargs ) != 0 ) )
 		return py_type_fail( "Solver.__new__ takes no arguments" );
 	PyObject* pysolver = PyType_GenericNew( type, args, kwargs );
 	if( !pysolver )
