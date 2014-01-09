@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
+#include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
 #include "types.h"
 
@@ -40,12 +41,16 @@ initkiwisolver( void )
     PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
     if( !pystrength )
         return;
+    PyObject* pyversion = PyString_FromString( KIWI_VERSION );
+    if( !pyversion )
+        return;
+    PyModule_AddObject( mod, "strength", pystrength );
+    PyModule_AddObject( mod, "__version__", pyversion );
     PyModule_AddObject( mod, "Variable", newref( pyobject_cast( &Variable_Type ) ) );
     PyModule_AddObject( mod, "Term", newref( pyobject_cast( &Term_Type ) ) );
     PyModule_AddObject( mod, "Expression", newref( pyobject_cast( &Expression_Type ) ) );
     PyModule_AddObject( mod, "Constraint", newref( pyobject_cast( &Constraint_Type ) ) );
     PyModule_AddObject( mod, "Solver", newref( pyobject_cast( &Solver_Type ) ) );
-    PyModule_AddObject( mod, "strength", pystrength );
     PyModule_AddObject( mod, "DuplicateConstraint", newref( DuplicateConstraint ) );
     PyModule_AddObject( mod, "UnsatisfiableConstraint", newref( UnsatisfiableConstraint ) );
     PyModule_AddObject( mod, "UnknownConstraint", newref( UnknownConstraint ) );
