@@ -1,0 +1,7 @@
+py/COPYING.txt
+py/README.rst
+py/build
+py/dist
+py/kiwi
+py/kiwisolver.egg-info
+py/*.pyd

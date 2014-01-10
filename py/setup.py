@@ -18,7 +18,7 @@ ext_modules = [
          'strength.cpp',
          'term.cpp',
          'variable.cpp'],
-        include_dirs=['../'],
+        include_dirs=['.'],
         language='c++',
     ),
 ]
@@ -31,6 +31,7 @@ setup(
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
     description='A fast implementation of the Cassowary constraint solver',
+    long_description=open('README.rst').read(),
     install_requires=['distribute'],
     ext_modules=ext_modules,
 )

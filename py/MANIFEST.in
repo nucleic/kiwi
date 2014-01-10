@@ -1,0 +1,3 @@
+include *.cpp *.h *.rst *.txt
+exclude pre_setup.py
+graft kiwi
