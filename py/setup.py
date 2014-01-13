@@ -26,7 +26,7 @@ ext_modules = [
 
 setup(
     name='kiwisolver',
-    version='0.1.0',
+    version='0.1.1',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',

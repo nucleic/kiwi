@@ -10,6 +10,8 @@
 #include "pythonhelpers.h"
 #include "types.h"
 
+#define PY_KIWI_VERSION "0.1.1"
+
 
 using namespace PythonHelpers;
 
@@ -38,14 +40,18 @@ initkiwisolver( void )
         return;
     if( import_strength() < 0 )
         return;
+    PyObject* kiwiversion = PyString_FromString( KIWI_VERSION );
+    if( !kiwiversion )
+        return;
+    PyObject* pyversion = PyString_FromString( PY_KIWI_VERSION );
+    if( !pyversion )
+        return;
     PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
     if( !pystrength )
         return;
-    PyObject* pyversion = PyString_FromString( KIWI_VERSION );
-    if( !pyversion )
-        return;
-    PyModule_AddObject( mod, "strength", pystrength );
     PyModule_AddObject( mod, "__version__", pyversion );
+    PyModule_AddObject( mod, "__kiwi_version__", kiwiversion );
+    PyModule_AddObject( mod, "strength", pystrength );
     PyModule_AddObject( mod, "Variable", newref( pyobject_cast( &Variable_Type ) ) );
     PyModule_AddObject( mod, "Term", newref( pyobject_cast( &Term_Type ) ) );
     PyModule_AddObject( mod, "Expression", newref( pyobject_cast( &Expression_Type ) ) );
