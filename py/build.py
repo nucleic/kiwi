@@ -30,11 +30,13 @@ def copy_sdist_extras():
 
 def develop():
     copy_kiwi_tree()
+    copy_sdist_extras()
     os.system('python setup.py develop')
 
 
 def install():
     copy_kiwi_tree()
+    copy_sdist_extras()
     os.system('python setup.py install')
 
 
