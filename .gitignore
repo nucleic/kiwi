@@ -5,3 +5,4 @@ py/dist
 py/kiwi
 py/kiwisolver.egg-info
 py/*.pyd
+py/*.so
