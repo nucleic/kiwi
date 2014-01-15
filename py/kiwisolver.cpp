@@ -10,7 +10,7 @@
 #include "pythonhelpers.h"
 #include "types.h"
 
-#define PY_KIWI_VERSION "0.1.1"
+#define PY_KIWI_VERSION "0.1.2"
 
 
 using namespace PythonHelpers;
