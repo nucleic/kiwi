@@ -500,26 +500,34 @@ private:
 		m_rows[ art ] = new Row( row );
 		m_artificial.reset( new Row( row ) );
 
-		// Optimize the artificial objective
+		// Optimize the artificial objective. This is successful
+		// only if the artificial objective is optimized to zero.
 		optimize( *m_artificial );
 		bool success = nearZero( m_artificial->constant() );
+		m_artificial.reset();
 
-		// Remove the artificial variable from the tableau
+		// If the artificial variable is basic, pivot the row so that
+		// it becomes basic. If the row is constant, exit early.
 		RowMap::iterator it = m_rows.find( art );
 		if( it != m_rows.end() )
 		{
 			std::auto_ptr<Row> rowptr( it->second );
 			m_rows.erase( it );
-		}
-		else
-		{
-			RowMap::iterator end = m_rows.end();
-			for( it = m_rows.begin(); it != end; ++it )
-				it->second->remove( art );
-			m_objective->remove( art );
+			if( rowptr->cells().empty() )
+				return success;
+			Symbol entering( anyPivotableSymbol( *rowptr ) );
+			if( entering.type() == Symbol::Invalid )
+				return false;  // unsatisfiable (will this ever happen?)
+			rowptr->solveFor( art, entering );
+			substitute( entering, *rowptr );
+			m_rows[ entering ] = rowptr.release();
 		}
 
-		m_artificial.reset();
+		// Remove the artificial variable from the tableau.
+		RowMap::iterator end = m_rows.end();
+		for( it = m_rows.begin(); it != end; ++it )
+			it->second->remove( art );
+		m_objective->remove( art );
 		return success;
  	}
 
@@ -661,6 +669,24 @@ private:
 			}
 		}
 		return entering;
+	}
+
+	/* Get the first Slack or Error symbol in the row.
+
+	If no such symbol is present, and Invalid symbol will be returned.
+
+	*/
+	Symbol anyPivotableSymbol( const Row& row )
+	{
+		typedef Row::CellMap::const_iterator iter_t;
+		iter_t end = row.cells().end();
+		for( iter_t it = row.cells().begin(); it != end; ++it )
+		{
+			const Symbol& sym( it->first );
+			if( sym.type() == Symbol::Slack || sym.type() == Symbol::Error )
+				return sym;
+		}
+		return Symbol();
 	}
 
 	/* Compute the row which holds the exit symbol for a pivot.
