@@ -10,35 +10,28 @@ import shutil
 import sys
 
 
-_copied = False
-def copy_tree():
-    global _copied
-    if not _copied:
-        shutil.rmtree('./kiwi', ignore_errors=True)
-        shutil.copytree('../kiwi', './kiwi')
-        shutil.copyfile('../README.rst', './README.rst')
-        shutil.copyfile('../COPYING.txt', './COPYING.txt')
-        shutil.copyfile('../releasenotes.rst', './releasenotes.rst')
-    _copied = True
+def prep_dir():
+    shutil.rmtree('./build', ignore_errors=True)
+    shutil.rmtree('./kiwi', ignore_errors=True)
+    shutil.copytree('../kiwi', './kiwi')
+    shutil.copyfile('../README.rst', './README.rst')
+    shutil.copyfile('../COPYING.txt', './COPYING.txt')
+    shutil.copyfile('../releasenotes.rst', './releasenotes.rst')
 
 
 def build():
-    copy_tree()
     os.system('python setup.py build')
 
 
 def develop():
-    copy_tree()
     os.system('python setup.py develop')
 
 
 def install():
-    copy_tree()
     os.system('python setup.py install')
 
 
 def upload():
-    copy_tree()
     os.system('python setup.py register sdist upload')
 
 
@@ -54,5 +47,6 @@ args = sys.argv[1:]
 if not args or not all(arg in handlers for arg in args):
     print 'usage: python build.py [build, [develop, [install, [upload]]]]'
     sys.exit()
+prep_dir()
 for arg in args:
     handlers[arg]()
