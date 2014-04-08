@@ -33,9 +33,11 @@ module kiwi {
          * Construct a new Map.
          *
          * @param lessThan The less-than comparitor function.
+         * @param factory A default value factory function.
          */
-        constructor(lessThan: IComparitor<T>) {
+        constructor(lessThan: IComparitor<T>, valueFactory: () => U) {
             this._lessThan = lessThan;
+            this._valueFactory = valueFactory;
         }
 
         /**
@@ -53,11 +55,13 @@ module kiwi {
         }
 
         /**
-         * Find the value associated with the given key.
+         * Returns the pair associated with the given key.
          *
          * Returns undefined if the key is not present.
+         *
+         * The key of the returned pair *must not* be modified.
          */
-        find(key: T): U {
+        find(key: T): IPair<T, U> {
             var data = this._data;
             var less = this._lessThan;
             var index = lowerBound(data, key, less);
@@ -68,28 +72,33 @@ module kiwi {
             if (less(key, pair.key)) {
                 return undefined;
             }
-            return pair.value;
+            return pair;
         }
 
         /**
-         * Insert the key-value pair into the map.
+         * Returns the pair associated with the given key.
          *
-         * This will overwrite any existing entry.
+         * A new pair is created if the key is not present.
+         *
+         * The key of the returned pair *must not* be modified.
          */
-        insert(key: T, value: U): void {
+        get(key: T): IPair<T, U> {
+            var pair: IPair<T, U>;
             var data = this._data;
             var less = this._lessThan;
             var index = lowerBound(data, key, less);
             if (index === data.length) {
-                data.push({ key: key, value: value });
-                return;
+                pair = { key: key, value: this._valueFactory() };
+                data.push(pair);
+                return pair;
             }
             var pair = data[index];
             if (less(key, pair.key)) {
-                data.splice(index, 0, { key: key, value: value });
-                return;
+                pair = { key: key, value: this._valueFactory() }
+                data.splice(index, 0, pair);
+                return pair;
             }
-            pair.value = value;
+            return pair;
         }
 
         /**
@@ -133,6 +142,7 @@ module kiwi {
         }
 
         private _lessThan: IComparitor<T>;
+        private _valueFactory: () => U;
         private _data: IPair<T, U>[] = [];
     }
 
