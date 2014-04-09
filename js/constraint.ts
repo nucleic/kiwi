@@ -5,21 +5,13 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+
+/// <reference path="variable.ts"/>
+/// <reference path="term.ts"/>
+/// <reference path="expression.ts"/>
+/// <reference path="strength.ts"/>
+
 module kiwi {
-
-    /**
-     * The internal constraint id counter.
-     */
-    var CnId = 0;
-
-
-    /**
-     * The internal expression reduction function.
-     */
-    function reduceExpr(expr: Expression): Expression {
-        return expr; // XXX implement me!
-    }
-
 
     /**
      * An enum defining the linear constraint operators.
@@ -52,14 +44,7 @@ module kiwi {
      * @class
      */
     export class Constraint {
-
-        /**
-         * A Constraint comparison function.
-         */
-        static LessThan(first: Constraint, second: Constraint): boolean {
-            return first.id() < second.id();
-        }
-
+        
         /**
          * Construct a new Constraint.
          *
@@ -68,12 +53,12 @@ module kiwi {
          * @param strength The strength of the constraint.
          */
         constructor(
-            expression: Expresion,
+            expression: Expression,
             operator: RelationalOperator,
-            strength: number = strength.required)
+            strength: number = kiwi.strength.required)
         {
             this._operator = operator;
-            this._expression = reduceExpr(expression);
+            this._expression = reduce(expression);
             this._strength = kiwi.strength.clip(strength);
             this._id = CnId++;
         }
@@ -110,6 +95,42 @@ module kiwi {
         private _expression: Expression;
         private _operator: RelationalOperator;
         private _strength: number;
+    }
+
+
+    /**
+     * The internal constraint id counter.
+     */
+    var CnId = 0;
+
+
+    /**
+     * The internal expression reduction function.
+     */
+    function reduce(expr: Expression): Expression {
+        var coeffMap: { [key: number]: number } = {};
+        var variables: Variable[] = [];
+        var terms = expr.terms();
+        for (var i = 0, n = terms.length; i < n; ++i) {
+            var term = terms[i];
+            var variable = term.variable();
+            var coefficient = term.coefficient();
+            var id = variable.id();
+            var coeff = coeffMap[id];
+            if (typeof coeff !== "undefined") {
+                coeffMap[id] = coeff + coefficient;
+            } else {
+                variables.push(variable);
+                coeffMap[id] = coefficient;
+            }
+        }
+        var newTerms: Term[] = [];
+        for (var i = 0, n = variables.length; i < n; ++i) {
+            var variable = variables[i];
+            var coefficient = coeffMap[variable.id()];
+            newTerms.push(new Term(variable, coefficient));
+        }
+        return new Expression(newTerms, expr.constant());
     }
 
 }

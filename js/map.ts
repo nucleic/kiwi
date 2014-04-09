@@ -10,8 +10,8 @@ module kiwi {
     /**
      * The interface which defines a comparitor function.
      */
-    export interface IComparitor<T> {
-        (first: T, second: T): boolean;
+    export interface IComparitor<T, U> {
+        (first: T, second: U): boolean;
     }
 
 
@@ -25,7 +25,22 @@ module kiwi {
 
 
     /**
-     * The associative map class used by the framework.
+     * The interface which defines a map iterator.
+     */
+    export interface IMapIterator<T, U> {
+
+        /**
+         * Returns the next pair in the map or undefined
+         * when the iterator is exhausted.
+         *
+         * The key in the pair *must not* be modified.
+         */
+        next(): IPair<T, U>;
+    }
+
+
+    /**
+     * The associative map class used by the solver framework.
      */
     export class Map<T, U> {
 
@@ -35,9 +50,10 @@ module kiwi {
          * @param lessThan The less-than comparitor function.
          * @param factory A default value factory function.
          */
-        constructor(lessThan: IComparitor<T>, valueFactory: () => U) {
+        constructor(lessThan: IComparitor<T, T>, valueFactory: () => U) {
             this._lessThan = lessThan;
             this._valueFactory = valueFactory;
+            this._comparitor = makeComparitor<T, U>(lessThan);
         }
 
         /**
@@ -63,13 +79,12 @@ module kiwi {
          */
         find(key: T): IPair<T, U> {
             var data = this._data;
-            var less = this._lessThan;
-            var index = lowerBound(data, key, less);
+            var index = lowerBound(data, key, this._comparitor);
             if (index === data.length) {
                 return undefined;
             }
             var pair = data[index];
-            if (less(key, pair.key)) {
+            if (this._lessThan(key, pair.key)) {
                 return undefined;
             }
             return pair;
@@ -83,21 +98,30 @@ module kiwi {
          * The key of the returned pair *must not* be modified.
          */
         get(key: T): IPair<T, U> {
-            var pair: IPair<T, U>;
             var data = this._data;
-            var less = this._lessThan;
-            var index = lowerBound(data, key, less);
+            var index = lowerBound(data, key, this._comparitor);
             if (index === data.length) {
-                pair = { key: key, value: this._valueFactory() };
+                var pair = { key: key, value: this._valueFactory() };
                 data.push(pair);
                 return pair;
             }
             var pair = data[index];
-            if (less(key, pair.key)) {
+            if (this._lessThan(key, pair.key)) {
                 pair = { key: key, value: this._valueFactory() }
                 data.splice(index, 0, pair);
                 return pair;
             }
+            return pair;
+        }
+
+        /**
+         * Insert a key value pair into the map and return the pair.
+         *
+         * This will create a new pair or modify an existing pair.
+         */
+        insert(key: T, value: U): IPair<T, U> {
+            var pair = this.get(key);
+            pair.value = value;
             return pair;
         }
 
@@ -108,13 +132,12 @@ module kiwi {
          */
         erase(key: T): boolean {
             var data = this._data;
-            var less = this._lessThan;
-            var index = lowerBound(data, key, less);
+            var index = lowerBound(data, key, this._comparitor);
             if (index === data.length) {
                 return false;
             }
             var pair = data[index];
-            if (less(key, pair.key)) {
+            if (this._lessThan(key, pair.key)) {
                 return false;
             }
             data.splice(index, 1);
@@ -122,16 +145,10 @@ module kiwi {
         }
 
         /**
-         * Get a copy of the items in the map.
+         * Returns an iterator over the items in the map.
          */
-        items(): IPair<T, U>[] {
-            var data = this._data;
-            var result: IPair<T, U>[] = [];
-            for (var i = 0, n = data.length; i < n; ++i) {
-                var pair = data[i];
-                result.push({ key: pair.key, value: pair.value });
-            }
-            return result;
+        iter(): IMapIterator<T, U> {
+            return new MapIterator(this._data);
         }
 
         /**
@@ -141,16 +158,28 @@ module kiwi {
             this._data = [];
         }
 
-        private _lessThan: IComparitor<T>;
+        private _lessThan: IComparitor<T, T>;
         private _valueFactory: () => U;
+        private _comparitor: IComparitor<IPair<T, U>, T>;
         private _data: IPair<T, U>[] = [];
+    }
+
+
+    /**
+     * The internal comparitor creation function.
+     */
+    function makeComparitor<T, U>(keyComparitor: IComparitor<T, T>): IComparitor<IPair<T, U>, T> {
+        function comparitor(pair: IPair<T, U>, key: T): boolean {
+            return keyComparitor(pair.key, key);
+        }
+        return comparitor;
     }
 
 
     /**
      * The internal binary search function for the map.
      */
-    function lowerBound<T, U>(array: IPair<T, U>[], key: T, less: IComparitor<T>): number {
+    function lowerBound<T, U>(array: T[], value: U, lessThan: IComparitor<T, U>): number {
         var begin = 0;
         var n = array.length;
         var half: number;
@@ -158,7 +187,7 @@ module kiwi {
         while (n > 0) {
             half = n >> 1;
             middle = begin + half;
-            if (less(array[middle].key, key)) {
+            if (lessThan(array[middle], value)) {
                 begin = middle + 1;
                 n -= half + 1;
             } else {
@@ -166,6 +195,36 @@ module kiwi {
             }
         }
         return begin;
+    }
+
+
+    /**
+     * The internal IMapIterator implementation.
+     */
+    class MapIterator<T, U> implements IMapIterator<T, U> {
+
+        /**
+         * Construct a new MapIterator.
+         *
+         * @param items The array of map item pairs.
+         */
+        constructor(items: IPair<T, U>[]) {
+            this._items = items;
+        }
+
+        /**
+         * Advances the iterator and returns the new pair.
+         *
+         * Returns undefined when the pairs are exhausted.
+         *
+         * The key in the pair *must not* be modified.
+         */
+        next(): IPair<T, U> {
+            return this._items[this._index++];
+        }
+
+        private _items: IPair<T, U>[];
+        private _index: number = 0;
     }
 
 }

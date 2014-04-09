@@ -8,24 +8,11 @@
 module kiwi {
 
     /**
-     * The internal variable id counter.
-     */
-    var VarId = 0;
-
-
-    /**
      * The primary user constraint variable.
      *
      * @class
      */
     export class Variable {
-
-        /**
-         * A Variable comparison function.
-         */
-        static LessThan(first: Variable, second: Variable): boolean {
-            return first.id() < second.id();
-        }
 
         /**
          * Construct a new Variable
@@ -91,5 +78,11 @@ module kiwi {
         private _value: number = 0.0;
         private _context: any = null;
     }
+
+    
+    /**
+     * The internal variable id counter.
+     */
+    var VarId = 0;
 
 }

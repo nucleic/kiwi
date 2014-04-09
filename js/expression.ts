@@ -5,6 +5,9 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+
+/// <reference path="term.ts"/>
+
 module kiwi {
 
     /**
@@ -23,10 +26,12 @@ module kiwi {
         }
 
         /**
-         * Returns a copy of the terms in the expression.
+         * Returns the array of terms in the expression.
+         *
+         * This *must* be treated as const.
          */
         terms(): Term[] {
-            return this._terms.slice();
+            return this._terms;
         }
 
         /**

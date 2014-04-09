@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<script src="map.js"></script>
+		<script>
+			function spam() {
+			function cmp(a, b) {
+				return a < b;
+			}
+
+			function fac() {
+				return 0;
+			}
+
+			var m = new kiwi.Map(cmp, fac);
+			for (var i = 0; i < 500; ++i) {
+				m.insert(i, i);
+			}
+
+			var n = 0;
+			//console.time("foo");
+			for (var i = 0; i < 10000; ++i) {
+				for (var k = 0; k < 500; k++) {
+					n += m.get(k).value;
+				}
+			}
+			/*
+			//console.timeEnd("foo");
+			//console.log("n:", n)
+
+			var o = {}
+			for (var i = 499; i >= 0; --i) {
+				o[i] = i;
+			}
+
+			n = 0;
+			//console.time("bar");
+			for (var i = 0; i < 10000; ++i) {
+				for (var k = 0; k < 500; k++) {
+					n += o[k];
+				}
+			}
+			//console.timeEnd("bar");
+			//console.log("n:", n);
+			*/
+		}
+		</script>
+	</head>
+	<button onclick="spam()">Do It</button>
+</html>

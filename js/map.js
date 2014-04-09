@@ -11,8 +11,10 @@ var kiwi;
 
     
 
+    
+
     /**
-    * The associative map class used by the framework.
+    * The associative map class used by the solver framework.
     */
     var Map = (function () {
         /**
@@ -25,6 +27,7 @@ var kiwi;
             this._data = [];
             this._lessThan = lessThan;
             this._valueFactory = valueFactory;
+            this._comparitor = makeComparitor(lessThan);
         }
         /**
         * Returns the number of items in the map.
@@ -49,13 +52,12 @@ var kiwi;
         */
         Map.prototype.find = function (key) {
             var data = this._data;
-            var less = this._lessThan;
-            var index = lowerBound(data, key, less);
+            var index = lowerBound(data, key, this._comparitor);
             if (index === data.length) {
                 return undefined;
             }
             var pair = data[index];
-            if (less(key, pair.key)) {
+            if (this._lessThan(key, pair.key)) {
                 return undefined;
             }
             return pair;
@@ -69,21 +71,30 @@ var kiwi;
         * The key of the returned pair *must not* be modified.
         */
         Map.prototype.get = function (key) {
-            var pair;
             var data = this._data;
-            var less = this._lessThan;
-            var index = lowerBound(data, key, less);
+            var index = lowerBound(data, key, this._comparitor);
             if (index === data.length) {
-                pair = { key: key, value: this._valueFactory() };
+                var pair = { key: key, value: this._valueFactory() };
                 data.push(pair);
                 return pair;
             }
             var pair = data[index];
-            if (less(key, pair.key)) {
+            if (this._lessThan(key, pair.key)) {
                 pair = { key: key, value: this._valueFactory() };
                 data.splice(index, 0, pair);
                 return pair;
             }
+            return pair;
+        };
+
+        /**
+        * Insert a key value pair into the map and return the pair.
+        *
+        * This will create a new pair or modify an existing pair.
+        */
+        Map.prototype.insert = function (key, value) {
+            var pair = this.get(key);
+            pair.value = value;
             return pair;
         };
 
@@ -94,13 +105,12 @@ var kiwi;
         */
         Map.prototype.erase = function (key) {
             var data = this._data;
-            var less = this._lessThan;
-            var index = lowerBound(data, key, less);
+            var index = lowerBound(data, key, this._comparitor);
             if (index === data.length) {
                 return false;
             }
             var pair = data[index];
-            if (less(key, pair.key)) {
+            if (this._lessThan(key, pair.key)) {
                 return false;
             }
             data.splice(index, 1);
@@ -108,16 +118,10 @@ var kiwi;
         };
 
         /**
-        * Get a copy of the items in the map.
+        * Returns an iterator over the items in the map.
         */
-        Map.prototype.items = function () {
-            var data = this._data;
-            var result = [];
-            for (var i = 0, n = data.length; i < n; ++i) {
-                var pair = data[i];
-                result.push({ key: pair.key, value: pair.value });
-            }
-            return result;
+        Map.prototype.iter = function () {
+            return new MapIterator(this._data);
         };
 
         /**
@@ -131,9 +135,19 @@ var kiwi;
     kiwi.Map = Map;
 
     /**
+    * The internal comparitor creation function.
+    */
+    function makeComparitor(keyComparitor) {
+        function comparitor(pair, key) {
+            return keyComparitor(pair.key, key);
+        }
+        return comparitor;
+    }
+
+    /**
     * The internal binary search function for the map.
     */
-    function lowerBound(array, key, less) {
+    function lowerBound(array, value, lessThan) {
         var begin = 0;
         var n = array.length;
         var half;
@@ -141,7 +155,7 @@ var kiwi;
         while (n > 0) {
             half = n >> 1;
             middle = begin + half;
-            if (less(array[middle].key, key)) {
+            if (lessThan(array[middle], value)) {
                 begin = middle + 1;
                 n -= half + 1;
             } else {
@@ -150,4 +164,30 @@ var kiwi;
         }
         return begin;
     }
+
+    /**
+    * The internal IMapIterator implementation.
+    */
+    var MapIterator = (function () {
+        /**
+        * Construct a new MapIterator.
+        *
+        * @param items The array of map item pairs.
+        */
+        function MapIterator(items) {
+            this._index = 0;
+            this._items = items;
+        }
+        /**
+        * Advances the iterator and returns the new pair.
+        *
+        * Returns undefined when the pairs are exhausted.
+        *
+        * The key in the pair *must not* be modified.
+        */
+        MapIterator.prototype.next = function () {
+            return this._items[this._index++];
+        };
+        return MapIterator;
+    })();
 })(kiwi || (kiwi = {}));
