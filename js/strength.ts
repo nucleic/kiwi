@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 module kiwi {
 
-    export module strength {
+    export module Strength {
 
         /**
          * Create a new symbolic strength.
@@ -19,7 +19,6 @@ module kiwi {
             result += Math.max(0.0, Math.min(1000.0, c * w));
             return result;
         }
-
 
         /**
          * The 'required' symbolic strength.
@@ -40,7 +39,6 @@ module kiwi {
          * The 'weak' symbolic strength.
          */
         export var weak = create(0.0, 0.0, 1.0);
-
 
         /**
          * Clip a symbolic strength to the allowed min and max.

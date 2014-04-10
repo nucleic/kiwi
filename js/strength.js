@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 var kiwi;
 (function (kiwi) {
-    (function (strength) {
+    (function (Strength) {
         /**
         * Create a new symbolic strength.
         */
@@ -19,35 +19,35 @@ var kiwi;
             result += Math.max(0.0, Math.min(1000.0, c * w));
             return result;
         }
-        strength.create = create;
+        Strength.create = create;
 
         /**
         * The 'required' symbolic strength.
         */
-        strength.required = create(1000.0, 1000.0, 1000.0);
+        Strength.required = create(1000.0, 1000.0, 1000.0);
 
         /**
         * The 'strong' symbolic strength.
         */
-        strength.strong = create(1.0, 0.0, 0.0);
+        Strength.strong = create(1.0, 0.0, 0.0);
 
         /**
         * The 'medium' symbolic strength.
         */
-        strength.medium = create(0.0, 1.0, 0.0);
+        Strength.medium = create(0.0, 1.0, 0.0);
 
         /**
         * The 'weak' symbolic strength.
         */
-        strength.weak = create(0.0, 0.0, 1.0);
+        Strength.weak = create(0.0, 0.0, 1.0);
 
         /**
         * Clip a symbolic strength to the allowed min and max.
         */
         function clip(value) {
-            return Math.max(0.0, Math.min(strength.required, value));
+            return Math.max(0.0, Math.min(Strength.required, value));
         }
-        strength.clip = clip;
-    })(kiwi.strength || (kiwi.strength = {}));
-    var strength = kiwi.strength;
+        Strength.clip = clip;
+    })(kiwi.Strength || (kiwi.Strength = {}));
+    var Strength = kiwi.Strength;
 })(kiwi || (kiwi = {}));
