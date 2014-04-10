@@ -136,13 +136,13 @@ module kiwi {
             if (typeof info !== "undefined") {
                 throw new Error("duplicate edit variable");
             }
-            strength = kiwi.strength.clip(strength);
-            if (strength === kiwi.strength.required) {
+            strength = Strength.clip(strength);
+            if (strength === Strength.required) {
                 throw new Error("bad required strength");
             }
             var term = new Term(variable);
             var expr = new Expression([term]);
-            var cn = new Constraint(expr, RelationalOperator.OP_EQ, strength);
+            var cn = new Constraint(expr, Operator.Eq, strength);
             this.addConstraint(cn);
             info = {
                 tag: this._cns[cn.id()],
@@ -290,36 +290,35 @@ module kiwi {
 
             // Add the necessary slack, error, and dummy variables.
             var objective = this._objective;
-            var cnStrength = constraint.strength();
-            var cnOp = constraint.op();
+            var strength = constraint.strength();
             var tag = { marker: Symbol.Invalid, other: Symbol.Invalid };
-            switch (cnOp) {
-                case RelationalOperator.OP_LE:
-                case RelationalOperator.OP_GE:
+            switch (constraint.op()) {
+                case Operator.Le:
+                case Operator.Ge:
                 {
-                    var coeff = cnOp === RelationalOperator.OP_LE ? 1.0 : -1.0;
+                    var coeff = constraint.op() === Operator.Le ? 1.0 : -1.0;
                     var slack = this._newSymbol(Symbol.Slack);
                     tag.marker = slack;
                     row.insertSymbol(slack, coeff);
-                    if (cnStrength < strength.required) {
+                    if (strength < Strength.required) {
                         var error = this._newSymbol(Symbol.Error);
                         tag.other = error;
                         row.insertSymbol(error, -coeff);
-                        objective.insertSymbol(error, cnStrength);
+                        objective.insertSymbol(error, strength);
                     }
                     break;
                 }
-                case RelationalOperator.OP_EQ:
+                case Operator.Eq:
                 {
-                    if (cnStrength < strength.required) {
+                    if (strength < Strength.required) {
                         var errplus = this._newSymbol(Symbol.Error);
                         var errminus = this._newSymbol(Symbol.Error);
                         tag.marker = errplus;
                         tag.other = errminus;
                         row.insertSymbol(errplus, -1.0); // v = eplus - eminus
                         row.insertSymbol(errminus, 1.0); // v - eplus + eminus = 0
-                        objective.insertSymbol(errplus, cnStrength);
-                        objective.insertSymbol(errminus, cnStrength);
+                        objective.insertSymbol(errplus, strength);
+                        objective.insertSymbol(errminus, strength);
                     } else {
                         var dummy = this._newSymbol(Symbol.Dummy);
                         tag.marker = dummy;

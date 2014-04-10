@@ -141,13 +141,13 @@ var kiwi;
             if (typeof info !== "undefined") {
                 throw new Error("duplicate edit variable");
             }
-            strength = kiwi.strength.clip(strength);
-            if (strength === kiwi.strength.required) {
+            strength = kiwi.Strength.clip(strength);
+            if (strength === kiwi.Strength.required) {
                 throw new Error("bad required strength");
             }
             var term = new kiwi.Term(variable);
             var expr = new kiwi.Expression([term]);
-            var cn = new kiwi.Constraint(expr, 2 /* OP_EQ */, strength);
+            var cn = new kiwi.Constraint(expr, 2 /* Eq */, strength);
             this.addConstraint(cn);
             info = {
                 tag: this._cns[cn.id()],
@@ -294,34 +294,33 @@ var kiwi;
 
             // Add the necessary slack, error, and dummy variables.
             var objective = this._objective;
-            var cnStrength = constraint.strength();
-            var cnOp = constraint.op();
+            var strength = constraint.strength();
             var tag = { marker: 0 /* Invalid */, other: 0 /* Invalid */ };
-            switch (cnOp) {
-                case 0 /* OP_LE */:
-                case 1 /* OP_GE */: {
-                    var coeff = cnOp === 0 /* OP_LE */ ? 1.0 : -1.0;
+            switch (constraint.op()) {
+                case 0 /* Le */:
+                case 1 /* Ge */: {
+                    var coeff = constraint.op() === 0 /* Le */ ? 1.0 : -1.0;
                     var slack = this._newSymbol(2 /* Slack */);
                     tag.marker = slack;
                     row.insertSymbol(slack, coeff);
-                    if (cnStrength < kiwi.strength.required) {
+                    if (strength < kiwi.Strength.required) {
                         var error = this._newSymbol(3 /* Error */);
                         tag.other = error;
                         row.insertSymbol(error, -coeff);
-                        objective.insertSymbol(error, cnStrength);
+                        objective.insertSymbol(error, strength);
                     }
                     break;
                 }
-                case 2 /* OP_EQ */: {
-                    if (cnStrength < kiwi.strength.required) {
+                case 2 /* Eq */: {
+                    if (strength < kiwi.Strength.required) {
                         var errplus = this._newSymbol(3 /* Error */);
                         var errminus = this._newSymbol(3 /* Error */);
                         tag.marker = errplus;
                         tag.other = errminus;
                         row.insertSymbol(errplus, -1.0); // v = eplus - eminus
                         row.insertSymbol(errminus, 1.0); // v - eplus + eminus = 0
-                        objective.insertSymbol(errplus, cnStrength);
-                        objective.insertSymbol(errminus, cnStrength);
+                        objective.insertSymbol(errplus, strength);
+                        objective.insertSymbol(errminus, strength);
                     } else {
                         var dummy = this._newSymbol(4 /* Dummy */);
                         tag.marker = dummy;
