@@ -9,9 +9,9 @@ module kiwi {
 
     export module strength {
 
-    	/**
-    	 * Create a new symbolic strength.
-    	 */
+        /**
+         * Create a new symbolic strength.
+         */
         export function create(a: number, b: number, c: number, w: number = 1.0) {
             var result: number = 0.0;
             result += Math.max(0.0, Math.min(1000.0, a * w)) * 1000000.0;

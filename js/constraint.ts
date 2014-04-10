@@ -44,7 +44,7 @@ module kiwi {
      * @class
      */
     export class Constraint {
-        
+
         /**
          * Construct a new Constraint.
          *

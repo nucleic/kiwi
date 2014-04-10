@@ -79,7 +79,7 @@ module kiwi {
         private _context: any = null;
     }
 
-    
+
     /**
      * The internal variable id counter.
      */
