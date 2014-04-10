@@ -16,22 +16,10 @@ module kiwi {
     /**
      * An enum defining the linear constraint operators.
      */
-    export enum RelationalOperator {
-
-        /**
-         * less than or equal to
-         */
-        OP_LE,
-
-        /**
-         * greater than or equal to
-         */
-        OP_GE,
-
-        /**
-         * strictly equal to (within reasonable eps)
-         */
-        OP_EQ
+    export enum Operator {
+        Le,  // <=
+        Ge,  // >=
+        Eq   // ==
     }
 
 
@@ -54,12 +42,12 @@ module kiwi {
          */
         constructor(
             expression: Expression,
-            operator: RelationalOperator,
-            strength: number = kiwi.strength.required)
+            operator: Operator,
+            strength: number = Strength.required)
         {
             this._operator = operator;
             this._expression = reduce(expression);
-            this._strength = kiwi.strength.clip(strength);
+            this._strength = Strength.clip(strength);
             this._id = CnId++;
         }
 
@@ -80,7 +68,7 @@ module kiwi {
         /**
          * Returns the relational operator of the constraint.
          */
-        op(): RelationalOperator {
+        op(): Operator {
             return this._operator;
         }
 
@@ -93,7 +81,7 @@ module kiwi {
 
         private _id: number;
         private _expression: Expression;
-        private _operator: RelationalOperator;
+        private _operator: Operator;
         private _strength: number;
     }
 

@@ -14,23 +14,12 @@ var kiwi;
     /**
     * An enum defining the linear constraint operators.
     */
-    (function (RelationalOperator) {
-        /**
-        * less than or equal to
-        */
-        RelationalOperator[RelationalOperator["OP_LE"] = 0] = "OP_LE";
-
-        /**
-        * greater than or equal to
-        */
-        RelationalOperator[RelationalOperator["OP_GE"] = 1] = "OP_GE";
-
-        /**
-        * strictly equal to (within reasonable eps)
-        */
-        RelationalOperator[RelationalOperator["OP_EQ"] = 2] = "OP_EQ";
-    })(kiwi.RelationalOperator || (kiwi.RelationalOperator = {}));
-    var RelationalOperator = kiwi.RelationalOperator;
+    (function (Operator) {
+        Operator[Operator["Le"] = 0] = "Le";
+        Operator[Operator["Ge"] = 1] = "Ge";
+        Operator[Operator["Eq"] = 2] = "Eq";
+    })(kiwi.Operator || (kiwi.Operator = {}));
+    var Operator = kiwi.Operator;
 
     /**
     * A linear constraint equation.
@@ -49,10 +38,10 @@ var kiwi;
         * @param strength The strength of the constraint.
         */
         function Constraint(expression, operator, strength) {
-            if (typeof strength === "undefined") { strength = kiwi.strength.required; }
+            if (typeof strength === "undefined") { strength = kiwi.Strength.required; }
             this._operator = operator;
             this._expression = reduce(expression);
-            this._strength = kiwi.strength.clip(strength);
+            this._strength = kiwi.Strength.clip(strength);
             this._id = CnId++;
         }
         /**
