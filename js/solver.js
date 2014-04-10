@@ -10,6 +10,7 @@
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 /// <reference path="constraint.ts"/>
+/// <reference path="tsutils.d.ts"/>
 var kiwi;
 (function (kiwi) {
     /**
@@ -24,7 +25,7 @@ var kiwi;
         function Solver() {
             this._cns = {};
             this._rows = {};
-            this._vars = {};
+            this._vars = new tsutils.AssocArray(kiwi.Variable.LessThan);
             this._edits = {};
             this._infeasible_rows = [];
             this._objective = new Row();
@@ -227,15 +228,15 @@ var kiwi;
         * Update the values of the variables.
         */
         Solver.prototype.updateVariables = function () {
-            var theseVars = this._vars;
             var theseRows = this._rows;
-            for (var id in theseVars) {
-                var pair = theseVars[id];
-                var row = theseRows[pair.symbol];
+            var iter = this._vars.iter();
+            var pair;
+            while (pair = iter.next()) {
+                var row = theseRows[pair.second];
                 if (typeof row === "undefined") {
-                    pair.variable.setValue(0.0);
+                    pair.first.setValue(0.0);
                 } else {
-                    pair.variable.setValue(row.constant());
+                    pair.first.setValue(row.constant());
                 }
             }
         };
@@ -246,14 +247,11 @@ var kiwi;
         * If a symbol does not exist for the variable, one will be created.
         */
         Solver.prototype._getVarSymbol = function (variable) {
-            var id = variable.id();
-            var pair = this._vars[id];
-            if (typeof pair !== "undefined") {
-                return pair.symbol;
-            }
-            var symbol = this._newSymbol(1 /* External */);
-            this._vars[id] = { variable: variable, symbol: symbol };
-            return symbol;
+            var self = this;
+            var factory = function () {
+                return self._newSymbol(1 /* External */);
+            };
+            return this._vars.setDefault(variable, factory).second;
         };
 
         /**

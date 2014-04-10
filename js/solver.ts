@@ -11,6 +11,7 @@
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 /// <reference path="constraint.ts"/>
+/// <reference path="tsutils.d.ts"/>
 
 module kiwi {
 
@@ -223,15 +224,15 @@ module kiwi {
          * Update the values of the variables.
          */
         updateVariables(): void {
-            var theseVars = this._vars;
             var theseRows = this._rows;
-            for (var id in theseVars) {
-                var pair = theseVars[id];
-                var row = theseRows[pair.symbol];
+            var iter = this._vars.iter();
+            var pair: tsutils.IPair<Variable, number>;
+            while (pair = iter.next()) {
+                var row = theseRows[pair.second];
                 if (typeof row === "undefined") {
-                    pair.variable.setValue(0.0);
+                    pair.first.setValue(0.0);
                 } else {
-                    pair.variable.setValue(row.constant());
+                    pair.first.setValue(row.constant());
                 }
             }
         }
@@ -242,14 +243,11 @@ module kiwi {
          * If a symbol does not exist for the variable, one will be created.
          */
         private _getVarSymbol(variable: Variable): number {
-            var id = variable.id();
-            var pair = this._vars[id];
-            if (typeof pair !== "undefined") {
-                return pair.symbol;
-            }
-            var symbol = this._newSymbol(Symbol.External);
-            this._vars[id] = { variable: variable, symbol: symbol };
-            return symbol;
+            var self = this;
+            var factory = function() {
+                return self._newSymbol(Symbol.External);
+            };
+            return this._vars.setDefault(variable, factory).second;
         }
 
         /**
@@ -691,7 +689,7 @@ module kiwi {
 
         private _cns: ICnMap = {};
         private _rows: IRowMap = {};
-        private _vars: IVarMap = {};
+        private _vars = new tsutils.AssocArray<Variable, number>(Variable.LessThan);
         private _edits: IEditMap = {};
         private _infeasible_rows: number[] = [];
         private _objective: Row = new Row();

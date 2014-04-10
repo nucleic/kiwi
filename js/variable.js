@@ -25,6 +25,13 @@ var kiwi;
             this._id = VarId++;
         }
         /**
+        * A static variable comparison function.
+        */
+        Variable.LessThan = function (a, b) {
+            return a.id() < b.id();
+        };
+
+        /**
         * Returns the unique id number of the variable.
         */
         Variable.prototype.id = function () {

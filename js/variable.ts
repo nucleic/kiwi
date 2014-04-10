@@ -15,6 +15,13 @@ module kiwi {
     export class Variable {
 
         /**
+         * A static variable comparison function.
+         */
+        static LessThan(a: Variable, b: Variable): boolean {
+            return a.id() < b.id();
+        }
+
+        /**
          * Construct a new Variable
          *
          * @param [name] The name to associated with the variable.

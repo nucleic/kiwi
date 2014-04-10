@@ -1,50 +1,47 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<script src="map.js"></script>
+		<script src="tsutils.js"></script>
+		<script src="variable.js"></script>
+		<script src="term.js"></script>
+		<script src="expression.js"></script>
+		<script src="constraint.js"></script>
+		<script src="strength.js"></script>
+		<script src="solver.js"></script>
 		<script>
-			function spam() {
-			function cmp(a, b) {
-				return a < b;
-			}
+			var x1 = new kiwi.Variable();
+			var x2 = new kiwi.Variable();
+			var x3 = new kiwi.Variable();
 
-			function fac() {
-				return 0;
-			}
+			var t1 = new kiwi.Term(x1);
+			var t2 = new kiwi.Term(x2);
+			var t3 = new kiwi.Term(x3);
 
-			var m = new kiwi.Map(cmp, fac);
-			for (var i = 0; i < 500; ++i) {
-				m.insert(i, i);
-			}
+			var e1 = new kiwi.Expression([t1, t2, t3]);
+			var e2 = new kiwi.Expression([t1], -5.0);
 
-			var n = 0;
-			//console.time("foo");
-			for (var i = 0; i < 10000; ++i) {
-				for (var k = 0; k < 500; k++) {
-					n += m.get(k).value;
+			var c1 = new kiwi.Constraint(e1, kiwi.Operator.Eq);
+			var c2 = new kiwi.Constraint(e2, kiwi.Operator.Eq);
+
+			var solver = new kiwi.Solver();
+			solver.addConstraint(c1);
+			solver.addConstraint(c2);
+			solver.addEditVariable(x2, kiwi.Strength.strong);
+
+			function doit() {
+				for (var i = 0; i < 1000000; ++i) {
+					solver.suggestValue(x2, i);
+					solver.updateVariables();
 				}
-			}
-			/*
-			//console.timeEnd("foo");
-			//console.log("n:", n)
-
-			var o = {}
-			for (var i = 499; i >= 0; --i) {
-				o[i] = i;
+				console.log("x1", x1.value());
+				console.log("x2", x2.value());
+				console.log("x3", x3.value());
 			}
 
-			n = 0;
-			//console.time("bar");
-			for (var i = 0; i < 10000; ++i) {
-				for (var k = 0; k < 500; k++) {
-					n += o[k];
-				}
-			}
-			//console.timeEnd("bar");
-			//console.log("n:", n);
-			*/
-		}
+			//console.log("x1", x1.value());
+			//console.log("x2", x2.value());
+			//console.log("x3", x3.value());
 		</script>
 	</head>
-	<button onclick="spam()">Do It</button>
+	<button type="button" onclick="doit()">Do It!</button>
 </html>
