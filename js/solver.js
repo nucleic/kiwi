@@ -29,7 +29,7 @@ var kiwi;
             this._infeasible_rows = [];
             this._objective = new Row();
             this._artificial = null;
-            this._symbolTable = new SymbolTable();
+            this._symbolTick = 0;
         }
         /**
         * Add a constraint to the solver.
@@ -57,7 +57,7 @@ var kiwi;
             // this represents redundant constraints and the new dummy
             // marker can enter the basis. If the constant is non-zero,
             // then it represents an unsatisfiable constraint.
-            if (this._isInvalidSym(subject) && this._allDummies(row)) {
+            if (this._symbolType(subject) === 0 /* Invalid */ && this._allDummies(row)) {
                 if (!nearZero(row.constant())) {
                     throw new Error("unsatifiable constraint");
                 } else {
@@ -68,7 +68,7 @@ var kiwi;
             // If an entering symbol still isn't found, then the row must
             // be added using an artificial variable. If that fails, then
             // the row represents an unsatisfiable constraint.
-            if (this._isInvalidSym(subject)) {
+            if (this._symbolType(subject) === 0 /* Invalid */) {
                 if (!this._addWithArtificialVariable(row)) {
                     throw new Error("unsatisfiable constraint");
                 }
@@ -110,7 +110,7 @@ var kiwi;
                 delete this._rows[marker];
             } else {
                 var leaving = this._getMarkerLeavingSymbol(marker);
-                if (this._isInvalidSym(leaving)) {
+                if (this._symbolType(leaving) === 0 /* Invalid */) {
                     throw new Error("failed to find leaving row");
                 }
                 row = this._rows[leaving];
@@ -216,7 +216,7 @@ var kiwi;
             for (var sym in theseRows) {
                 row = theseRows[sym];
                 var coeff = row.coefficientFor(marker);
-                if (coeff !== 0.0 && row.add(delta * coeff) < 0.0 && !this._isExternalSym(sym)) {
+                if (coeff !== 0.0 && row.add(delta * coeff) < 0.0 && this._symbolType(sym) !== 1 /* External */) {
                     this._infeasible_rows.push(sym);
                 }
             }
@@ -251,7 +251,7 @@ var kiwi;
             if (typeof pair !== "undefined") {
                 return pair.symbol;
             }
-            var symbol = this._newExternalSymbol();
+            var symbol = this._newSymbol(1 /* External */);
             this._vars[id] = { variable: variable, symbol: symbol };
             return symbol;
         };
@@ -296,16 +296,16 @@ var kiwi;
             var objective = this._objective;
             var cnStrength = constraint.strength();
             var cnOp = constraint.op();
-            var tag = this._newTag();
+            var tag = { marker: 0 /* Invalid */, other: 0 /* Invalid */ };
             switch (cnOp) {
                 case 0 /* OP_LE */:
                 case 1 /* OP_GE */: {
                     var coeff = cnOp === 0 /* OP_LE */ ? 1.0 : -1.0;
-                    var slack = this._newSlackSymbol();
+                    var slack = this._newSymbol(2 /* Slack */);
                     tag.marker = slack;
                     row.insertSymbol(slack, coeff);
                     if (cnStrength < kiwi.strength.required) {
-                        var error = this._newErrorSymbol();
+                        var error = this._newSymbol(3 /* Error */);
                         tag.other = error;
                         row.insertSymbol(error, -coeff);
                         objective.insertSymbol(error, cnStrength);
@@ -314,8 +314,8 @@ var kiwi;
                 }
                 case 2 /* OP_EQ */: {
                     if (cnStrength < kiwi.strength.required) {
-                        var errplus = this._newErrorSymbol();
-                        var errminus = this._newErrorSymbol();
+                        var errplus = this._newSymbol(3 /* Error */);
+                        var errminus = this._newSymbol(3 /* Error */);
                         tag.marker = errplus;
                         tag.other = errminus;
                         row.insertSymbol(errplus, -1.0); // v = eplus - eminus
@@ -323,7 +323,7 @@ var kiwi;
                         objective.insertSymbol(errplus, cnStrength);
                         objective.insertSymbol(errminus, cnStrength);
                     } else {
-                        var dummy = this._newDummySymbol();
+                        var dummy = this._newSymbol(4 /* Dummy */);
                         tag.marker = dummy;
                         row.insertSymbol(dummy);
                     }
@@ -356,23 +356,25 @@ var kiwi;
         Solver.prototype._chooseSubject = function (row, tag) {
             var rowCells = row.cells();
             for (var symbol in rowCells) {
-                if (this._isExternalSym(symbol)) {
+                if (this._symbolType(symbol) === 1 /* External */) {
                     return symbol;
                 }
             }
             var marker = tag.marker;
-            if (this._isSlackSym(marker) || this._isErrorSym(marker)) {
+            var mtype = this._symbolType(marker);
+            if (mtype === 2 /* Slack */ || mtype === 3 /* Error */) {
                 if (row.coefficientFor(marker) < 0.0) {
                     return marker;
                 }
             }
             var other = tag.other;
-            if (this._isSlackSym(other) || this._isErrorSym(other)) {
+            var otype = this._symbolType(other);
+            if (otype === 2 /* Slack */ || otype === 3 /* Error */) {
                 if (row.coefficientFor(other) < 0.0) {
                     return other;
                 }
             }
-            return this._newInvalidSymbol();
+            return 0 /* Invalid */;
         };
 
         /**
@@ -382,7 +384,7 @@ var kiwi;
         */
         Solver.prototype._addWithArtificialVariable = function (row) {
             // Create and add the artificial variable to the tableau
-            var art = this._newSlackSymbol();
+            var art = this._newSymbol(2 /* Slack */);
             this._rows[art] = row.clone();
             this._artificial = row.clone();
 
@@ -401,7 +403,7 @@ var kiwi;
                     return success;
                 }
                 var entering = this._anyPivotableSymbol(basicRow);
-                if (this._isInvalidSym(entering)) {
+                if (this._symbolType(entering) === 0 /* Invalid */) {
                     return false;
                 }
                 basicRow.solveForEx(art, entering);
@@ -429,7 +431,8 @@ var kiwi;
             for (var itSym in theseRows) {
                 var itRow = theseRows[itSym];
                 itRow.substitute(symbol, row);
-                if (!this._isExternalSym(itSym) && itRow.constant() < 0.0) {
+                var c = itRow.constant();
+                if (c < 0.0 && this._symbolType(itSym) !== 1 /* External */) {
                     this._infeasible_rows.push(itSym);
                 }
             }
@@ -448,11 +451,11 @@ var kiwi;
         Solver.prototype._optimize = function (objective) {
             while (true) {
                 var entering = this._getEnteringSymbol(objective);
-                if (this._isInvalidSym(entering)) {
+                if (this._symbolType(entering) === 0 /* Invalid */) {
                     return;
                 }
                 var leaving = this._getLeavingSymbol(entering);
-                if (!this._isInvalidSym(leaving)) {
+                if (this._symbolType(leaving) === 0 /* Invalid */) {
                     throw new Error("the object is unbounded");
                 }
                 var row = this._rows[leaving];
@@ -479,7 +482,7 @@ var kiwi;
                 var row = theseRows[leaving];
                 if (typeof row !== "undefined" && row.constant() < 0.0) {
                     var entering = this._getDualEnteringSymbol(row);
-                    if (this._isInvalidSym(entering)) {
+                    if (this._symbolType(entering) === 0 /* Invalid */) {
                         throw new Error("dual optimize failed");
                     }
                     delete theseRows[leaving];
@@ -500,12 +503,12 @@ var kiwi;
         */
         Solver.prototype._getEnteringSymbol = function (objective) {
             var cells = objective.cells();
-            for (var symbol in cells) {
-                if (!this._isDummySym(symbol) && cells[symbol] < 0.0) {
-                    return symbol;
+            for (var sym in cells) {
+                if (cells[sym] < 0.0 && this._symbolType(sym) !== 4 /* Dummy */) {
+                    return sym;
                 }
             }
-            return this._newInvalidSymbol();
+            return 0 /* Invalid */;
         };
 
         /**
@@ -519,11 +522,11 @@ var kiwi;
         */
         Solver.prototype._getDualEnteringSymbol = function (row) {
             var ratio = Number.MAX_VALUE;
-            var entering = this._newInvalidSymbol();
+            var entering = 0 /* Invalid */;
             var cells = row.cells();
             for (var sym in cells) {
                 var c = cells[sym];
-                if (c > 0.0 && !this._isDummySym(sym)) {
+                if (c > 0.0 && this._symbolType(sym) !== 4 /* Dummy */) {
                     var coeff = this._objective.coefficientFor(sym);
                     var r = coeff / c;
                     if (r < ratio) {
@@ -544,11 +547,11 @@ var kiwi;
         * unbounded.
         */
         Solver.prototype._getLeavingSymbol = function (entering) {
-            var found = this._newInvalidSymbol();
+            var found = 0 /* Invalid */;
             var ratio = Number.MAX_VALUE;
             var theseRows = this._rows;
             for (var sym in theseRows) {
-                if (!this._isExternalSym(sym)) {
+                if (this._symbolType(sym) !== 1 /* External */) {
                     var row = theseRows[sym];
                     var temp = row.coefficientFor(entering);
                     if (temp < 0.0) {
@@ -586,10 +589,9 @@ var kiwi;
             var dmax = Number.MAX_VALUE;
             var r1 = dmax;
             var r2 = dmax;
-            var invalid = this._newInvalidSymbol();
-            var first = invalid;
-            var second = invalid;
-            var third = invalid;
+            var first = 0 /* Invalid */;
+            var second = 0 /* Invalid */;
+            var third = 0 /* Invalid */;
             var theseRows = this._rows;
             for (var sym in theseRows) {
                 var row = theseRows[sym];
@@ -597,7 +599,7 @@ var kiwi;
                 if (c === 0.0) {
                     continue;
                 }
-                if (this._isExternalSym(sym)) {
+                if (this._symbolType(sym) === 1 /* External */) {
                     third = sym;
                 } else if (c < 0.0) {
                     var r = -row.constant() / c;
@@ -613,10 +615,10 @@ var kiwi;
                     }
                 }
             }
-            if (first !== invalid) {
+            if (first !== 0 /* Invalid */) {
                 return first;
             }
-            if (second !== invalid) {
+            if (second !== 0 /* Invalid */) {
                 return second;
             }
             return third;
@@ -626,10 +628,10 @@ var kiwi;
         * Remove the effects of a constraint on the objective function.
         */
         Solver.prototype._removeConstraintEffects = function (cn, tag) {
-            if (this._isErrorSym(tag.marker)) {
+            if (this._symbolType(tag.marker) === 3 /* Error */) {
                 this._removeMarkerEffects(tag.marker, cn.strength());
             }
-            if (this._isErrorSym(tag.other)) {
+            if (this._symbolType(tag.other) === 3 /* Error */) {
                 this._removeMarkerEffects(tag.other, cn.strength());
             }
         };
@@ -653,11 +655,12 @@ var kiwi;
         */
         Solver.prototype._anyPivotableSymbol = function (row) {
             for (var sym in row.cells()) {
-                if (this._isSlackSym(sym) || this._isErrorSym(sym)) {
+                var type = this._symbolType(sym);
+                if (type === 2 /* Slack */ || type === 3 /* Error */) {
                     return sym;
                 }
             }
-            return this._newInvalidSymbol();
+            return 0 /* Invalid */;
         };
 
         /**
@@ -666,7 +669,7 @@ var kiwi;
         Solver.prototype._allDummies = function (row) {
             var cells = row.cells();
             for (var symbol in cells) {
-                if (!this._isDummySym(symbol)) {
+                if (this._symbolType(symbol) !== 4 /* Dummy */) {
                     return false;
                 }
             }
@@ -674,156 +677,52 @@ var kiwi;
         };
 
         /**
-        * Returns a new invalid symbol.
+        * Returns a new symbol of the given type.
         */
-        Solver.prototype._newInvalidSymbol = function () {
-            return this._symbolTable.newSymbol(0 /* Invalid */);
-        };
-
-        /**
-        * Returns a new external symbol.
-        */
-        Solver.prototype._newExternalSymbol = function () {
-            return this._symbolTable.newSymbol(1 /* External */);
-        };
-
-        /**
-        * Returns a new slack symbol.
-        */
-        Solver.prototype._newSlackSymbol = function () {
-            return this._symbolTable.newSymbol(2 /* Slack */);
-        };
-
-        /**
-        * Returns a new error symbol.
-        */
-        Solver.prototype._newErrorSymbol = function () {
-            return this._symbolTable.newSymbol(3 /* Error */);
-        };
-
-        /**
-        * Returns a new dummy symbol.
-        */
-        Solver.prototype._newDummySymbol = function () {
-            return this._symbolTable.newSymbol(4 /* Dummy */);
+        Solver.prototype._newSymbol = function (type) {
+            var symbol = this._symbolTick + type;
+            this._symbolTick += 5 /* Last */;
+            return symbol;
         };
 
         /**
         * Returns the type of the given symbol.
         */
         Solver.prototype._symbolType = function (symbol) {
-            return this._symbolTable.type(symbol);
-        };
-
-        /**
-        * Returns true if the symbol has type Invalid.
-        */
-        Solver.prototype._isInvalidSym = function (symbol) {
-            return this._symbolType(symbol) === 0 /* Invalid */;
-        };
-
-        /**
-        * Returns true if the symbol has type External.
-        */
-        Solver.prototype._isExternalSym = function (symbol) {
-            return this._symbolType(symbol) === 1 /* External */;
-        };
-
-        /**
-        * Returns true if the symbol has type Slack.
-        */
-        Solver.prototype._isSlackSym = function (symbol) {
-            return this._symbolType(symbol) === 2 /* Slack */;
-        };
-
-        /**
-        * Returns true if the symbol has type Error.
-        */
-        Solver.prototype._isErrorSym = function (symbol) {
-            return this._symbolType(symbol) === 3 /* Error */;
-        };
-
-        /**
-        * Returns true if the symbol has type Dummy.
-        */
-        Solver.prototype._isDummySym = function (symbol) {
-            return this._symbolType(symbol) === 4 /* Dummy */;
-        };
-
-        /**
-        * Returns a new tag with invalid symbols
-        */
-        Solver.prototype._newTag = function () {
-            var sym = this._newInvalidSymbol();
-            return { marker: sym, other: sym };
+            return symbol % 5 /* Last */;
         };
         return Solver;
     })();
     kiwi.Solver = Solver;
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
     /**
-    * The internal symbol types.
+    * The internal solver symbol types.
     */
-    var SymbolType;
-    (function (SymbolType) {
-        SymbolType[SymbolType["Invalid"] = 0] = "Invalid";
-        SymbolType[SymbolType["External"] = 1] = "External";
-        SymbolType[SymbolType["Slack"] = 2] = "Slack";
-        SymbolType[SymbolType["Error"] = 3] = "Error";
-        SymbolType[SymbolType["Dummy"] = 4] = "Dummy";
-    })(SymbolType || (SymbolType = {}));
+    var Symbol;
+    (function (Symbol) {
+        Symbol[Symbol["Invalid"] = 0] = "Invalid";
+        Symbol[Symbol["External"] = 1] = "External";
+        Symbol[Symbol["Slack"] = 2] = "Slack";
+        Symbol[Symbol["Error"] = 3] = "Error";
+        Symbol[Symbol["Dummy"] = 4] = "Dummy";
+        Symbol[Symbol["Last"] = 5] = "Last";
+    })(Symbol || (Symbol = {}));
 
-    /**
-    * An internal symbol table class used by the solver.
-    */
-    var SymbolTable = (function () {
-        /**
-        * Construct a new SymbolTable.
-        */
-        function SymbolTable() {
-            this._tick = 0;
-            this._table = [];
-        }
-        /**
-        * Create a new symbol of the given type and return its id.
-        */
-        SymbolTable.prototype.newSymbol = function (type) {
-            if (type === 0 /* Invalid */) {
-                return -1;
-            }
-            var symbol = this._tick++;
-            this._table[symbol] = type;
-            return symbol;
-        };
+    
 
-        /**
-        * Returns the type of the specified symbol.
-        */
-        SymbolTable.prototype.type = function (symbol) {
-            var type = this._table[symbol];
-            if (typeof type !== "unefined") {
-                return type;
-            }
-            return 0 /* Invalid */;
-        };
-        return SymbolTable;
-    })();
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 
     
 
