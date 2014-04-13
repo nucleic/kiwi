@@ -15,7 +15,8 @@ module kiwi {
      *
      * @class
      */
-    export class Term {
+    export
+    class Term {
 
         /**
          * Construct a new Term.

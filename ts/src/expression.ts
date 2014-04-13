@@ -15,7 +15,8 @@ module kiwi {
      *
      * @class
      */
-    export class Expression {
+    export
+    class Expression {
 
         /**
          * Construct a new Expression.

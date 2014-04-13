@@ -12,13 +12,14 @@ module kiwi {
      *
      * @class
      */
-    export class Variable {
+    export
+    class Variable {
 
         /**
          * A static variable comparison function.
          */
-        static LessThan(a: Variable, b: Variable): boolean {
-            return a.id() < b.id();
+        static Compare(a: Variable, b: Variable): number {
+            return a.id() - b.id();
         }
 
         /**
@@ -78,6 +79,44 @@ module kiwi {
          */
         setValue(value: number): void {
             this._value = value;
+        }
+
+        /**
+         * Returns an expression of the variable plus the value.
+         */
+        plus(value: number): Expression;
+        plus(value: Variable): Expression;
+        plus(value: Term): Expression;
+        plus(value: Expression): Expression;
+        plus(value: any): Expression {
+            return new Term(this).plus(value);
+        }
+
+        /**
+         * Returns an expression of the variable minus the value.
+         */
+        minus(value: number): Expression;
+        minus(value: Variable): Expression;
+        minus(value: Term): Expression;
+        minus(value: Expression): Expression;
+        minus(value: any): Expression {
+            return new Term(this).minus(value);
+        }
+
+        /**
+         * Returns an expression of the variable times the value.
+         */
+        times(value: number): Expression {
+            var term = new Term(this, value);
+            return new Expression([term]);
+        }
+
+        /**
+         * Returns an expression of the variable divided by the value.
+         */
+        dividedBy(value: number): Expression {
+            var term = new Term(this, 1 / value);
+            return new Expression([term]);
         }
 
         private _id: number;

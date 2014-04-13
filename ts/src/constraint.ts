@@ -16,7 +16,8 @@ module kiwi {
     /**
      * An enum defining the linear constraint operators.
      */
-    export enum Operator {
+    export
+    enum Operator {
         Le,  // <=
         Ge,  // >=
         Eq   // ==
@@ -31,7 +32,15 @@ module kiwi {
      *
      * @class
      */
-    export class Constraint {
+    export
+    class Constraint {
+
+        /**
+         * A static constraint comparison function.
+         */
+        static Compare(a: Constraint, b: Constraint): number {
+            return a.id() - b.id();
+        }
 
         /**
          * Construct a new Constraint.

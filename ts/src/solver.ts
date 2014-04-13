@@ -6,12 +6,12 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 
+/// <reference path="../thirdparty/tsutils.d.ts"/>
 /// <reference path="variable.ts"/>
 /// <reference path="term.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 /// <reference path="constraint.ts"/>
-/// <reference path="tsutils.d.ts"/>
 
 module kiwi {
 
@@ -31,12 +31,12 @@ module kiwi {
          * Add a constraint to the solver.
          */
         addConstraint(constraint: Constraint): void {
-            var tag = this._cns[constraint.id()];
-            if (typeof tag !== "undefined") {
+            var pair = this._cns.find(constraint);
+            if (pair) {
                 throw new Error("duplicate constraint");
             }
 
-            // Creating a row causes symbols to reserved for the variables
+            // Creating a row causes symbols to be reserved for the variables
             // in the constraint. If this method exits with an exception,
             // then its possible those variables will linger in the var map.
             // Since its likely that those variables will be used in other
@@ -45,7 +45,7 @@ module kiwi {
             var data = this._createRow(constraint);
             var row = data.row;
             var tag = data.tag;
-            var subject = this._chooseSubject(row, tag);
+            var subj = this._chooseSubject(row, tag);
 
             // If chooseSubject couldnt find a valid entering symbol, one
             // last option is available if the entire row is composed of
@@ -53,28 +53,28 @@ module kiwi {
             // this represents redundant constraints and the new dummy
             // marker can enter the basis. If the constant is non-zero,
             // then it represents an unsatisfiable constraint.
-            if (this._symbolType(subject) === Symbol.Invalid && this._allDummies(row)) {
+            if (subj.type() === SymbolType.Invalid && this._allDummies(row)) {
                 if (!nearZero(row.constant())) {
                     throw new Error("unsatifiable constraint");
                 } else {
-                    subject = tag.marker;
+                    subj = tag.marker;
                 }
             }
 
             // If an entering symbol still isn't found, then the row must
             // be added using an artificial variable. If that fails, then
             // the row represents an unsatisfiable constraint.
-            if (this._symbolType(subject) === Symbol.Invalid) {
+            if (subj.type() === SymbolType.Invalid) {
                 if (!this._addWithArtificialVariable(row)) {
                     throw new Error("unsatisfiable constraint");
                 }
             } else {
-                row.solveFor(subject);
-                this._substitute(subject, row);
-                this._rows[subject] = row;
+                row.solveFor(subj);
+                this._substitute(subj, row);
+                this._rows.insert(subj, row);
             }
 
-            this._cns[constraint.id()] = tag;
+            this._cns.insert(constraint, tag);
 
             // Optimizing after each constraint is added performs less
             // aggregate work due to a smaller average system size. It
@@ -86,55 +86,49 @@ module kiwi {
          * Remove a constraint from the solver.
          */
         removeConstraint(constraint: Constraint): void {
-            var tag = this._cns[constraint.id()];
-            if (typeof tag === "undefined") {
+            var cnPair = this._cns.erase(constraint);
+            if (!cnPair) {
                 throw new Error("unknown constraint");
             }
-
-            delete this._cns[constraint.id()];
 
             // Remove the error effects from the objective function
             // *before* pivoting, or substitutions into the objective
             // will lead to incorrect solver results.
-            this._removeConstraintEffects(constraint, tag);
+            this._removeConstraintEffects(constraint, cnPair.second);
 
             // If the marker is basic, simply drop the row. Otherwise,
             // pivot the marker into the basis and then drop the row.
-            var marker = tag.marker;
-            var row = this._rows[marker];
-            if (typeof row !== "undefined") {
-                delete this._rows[marker];
-            } else {
+            var marker = cnPair.second.marker;
+            var rowPair = this._rows.erase(marker);
+            if (!rowPair) {
                 var leaving = this._getMarkerLeavingSymbol(marker);
-                if (this._symbolType(leaving) === Symbol.Invalid) {
+                if (leaving.type() === SymbolType.Invalid) {
                     throw new Error("failed to find leaving row");
                 }
-                row = this._rows[leaving];
-                delete this._rows[leaving];
-                row.solveForEx(leaving, marker);
-                this._substitute(marker, row);
+                rowPair = this._rows.erase(leaving);
+                rowPair.second.solveForEx(leaving, marker);
+                this._substitute(marker, rowPair.second);
             }
 
             // Optimizing after each constraint is removed ensures that the
             // solver remains consistent. It makes the solver api easier to
             // use at a small tradeoff for speed.
-            this._optimize( this._objective );
+            this._optimize(this._objective);
         }
 
         /**
          * Test whether the solver contains the constraint.
          */
         hasConstraint(constraint: Constraint): boolean {
-            var tag = this._cns[constraint.id()];
-            return typeof tag !== "undefined";
+            return !!this._cns.find(constraint);
         }
 
         /**
          * Add an edit variable to the solver.
          */
         addEditVariable(variable: Variable, strength: number): void {
-            var info = this._edits[variable.id()];
-            if (typeof info !== "undefined") {
+            var pair = this._edits.find(variable);
+            if (pair) {
                 throw new Error("duplicate edit variable");
             }
             strength = Strength.clip(strength);
@@ -145,52 +139,47 @@ module kiwi {
             var expr = new Expression([term]);
             var cn = new Constraint(expr, Operator.Eq, strength);
             this.addConstraint(cn);
-            info = {
-                tag: this._cns[cn.id()],
-                constraint: cn,
-                constant: 0.0
-            }
-            this._edits[variable.id()] = info;
+            var tag = this._cns.find(cn).second;
+            var info = { tag: tag, constraint: cn, constant: 0.0 };
+            this._edits.insert(variable, info);
         }
 
         /**
          * Remove an edit variable from the solver.
          */
         removeEditVariable(variable: Variable): void {
-            var info = this._edits[variable.id()];
-            if (typeof info === "undefined") {
+            var pair = this._edits.erase(variable);
+            if (!pair) {
                 throw new Error("unknown edit variable");
             }
-            this.removeConstraint(info.constraint);
-            delete this._edits[variable.id()];
+            this.removeConstraint(pair.second.constraint);
         }
 
         /**
          * Test whether the solver contains the edit variable.
          */
         hasEditVariable(variable: Variable): boolean {
-            var info = this._edits[variable.id()];
-            return typeof info !== "undefined";
+            return !!this._edits.find(variable);
         }
 
         /**
          * Suggest the value of an edit variable.
          */
         suggestValue(variable: Variable, value: number): void {
-            var info = this._edits[variable.id()];
-            if (typeof info === "undefined") {
+            var editPair = this._edits.find(variable);
+            if (!editPair) {
                 throw new Error("unknown edit variable");
             }
 
-            var marker = info.tag.marker;
-            var other = info.tag.other;
+            var info = editPair.second;
             var delta = value - info.constant;
             info.constant = value;
 
             // Check first if the positive error variable is basic.
-            var row = this._rows[marker];
-            if (typeof row !== "undefined") {
-                if (row.add(-delta) < 0.0) {
+            var marker = info.tag.marker;
+            var rowPair = this._rows.find(marker);
+            if (rowPair) {
+                if (rowPair.second.add(-delta) < 0.0) {
                     this._infeasible_rows.push(marker);
                 }
                 this._dualOptimize();
@@ -198,9 +187,10 @@ module kiwi {
             }
 
             // Check next if the negative error variable is basic.
-            row = this._rows[other];
-            if (typeof row !== "undefined") {
-                if (row.add(delta) < 0.0) {
+            var other = info.tag.other;
+            rowPair = this._rows.find(other);
+            if (rowPair) {
+                if (rowPair.second.add(delta) < 0.0) {
                     this._infeasible_rows.push(other);
                 }
                 this._dualOptimize();
@@ -208,13 +198,13 @@ module kiwi {
             }
 
             // Otherwise update each row where the error variables exist.
-            var theseRows = this._rows;
-            for (var sym in theseRows) {
-                row = theseRows[sym];
+            var iter = this._rows.iter();
+            while (rowPair = iter.next()) {
+                var row = rowPair.second;
                 var coeff = row.coefficientFor(marker);
                 if (coeff !== 0.0 && row.add(delta * coeff) < 0.0 &&
-                    this._symbolType(sym) !== Symbol.External) {
-                    this._infeasible_rows.push(sym);
+                    rowPair.first.type() !== SymbolType.External) {
+                    this._infeasible_rows.push(rowPair.first);
                 }
             }
             this._dualOptimize();
@@ -224,15 +214,14 @@ module kiwi {
          * Update the values of the variables.
          */
         updateVariables(): void {
-            var theseRows = this._rows;
             var iter = this._vars.iter();
-            var pair: tsutils.IPair<Variable, number>;
+            var pair: tsutils.IPair<Variable, Symbol>;
             while (pair = iter.next()) {
-                var row = theseRows[pair.second];
-                if (typeof row === "undefined") {
-                    pair.first.setValue(0.0);
+                var rowPair = this._rows.find(pair.second);
+                if (rowPair) {
+                    pair.first.setValue(rowPair.second.constant());
                 } else {
-                    pair.first.setValue(row.constant());
+                    pair.first.setValue(0.0);
                 }
             }
         }
@@ -242,10 +231,10 @@ module kiwi {
          *
          * If a symbol does not exist for the variable, one will be created.
          */
-        private _getVarSymbol(variable: Variable): number {
+        private _getVarSymbol(variable: Variable): Symbol {
             var self = this;
-            var factory = function() {
-                return self._newSymbol(Symbol.External);
+            function factory() {
+                return self._makeSymbol(SymbolType.External);
             };
             return this._vars.setDefault(variable, factory).second;
         }
@@ -277,9 +266,9 @@ module kiwi {
                 var coefficient = term.coefficient();
                 if (!nearZero(coefficient)) {
                     var symbol = this._getVarSymbol(term.variable());
-                    var basicRow = this._rows[symbol];
-                    if (typeof basicRow !== "undefined") {
-                        row.insertRow(basicRow, coefficient);
+                    var pair = this._rows.find(symbol);
+                    if (pair) {
+                        row.insertRow(pair.second, coefficient);
                     } else {
                         row.insertSymbol(symbol, coefficient);
                     }
@@ -289,17 +278,17 @@ module kiwi {
             // Add the necessary slack, error, and dummy variables.
             var objective = this._objective;
             var strength = constraint.strength();
-            var tag = { marker: Symbol.Invalid, other: Symbol.Invalid };
+            var tag = { marker: INVALID_SYMBOL, other: INVALID_SYMBOL };
             switch (constraint.op()) {
                 case Operator.Le:
                 case Operator.Ge:
                 {
                     var coeff = constraint.op() === Operator.Le ? 1.0 : -1.0;
-                    var slack = this._newSymbol(Symbol.Slack);
+                    var slack = this._makeSymbol(SymbolType.Slack);
                     tag.marker = slack;
                     row.insertSymbol(slack, coeff);
                     if (strength < Strength.required) {
-                        var error = this._newSymbol(Symbol.Error);
+                        var error = this._makeSymbol(SymbolType.Error);
                         tag.other = error;
                         row.insertSymbol(error, -coeff);
                         objective.insertSymbol(error, strength);
@@ -309,8 +298,8 @@ module kiwi {
                 case Operator.Eq:
                 {
                     if (strength < Strength.required) {
-                        var errplus = this._newSymbol(Symbol.Error);
-                        var errminus = this._newSymbol(Symbol.Error);
+                        var errplus = this._makeSymbol(SymbolType.Error);
+                        var errminus = this._makeSymbol(SymbolType.Error);
                         tag.marker = errplus;
                         tag.other = errminus;
                         row.insertSymbol(errplus, -1.0); // v = eplus - eminus
@@ -318,7 +307,7 @@ module kiwi {
                         objective.insertSymbol(errplus, strength);
                         objective.insertSymbol(errminus, strength);
                     } else {
-                        var dummy = this._newSymbol(Symbol.Dummy);
+                        var dummy = this._makeSymbol(SymbolType.Dummy);
                         tag.marker = dummy;
                         row.insertSymbol(dummy);
                     }
@@ -348,28 +337,27 @@ module kiwi {
          *
          * If a subject cannot be found, an invalid symbol will be returned.
          */
-        private _chooseSubject(row: Row, tag: ITag): number {
-            var rowCells = row.cells();
-            for (var symbol in rowCells) {
-                if (this._symbolType(symbol) === Symbol.External) {
-                    return symbol;
+        private _chooseSubject(row: Row, tag: ITag): Symbol {
+            var iter = row.cells().iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                if (pair.first.type() === SymbolType.External) {
+                    return pair.first;
                 }
             }
-            var marker = tag.marker;
-            var mtype = this._symbolType(marker);
-            if (mtype === Symbol.Slack || mtype === Symbol.Error) {
-                if (row.coefficientFor(marker) < 0.0) {
-                    return marker;
+            var type = tag.marker.type();
+            if (type === SymbolType.Slack || type === SymbolType.Error) {
+                if (row.coefficientFor(tag.marker) < 0.0) {
+                    return tag.marker;
                 }
             }
-            var other = tag.other;
-            var otype = this._symbolType(other);
-            if (otype === Symbol.Slack || otype === Symbol.Error) {
-                if (row.coefficientFor(other) < 0.0) {
-                    return other;
+            type = tag.other.type();
+            if (type === SymbolType.Slack || type === SymbolType.Error) {
+                if (row.coefficientFor(tag.other) < 0.0) {
+                    return tag.other;
                 }
             }
-            return Symbol.Invalid;
+            return INVALID_SYMBOL;
         }
 
         /**
@@ -378,10 +366,10 @@ module kiwi {
          * This will return false if the constraint cannot be satisfied.
          */
         private _addWithArtificialVariable(row: Row): boolean {
-            // Create and add the artificial variable to the tableau
-            var art = this._newSymbol(Symbol.Slack);
-            this._rows[art] = row.clone();
-            this._artificial = row.clone();
+            // Create and add the artificial variable to the tableau.
+            var art = this._makeSymbol(SymbolType.Slack);
+            this._rows.insert(art, row.copy());
+            this._artificial = row.copy();
 
             // Optimize the artificial objective. This is successful
             // only if the artificial objective is optimized to zero.
@@ -391,25 +379,25 @@ module kiwi {
 
             // If the artificial variable is basic, pivot the row so that
             // it becomes non-basic. If the row is constant, exit early.
-            var basicRow = this._rows[art];
-            if (typeof basicRow !== "undefined") {
-                delete this._rows[art];
+            var pair = this._rows.erase(art);
+            if (pair) {
+                var basicRow = pair.second;
                 if (basicRow.isConstant()) {
                     return success;
                 }
                 var entering = this._anyPivotableSymbol(basicRow);
-                if (this._symbolType(entering) === Symbol.Invalid) {
+                if (entering.type() === SymbolType.Invalid) {
                     return false;  // unsatisfiable (will this ever happen?)
                 }
                 basicRow.solveForEx(art, entering);
                 this._substitute(entering, basicRow);
-                this._rows[entering] = basicRow;
+                this._rows.insert(entering, basicRow);
             }
 
             // Remove the artificial variable from the tableau.
-            var theseRows = this._rows;
-            for (var sym in theseRows) {
-                theseRows[sym].removeSymbol(art);
+            var iter = this._rows.iter();
+            while (pair = iter.next()) {
+                pair.second.removeSymbol(art);
             }
             this._objective.removeSymbol(art);
             return success;
@@ -421,14 +409,14 @@ module kiwi {
          * This method will substitute all instances of the parametric symbol
          * in the tableau and the objective function with the given row.
          */
-        private _substitute(symbol: number, row: Row): void {
-            var theseRows = this._rows;
-            for (var itSym in theseRows) {
-                var itRow = theseRows[itSym];
-                itRow.substitute(symbol, row);
-                var c = itRow.constant();
-                if (c < 0.0 && this._symbolType(itSym) !== Symbol.External) {
-                    this._infeasible_rows.push(itSym);
+        private _substitute(symbol: Symbol, row: Row): void {
+            var iter = this._rows.iter();
+            var pair: tsutils.IPair<Symbol, Row>;
+            while (pair = iter.next()) {
+                pair.second.substitute(symbol, row);
+                if (pair.second.constant() < 0.0 &&
+                    pair.first.type() !== SymbolType.External) {
+                    this._infeasible_rows.push(pair.first);
                 }
             }
             this._objective.substitute(symbol, row);
@@ -446,18 +434,18 @@ module kiwi {
         private _optimize(objective: Row): void {
             while (true) {
                 var entering = this._getEnteringSymbol(objective);
-                if (this._symbolType(entering) === Symbol.Invalid) {
+                if (entering.type() === SymbolType.Invalid) {
                     return;
                 }
                 var leaving = this._getLeavingSymbol(entering);
-                if (this._symbolType(leaving) === Symbol.Invalid) {
-                    throw new Error("the object is unbounded");
+                if (leaving.type() === SymbolType.Invalid) {
+                    throw new Error("the objective is unbounded");
                 }
-                var row = this._rows[leaving];
-                delete this._rows[leaving];
+                // pivot the entering symbol into the basis
+                var row = this._rows.erase(leaving).second;
                 row.solveForEx(leaving, entering);
                 this._substitute(entering, row);
-                this._rows[entering] = row;
+                this._rows.insert(entering, row);
             }
         }
 
@@ -469,21 +457,23 @@ module kiwi {
          * an iteration of the dual simplex method to make the solution both
          * optimal and feasible.
          */
-        private _dualOptimize() {
-            var theseRows = this._rows;
+        private _dualOptimize(): void {
+            var rows = this._rows;
             var infeasible = this._infeasible_rows;
             while (infeasible.length !== 0) {
                 var leaving = infeasible.pop();
-                var row = theseRows[leaving];
-                if (typeof row !== "undefined" && row.constant() < 0.0) {
-                    var entering = this._getDualEnteringSymbol(row);
-                    if (this._symbolType(entering) === Symbol.Invalid) {
+                var pair = rows.find(leaving);
+                if (pair && pair.second.constant() < 0.0) {
+                    var entering = this._getDualEnteringSymbol(pair.second);
+                    if (entering.type() === SymbolType.Invalid) {
                         throw new Error("dual optimize failed");
                     }
-                    delete theseRows[leaving];
+                    // pivot the entering symbol into the basis
+                    var row = pair.second;
+                    rows.erase(leaving);
                     row.solveForEx(leaving, entering);
                     this._substitute(entering, row);
-                    theseRows[entering] = row;
+                    rows.insert(entering, row); 
                 }
             }
         }
@@ -496,14 +486,16 @@ module kiwi {
          * the criteria, it means the objective function is at a minimum, and an
          * invalid symbol is returned.
          */
-        private _getEnteringSymbol(objective: Row): number {
-            var cells = objective.cells();
-            for (var sym in cells) {
-                if (cells[sym] < 0.0 && this._symbolType(sym) !== Symbol.Dummy) {
-                    return sym;
+        private _getEnteringSymbol(objective: Row): Symbol {
+            var iter = objective.cells().iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                var symbol = pair.first;
+                if (pair.second < 0.0 && symbol.type() !== SymbolType.Dummy) {
+                    return symbol;
                 }
             }
-            return Symbol.Invalid;
+            return INVALID_SYMBOL; 
         }
 
         /**
@@ -515,18 +507,20 @@ module kiwi {
          * If no symbol is found which meats the criteria, an invalid symbol
          * is returned.
          */
-        private _getDualEnteringSymbol(row: Row): number {
+        private _getDualEnteringSymbol(row: Row): Symbol {
             var ratio = Number.MAX_VALUE;
-            var entering = Symbol.Invalid;
-            var cells = row.cells();
-            for (var sym in cells) {
-                var c = cells[sym];
-                if (c > 0.0 && this._symbolType(sym) !== Symbol.Dummy) {
-                    var coeff = this._objective.coefficientFor(sym);
+            var entering = INVALID_SYMBOL;
+            var iter = row.cells().iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                var symbol = pair.first;
+                var c = pair.second;
+                if (c > 0.0 && symbol.type() !== SymbolType.Dummy) {
+                    var coeff = this._objective.coefficientFor(symbol);
                     var r = coeff / c;
                     if (r < ratio) {
                         ratio = r;
-                        entering = sym;
+                        entering = symbol;
                     }
                 }
             }
@@ -541,19 +535,21 @@ module kiwi {
          * will be returned. This indicates that the objective function is
          * unbounded.
          */
-        private _getLeavingSymbol(entering: number): number {
-            var found = Symbol.Invalid;
+        private _getLeavingSymbol(entering: Symbol): Symbol {
             var ratio = Number.MAX_VALUE;
-            var theseRows = this._rows;
-            for (var sym in theseRows) {
-                if (this._symbolType(sym) !== Symbol.External) {
-                    var row = theseRows[sym];
+            var found = INVALID_SYMBOL;
+            var iter = this._rows.iter();
+            var pair: tsutils.IPair<Symbol, Row>;
+            while (pair = iter.next()) {
+                var symbol = pair.first;
+                if (symbol.type() !== SymbolType.External) {
+                    var row = pair.second;
                     var temp = row.coefficientFor(entering);
                     if (temp < 0.0) {
                         var temp_ratio = -row.constant() / temp;
                         if (temp_ratio < ratio) {
                             ratio = temp_ratio;
-                            found = sym;
+                            found = symbol;
                         }
                     }
                 }
@@ -580,40 +576,43 @@ module kiwi {
          * returned. This indicates an internal solver error since the marker
          * *should* exist somewhere in the tableau.
          */
-        private _getMarkerLeavingSymbol(marker: number): number {
+        private _getMarkerLeavingSymbol(marker: Symbol): Symbol {
             var dmax = Number.MAX_VALUE;
             var r1 = dmax;
             var r2 = dmax;
-            var first = Symbol.Invalid;
-            var second = Symbol.Invalid;
-            var third = Symbol.Invalid;
-            var theseRows = this._rows;
-            for (var sym in theseRows) {
-                var row = theseRows[sym];
+            var invalid = INVALID_SYMBOL;
+            var first = invalid;
+            var second = invalid;
+            var third = invalid;
+            var iter = this._rows.iter();
+            var pair: tsutils.IPair<Symbol, Row>;
+            while (pair = iter.next()) {
+                var row = pair.second;
                 var c = row.coefficientFor(marker);
                 if (c === 0.0) {
                     continue;
                 }
-                if (this._symbolType(sym) === Symbol.External) {
-                    third = sym;
+                var symbol = pair.first;
+                if (symbol.type() === SymbolType.External) {
+                    third = symbol;
                 } else if (c < 0.0) {
                     var r = -row.constant() / c;
                     if (r < r1) {
                         r1 = r;
-                        first = sym;
+                        first = symbol;
                     }
                 } else {
                     var r = row.constant() / c;
                     if (r < r2) {
                         r2 = r;
-                        second = sym;
+                        second = symbol;
                     }
                 }
             }
-            if (first !== Symbol.Invalid) {
+            if (first !== invalid) {
                 return first;
             }
-            if (second !== Symbol.Invalid) {
+            if (second !== invalid) {
                 return second;
             }
             return third;
@@ -623,10 +622,10 @@ module kiwi {
          * Remove the effects of a constraint on the objective function.
          */
         private _removeConstraintEffects(cn: Constraint, tag: ITag): void {
-            if (this._symbolType(tag.marker) === Symbol.Error) {
+            if (tag.marker.type() === SymbolType.Error) {
                 this._removeMarkerEffects(tag.marker, cn.strength());
             }
-            if (this._symbolType(tag.other) === Symbol.Error) {
+            if (tag.other.type() === SymbolType.Error) {
                 this._removeMarkerEffects(tag.other, cn.strength());
             }
         }
@@ -634,10 +633,10 @@ module kiwi {
         /**
          * Remove the effects of an error marker on the objective function.
          */
-        private _removeMarkerEffects(marker: number, strength: number): void {
-            var row = this._rows[marker];
-            if (typeof row !== "undefined") {
-                this._objective.insertRow(row, -strength);
+        private _removeMarkerEffects(marker: Symbol, strength: number): void {
+            var pair = this._rows.find(marker);
+            if (pair) {
+                this._objective.insertRow(pair.second, -strength);
             } else {
                 this._objective.insertSymbol(marker, -strength);
             }
@@ -646,25 +645,28 @@ module kiwi {
         /**
          * Get the first Slack or Error symbol in the row.
          *
-         * If no such symbol is present, an Invalid symbol will be returned.
+         * If no such symbol is present, an invalid symbol will be returned.
          */
-        private _anyPivotableSymbol(row: Row): number {
-            for (var sym in row.cells()) {
-                var type = this._symbolType(sym);
-                if (type === Symbol.Slack || type === Symbol.Error) {
-                    return sym;
+        private _anyPivotableSymbol(row: Row): Symbol {
+            var iter = row.cells().iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                var type = pair.first.type();
+                if (type === SymbolType.Slack || type === SymbolType.Error) {
+                    return pair.first;
                 }
             }
-            return Symbol.Invalid;
+            return INVALID_SYMBOL;
         }
 
         /**
          * Returns true if a Row has all dummy symbols.
          */
         private _allDummies(row: Row): boolean {
-            var cells = row.cells();
-            for (var symbol in cells) {
-                if (this._symbolType(symbol) !== Symbol.Dummy) {
+            var iter = row.cells().iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                if (pair.first.type() !== SymbolType.Dummy) {
                     return false;
                 }
             }
@@ -672,51 +674,89 @@ module kiwi {
         }
 
         /**
-         * Returns a new symbol of the given type.
+         * Returns a new Symbol of the given type.
          */
-        private _newSymbol(type: Symbol): number {
-            var symbol = this._symbolTick + type;
-            this._symbolTick += Symbol.Last;
-            return symbol;
+        private _makeSymbol(type: SymbolType): Symbol {
+            return new Symbol(type, this._idTick++);
         }
 
-        /**
-         * Returns the type of the given symbol.
-         */
-        private _symbolType(symbol: number): Symbol {
-            return symbol % Symbol.Last;
-        }
-
-        private _cns: ICnMap = {};
-        private _rows: IRowMap = {};
-        private _vars = new tsutils.AssocArray<Variable, number>(Variable.LessThan);
-        private _edits: IEditMap = {};
-        private _infeasible_rows: number[] = [];
+        private _cns = new MapType<Constraint, ITag>(Constraint.Compare);
+        private _rows = new MapType<Symbol, Row>(Symbol.Compare);
+        private _vars = new MapType<Variable, Symbol>(Variable.Compare);
+        private _edits = new MapType<Variable, IEditInfo>(Variable.Compare);
+        private _infeasible_rows: Symbol[] = [];
         private _objective: Row = new Row();
         private _artificial: Row = null;
-        private _symbolTick: number = 0;
+        private _idTick: number = 0;
     }
 
 
     /**
-     * The internal solver symbol types.
+     * An enum defining the available symbol types. 
      */
-    enum Symbol {
+    enum SymbolType {
         Invalid,
         External,
         Slack,
         Error,
-        Dummy,
-        Last  // sentinel
+        Dummy
     }
 
+
+    /**
+     * A class representing a symbol in the solver.
+     */
+    class Symbol {
+
+        /**
+         * The static Symbol comparison function.
+         */
+        static Compare(a: Symbol, b: Symbol): number {
+            return a.id() - b.id();
+        }
+
+        /**
+         * Construct a new Symbol
+         *
+         * @param [type] The type of the symbol.
+         * @param [id] The unique id number of the symbol.
+         */
+        constructor(type: SymbolType, id: number) {
+            this._id = id;
+            this._type = type;
+        }
+
+        /**
+         * Returns the unique id number of the symbol.
+         */
+        id(): number {
+            return this._id;
+        }
+
+        /**
+         * Returns the type of the symbol.
+         */
+        type(): SymbolType {
+            return this._type;
+        }
+
+        private _id: number;
+        private _type: SymbolType;
+    }
+
+
+    /**
+     * A global invalid symbol
+     */
+    var INVALID_SYMBOL = new Symbol(SymbolType.Invalid, -1);
+    
 
     /**
      * The internal interface of a tag value.
      */
     interface ITag {
-        marker: number;
-        other: number;
+        marker: Symbol;
+        other: Symbol;
     }
 
 
@@ -731,47 +771,6 @@ module kiwi {
 
 
     /**
-     * The internal interface for a variable pair.
-     */
-    interface IVarPair {
-        variable: Variable;
-        symbol: number;
-    }
-
-
-    /**
-     * The internal interface for the solver variable map.
-     */
-    interface IVarMap {
-        [variableId: number]: IVarPair;
-    }
-
-
-    /**
-     * The internal interface for the solver row map.
-     */
-    interface IRowMap {
-        [symbol: number]: Row;
-    }
-
-
-    /**
-     * The internal interface for the solver constraint map.
-     */
-    interface ICnMap {
-        [constraintId: number]: ITag;
-    }
-
-
-    /**
-     * The internal interface for the solver edit map.
-     */
-    interface IEditMap {
-        [variableId: number]: IEditInfo;
-    }
-
-
-    /**
      * The internal interface for returning created row data.
      */
     interface IRowCreation {
@@ -781,15 +780,22 @@ module kiwi {
 
 
     /**
-     * An internal interface defining a row cell map.
+     * An internal function to test whether a value is near zero.
      */
-    interface ICellMap {
-        [symbol: number]: number;
+    function nearZero(value: number): boolean {
+        var eps = 1.0e-8;
+        return value < 0.0 ? -value < eps : value < eps;
     }
 
 
     /**
-     * An internal table row class used by the solver.
+     * The type used for maps in the solver.
+     */
+    var MapType = tsutils.AssocArray;
+
+
+    /**
+     * An internal tableau row class used by the solver.
      */
     class Row {
 
@@ -801,11 +807,9 @@ module kiwi {
         }
 
         /**
-         * Returns the cell map of the row.
-         *
-         * This *must* be treated as const.
+         * Returns the mapping of symbols to coefficients.
          */
-        cells(): ICellMap {
+        cells(): tsutils.IMap<Symbol, number> {
             return this._cells;
         }
 
@@ -820,24 +824,17 @@ module kiwi {
          * Returns true if the row is a constant value.
          */
         isConstant(): boolean {
-            for (var symbol in this._cells) {
-                return false;
-            }
-            return true;
+            return this._cells.empty();
         }
 
         /**
-         * Create a clone of the Row.
+         * Create a copy of the row.
          */
-        clone(): Row {
-            var row = new Row(this._constant);
-            var cells: ICellMap = {};
-            var theseCells = this._cells;
-            for (var symbol in theseCells) {
-                cells[symbol] = theseCells[symbol];
-            }
-            row._cells = cells;
-            return row;
+        copy(): Row {
+            var clone = new Row();
+            clone._constant = this._constant;
+            clone._cells = this._cells.copy();
+            return clone;
         }
 
         /**
@@ -856,12 +853,10 @@ module kiwi {
          * will be added to the existing coefficient. If the resulting
          * coefficient is zero, the symbol will be removed from the row.
          */
-        insertSymbol(symbol: number, coefficient: number = 1.0): void {
-            var value = (this._cells[symbol] || 0.0) + coefficient;
-            if (nearZero(value)) {
-                delete this._cells[symbol];
-            } else {
-                this._cells[symbol] = value;
+        insertSymbol(symbol: Symbol, coefficient: number = 1.0): void {
+            var pair = this._cells.setDefault(symbol, () => 0.0);
+            if (nearZero(pair.second += coefficient)) {
+                this._cells.erase(symbol);
             }
         }
 
@@ -875,24 +870,18 @@ module kiwi {
          */
         insertRow(other: Row, coefficient: number = 1.0): void {
             this._constant += other._constant * coefficient;
-            var theseCells =  this._cells;
-            var otherCells = other._cells;
-            for (var symbol in otherCells) {
-                var coeff = otherCells[symbol] * coefficient;
-                coeff += theseCells[symbol] || 0.0;
-                if (nearZero(coeff)) {
-                    delete theseCells[symbol];
-                } else {
-                    theseCells[symbol] = coeff;
-                }
+            var iter = other._cells.iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                this.insertSymbol(pair.first, pair.second * coefficient);
             }
         }
 
         /**
          * Remove a symbol from the row.
          */
-        removeSymbol(symbol: number): void {
-            delete this._cells[symbol];
+        removeSymbol(symbol: Symbol): void {
+            this._cells.erase(symbol);
         }
 
         /**
@@ -900,9 +889,10 @@ module kiwi {
          */
         reverseSign(): void {
             this._constant = -this._constant;
-            var theseCells = this._cells;
-            for (var symbol in theseCells) {
-                theseCells[symbol] = -theseCells[symbol];
+            var iter = this._cells.iter();
+            var pair: tsutils.IPair<Symbol, number>;
+            while (pair = iter.next()) {
+                pair.second = -pair.second;
             }
         }
 
@@ -918,13 +908,14 @@ module kiwi {
          *
          * The given symbol *must* exist in the row.
          */
-        solveFor(symbol: number): void {
-            var theseCells = this._cells;
-            var coeff = -1.0 / theseCells[symbol];
-            delete theseCells[symbol];
+        solveFor(symbol: Symbol): void {
+            var cells = this._cells;
+            var pair = this._cells.erase(symbol);
+            var coeff = -1.0 / pair.second;
             this._constant *= coeff;
-            for (var symbol in theseCells) {
-                theseCells[symbol] *= coeff;
+            var iter = cells.iter();
+            while (pair = iter.next()) {
+                pair.second *= coeff;
             }
         }
 
@@ -940,7 +931,7 @@ module kiwi {
          * The lhs symbol *must not* exist in the row, and the rhs
          * symbol must* exist in the row.
          */
-        solveForEx(lhs: number, rhs: number): void {
+        solveForEx(lhs: Symbol, rhs: Symbol): void {
             this.insertSymbol(lhs, -1.0);
             this.solveFor(rhs);
         }
@@ -948,8 +939,9 @@ module kiwi {
         /**
          * Returns the coefficient for the given symbol.
          */
-        coefficientFor(symbol: number): number {
-            return this._cells[symbol] || 0.0;
+        coefficientFor(symbol: Symbol): number {
+            var pair = this._cells.find(symbol);
+            return pair ? pair.second : 0.0;
         }
 
         /**
@@ -961,26 +953,15 @@ module kiwi {
          *
          * If the symbol does not exist in the row, this is a no-op.
          */
-        substitute(symbol: number, row: Row): void {
-            var theseCells = this._cells;
-            var coefficient = theseCells[symbol];
-            if (typeof coefficient !== "undefined") {
-                delete theseCells[symbol];
-                this.insertRow(row, coefficient);
+        substitute(symbol: Symbol, row: Row): void {
+            var pair = this._cells.erase(symbol);
+            if (pair) {
+                this.insertRow(row, pair.second);
             }
         }
 
-        private _cells: ICellMap = {};
+        private _cells = new MapType<Symbol, number>(Symbol.Compare);
         private _constant: number;
-    }
-
-
-    /**
-     * An internal function to test whether a value is near zero.
-     */
-    function nearZero(value: number): boolean {
-        var eps = 1.0e-8;
-        return value < 0.0 ? -value < eps : value < eps;
     }
 
 }
