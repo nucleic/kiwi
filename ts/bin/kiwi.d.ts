@@ -1,5 +1,33 @@
 /// <reference path="../thirdparty/tsutils.d.ts" />
 declare module kiwi {
+    module Strength {
+        /**
+        * Create a new symbolic strength.
+        */
+        function create(a: number, b: number, c: number, w?: number): number;
+        /**
+        * The 'required' symbolic strength.
+        */
+        var required: number;
+        /**
+        * The 'strong' symbolic strength.
+        */
+        var strong: number;
+        /**
+        * The 'medium' symbolic strength.
+        */
+        var medium: number;
+        /**
+        * The 'weak' symbolic strength.
+        */
+        var weak: number;
+        /**
+        * Clip a symbolic strength to the allowed min and max.
+        */
+        function clip(value: number): number;
+    }
+}
+declare module kiwi {
     /**
     * The primary user constraint variable.
     *
@@ -85,34 +113,6 @@ declare module kiwi {
         public value(): number;
         private _terms;
         private _constant;
-    }
-}
-declare module kiwi {
-    module Strength {
-        /**
-        * Create a new symbolic strength.
-        */
-        function create(a: number, b: number, c: number, w?: number): number;
-        /**
-        * The 'required' symbolic strength.
-        */
-        var required: number;
-        /**
-        * The 'strong' symbolic strength.
-        */
-        var strong: number;
-        /**
-        * The 'medium' symbolic strength.
-        */
-        var medium: number;
-        /**
-        * The 'weak' symbolic strength.
-        */
-        var weak: number;
-        /**
-        * Clip a symbolic strength to the allowed min and max.
-        */
-        function clip(value: number): number;
     }
 }
 declare module kiwi {
