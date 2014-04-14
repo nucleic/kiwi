@@ -5,10 +5,6 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-
-/// <reference path="../thirdparty/tsutils.d.ts"/>
-/// <reference path="variable.ts"/>
-
 module kiwi {
 
     /**

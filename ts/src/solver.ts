@@ -5,13 +5,6 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-
-/// <reference path="../thirdparty/tsutils.d.ts"/>
-/// <reference path="variable.ts"/>
-/// <reference path="expression.ts"/>
-/// <reference path="strength.ts"/>
-/// <reference path="constraint.ts"/>
-
 module kiwi {
 
     /**
@@ -19,7 +12,8 @@ module kiwi {
      *
      * @class
      */
-    export class Solver {
+    export
+    class Solver {
 
         /**
          * Construct a new Solver.
