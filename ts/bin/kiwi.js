@@ -163,21 +163,20 @@ var kiwi;
             if (typeof item === "number") {
                 constant += item;
             } else if (item instanceof kiwi.Variable) {
-                var pair = terms.setDefault(item, factory);
-                pair.second += 1.0;
+                terms.setDefault(item, factory).second += 1.0;
             } else if (item instanceof Array) {
-                var array = item;
-                if (array.length !== 2) {
+                if (item.length !== 2) {
                     throw new Error("array must have length 2");
                 }
-                if (typeof array[0] !== "number") {
-                    throw new Error("array element 0 must be a number");
+                var value = item[0];
+                var variable = item[1];
+                if (typeof value !== "number") {
+                    throw new Error("array item 0 must be a number");
                 }
-                if (!(array[1] instanceof kiwi.Variable)) {
-                    throw new Error("array element 1 must be a Variable");
+                if (!(variable instanceof kiwi.Variable)) {
+                    throw new Error("array item 1 must be a variable");
                 }
-                var pair = terms.setDefault(array[1], factory);
-                pair.second += array[0];
+                terms.setDefault(variable, factory).second += value;
             } else {
                 throw new Error("invalid Expression argument: " + item);
             }
@@ -1256,3 +1255,15 @@ var kiwi;
         return Row;
     })();
 })(kiwi || (kiwi = {}));
+/*-----------------------------------------------------------------------------
+| Copyright (c) 2014, Nucleic Development Team.
+|
+| Distributed under the terms of the Modified BSD License.
+|
+| The full license is in the file COPYING.txt, distributed with this software.
+|----------------------------------------------------------------------------*/
+/// <reference path="constraint.ts"/>
+/// <reference path="expression.ts"/>
+/// <reference path="solver.ts"/>
+/// <reference path="strength.ts"/>
+/// <reference path="variable.ts"/>

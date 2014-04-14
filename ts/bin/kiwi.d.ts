@@ -62,9 +62,11 @@ declare module kiwi {
         *
         * The constructor accepts an arbitrary number of parameters,
         * each of which must be one of the following types:
-        *  - a number
-        *  - a Variable
-        *  - a 2-tuple of [number, Variable]
+        *  - number
+        *  - Variable
+        *  - 2-tuple of [number, Variable]
+        *
+        * The parameters are summed. The tuples are multiplied.
         */
         constructor(...args: any[]);
         /**
@@ -354,4 +356,6 @@ declare module kiwi {
         private _artificial;
         private _idTick;
     }
+}
+declare module kiwi {
 }
