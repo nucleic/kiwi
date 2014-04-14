@@ -6,8 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 
-/// <reference path="variable.ts"/>
-/// <reference path="term.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 
@@ -55,7 +53,7 @@ module kiwi {
             strength: number = Strength.required)
         {
             this._operator = operator;
-            this._expression = reduce(expression);
+            this._expression = expression;
             this._strength = Strength.clip(strength);
             this._id = CnId++;
         }
@@ -99,35 +97,5 @@ module kiwi {
      * The internal constraint id counter.
      */
     var CnId = 0;
-
-
-    /**
-     * The internal expression reduction function.
-     */
-    function reduce(expr: Expression): Expression {
-        var coeffMap: { [key: number]: number } = {};
-        var variables: Variable[] = [];
-        var terms = expr.terms();
-        for (var i = 0, n = terms.length; i < n; ++i) {
-            var term = terms[i];
-            var variable = term.variable();
-            var coefficient = term.coefficient();
-            var id = variable.id();
-            var coeff = coeffMap[id];
-            if (typeof coeff !== "undefined") {
-                coeffMap[id] = coeff + coefficient;
-            } else {
-                variables.push(variable);
-                coeffMap[id] = coefficient;
-            }
-        }
-        var newTerms: Term[] = [];
-        for (var i = 0, n = variables.length; i < n; ++i) {
-            var variable = variables[i];
-            var coefficient = coeffMap[variable.id()];
-            newTerms.push(new Term(variable, coefficient));
-        }
-        return new Expression(newTerms, expr.constant());
-    }
 
 }
