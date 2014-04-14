@@ -1,24 +1,15 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<script src="tsutils.js"></script>
-		<script src="variable.js"></script>
-		<script src="term.js"></script>
-		<script src="expression.js"></script>
-		<script src="constraint.js"></script>
-		<script src="strength.js"></script>
-		<script src="solver.js"></script>
+		<script src="thirdparty/tsutils.js"></script>
+		<script src="bin/kiwi.js"></script>
 		<script>
 			var x1 = new kiwi.Variable();
 			var x2 = new kiwi.Variable();
 			var x3 = new kiwi.Variable();
 
-			var t1 = new kiwi.Term(x1);
-			var t2 = new kiwi.Term(x2);
-			var t3 = new kiwi.Term(x3);
-
-			var e1 = new kiwi.Expression([t1, t2, t3]);
-			var e2 = new kiwi.Expression([t1], -5.0);
+			var e1 = new kiwi.Expression(x1, x2, x3);
+			var e2 = new kiwi.Expression(x1, -5, -9.5);
 
 			var c1 = new kiwi.Constraint(e1, kiwi.Operator.Eq);
 			var c2 = new kiwi.Constraint(e2, kiwi.Operator.Eq);
@@ -29,19 +20,21 @@
 			solver.addEditVariable(x2, kiwi.Strength.strong);
 
 			function doit() {
+			    console.time("elapsed");
 				for (var i = 0; i < 1000000; ++i) {
 					solver.suggestValue(x2, i);
 					solver.updateVariables();
 				}
+				console.timeEnd("elapsed");
 				console.log("x1", x1.value());
 				console.log("x2", x2.value());
 				console.log("x3", x3.value());
 			}
 
-			//console.log("x1", x1.value());
-			//console.log("x2", x2.value());
-			//console.log("x3", x3.value());
 		</script>
+        <title>Sample</title>
 	</head>
-	<button type="button" onclick="doit()">Do It!</button>
+    <body>
+	    <button type="button" onclick="doit()">Do It!</button>
+    </body>
 </html>
