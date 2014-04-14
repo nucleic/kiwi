@@ -203,3 +203,5 @@ declare module tsutils {
         private _array;
     }
 }
+declare module tsutils {
+}

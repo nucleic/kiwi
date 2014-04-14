@@ -5,16 +5,6 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-/// <reference path="i_factory.ts"/>
-/// <reference path="i_pair.ts"/>
-/*-----------------------------------------------------------------------------
-| Copyright (c) 2014, Nucleic Development Team.
-|
-| Distributed under the terms of the Modified BSD License.
-|
-| The full license is in the file COPYING.txt, distributed with this software.
-|----------------------------------------------------------------------------*/
-/// <reference path="i_compare.ts"/>
 var tsutils;
 (function (tsutils) {
     /**
@@ -94,10 +84,6 @@ var tsutils;
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-/// <reference path="i_compare.ts"/>
-/// <reference path="i_factory.ts"/>
-/// <reference path="i_map.ts"/>
-/// <reference path="binary_search.ts"/>
 var tsutils;
 (function (tsutils) {
     /**
@@ -273,3 +259,16 @@ var tsutils;
         return AssocArrayIterator;
     })();
 })(tsutils || (tsutils = {}));
+/*-----------------------------------------------------------------------------
+| Copyright (c) 2014, Nucleic Development Team.
+|
+| Distributed under the terms of the Modified BSD License.
+|
+| The full license is in the file COPYING.txt, distributed with this software.
+|----------------------------------------------------------------------------*/
+/// <reference path="i_compare.ts"/>
+/// <reference path="i_factory.ts"/>
+/// <reference path="i_pair.ts"/>
+/// <reference path="i_map.ts"/>
+/// <reference path="binary_search.ts"/>
+/// <reference path="assoc_array.ts"/>
