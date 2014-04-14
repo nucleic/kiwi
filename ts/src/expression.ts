@@ -24,9 +24,11 @@ module kiwi {
          *
          * The constructor accepts an arbitrary number of parameters,
          * each of which must be one of the following types:
-         *  - a number
-         *  - a Variable
-         *  - a 2-tuple of [number, Variable]
+         *  - number
+         *  - Variable
+         *  - 2-tuple of [number, Variable]
+         *
+         * The parameters are summed. The tuples are multiplied.
          */
         constructor(...args: any[]);
         constructor() {
@@ -96,21 +98,20 @@ module kiwi {
             if (typeof item === "number") {
                 constant += <number>item;
             } else if (item instanceof Variable) {
-                var pair = terms.setDefault(<Variable>item, factory);
-                pair.second += 1.0;
+                terms.setDefault(<Variable>item, factory).second += 1.0;
             } else if (item instanceof Array) {
-                var array = <Array<any>>item;
-                if (array.length !== 2) {
+                if (item.length !== 2) {
                     throw new Error("array must have length 2");
                 }
-                if (typeof array[0] !== "number") {
-                    throw new Error("array element 0 must be a number");
+                var value: number = item[0];
+                var variable: Variable = item[1];
+                if (typeof value !== "number") {
+                    throw new Error("array item 0 must be a number");
                 }
-                if (!(array[1] instanceof Variable)) {
-                    throw new Error("array element 1 must be a Variable");
+                if (!(variable instanceof Variable)) {
+                    throw new Error("array item 1 must be a variable");
                 }
-                var pair = terms.setDefault(<Variable>array[1], factory);
-                pair.second += <number>array[0];
+                terms.setDefault(variable, factory).second += value;
             } else {
                 throw new Error("invalid Expression argument: " + item);
             }
