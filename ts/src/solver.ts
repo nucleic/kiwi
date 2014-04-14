@@ -8,7 +8,6 @@
 
 /// <reference path="../thirdparty/tsutils.d.ts"/>
 /// <reference path="variable.ts"/>
-/// <reference path="term.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 /// <reference path="constraint.ts"/>
@@ -135,8 +134,7 @@ module kiwi {
             if (strength === Strength.required) {
                 throw new Error("bad required strength");
             }
-            var term = new Term(variable);
-            var expr = new Expression([term]);
+            var expr = new Expression(variable);
             var cn = new Constraint(expr, Operator.Eq, strength);
             this.addConstraint(cn);
             var tag = this._cns.find(cn).second;
@@ -260,17 +258,16 @@ module kiwi {
             var row = new Row(expr.constant());
 
             // Substitute the current basic variables into the row.
-            var terms = expr.terms();
-            for (var i = 0, n = terms.length; i < n; ++i) {
-                var term = terms[i];
-                var coefficient = term.coefficient();
-                if (!nearZero(coefficient)) {
-                    var symbol = this._getVarSymbol(term.variable());
-                    var pair = this._rows.find(symbol);
-                    if (pair) {
-                        row.insertRow(pair.second, coefficient);
+            var termIter = expr.terms().iter();
+            var termPair: tsutils.IPair<Variable, number>;
+            while (termPair = termIter.next()) {
+                if (!nearZero(termPair.second)) {
+                    var symbol = this._getVarSymbol(termPair.first);
+                    var basicPair = this._rows.find(symbol);
+                    if (basicPair) {
+                        row.insertRow(basicPair.second, termPair.second);
                     } else {
-                        row.insertSymbol(symbol, coefficient);
+                        row.insertSymbol(symbol, termPair.second);
                     }
                 }
             }
@@ -473,7 +470,7 @@ module kiwi {
                     rows.erase(leaving);
                     row.solveForEx(leaving, entering);
                     this._substitute(entering, row);
-                    rows.insert(entering, row); 
+                    rows.insert(entering, row);
                 }
             }
         }
@@ -495,7 +492,7 @@ module kiwi {
                     return symbol;
                 }
             }
-            return INVALID_SYMBOL; 
+            return INVALID_SYMBOL;
         }
 
         /**
@@ -692,7 +689,7 @@ module kiwi {
 
 
     /**
-     * An enum defining the available symbol types. 
+     * An enum defining the available symbol types.
      */
     enum SymbolType {
         Invalid,
@@ -749,7 +746,7 @@ module kiwi {
      * A global invalid symbol
      */
     var INVALID_SYMBOL = new Symbol(SymbolType.Invalid, -1);
-    
+
 
     /**
      * The internal interface of a tag value.
