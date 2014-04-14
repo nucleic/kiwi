@@ -95,58 +95,8 @@ var kiwi;
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+/// <reference path="../thirdparty/tsutils.d.ts"/>
 /// <reference path="variable.ts"/>
-var kiwi;
-(function (kiwi) {
-    /**
-    * A term in a constraint expression.
-    *
-    * @class
-    */
-    var Term = (function () {
-        /**
-        * Construct a new Term.
-        *
-        * @param variable The variable of the term.
-        * @param [coefficient] The coefficient of the term.
-        */
-        function Term(variable, coefficient) {
-            if (typeof coefficient === "undefined") { coefficient = 1.0; }
-            this._variable = variable;
-            this._coefficient = coefficient;
-        }
-        /**
-        * Returns the variable of the term.
-        */
-        Term.prototype.variable = function () {
-            return this._variable;
-        };
-
-        /**
-        * Returns the coefficient of the term.
-        */
-        Term.prototype.coefficient = function () {
-            return this._coefficient;
-        };
-
-        /**
-        * Returns the computed value of the term.
-        */
-        Term.prototype.value = function () {
-            return this._coefficient * this._variable.value();
-        };
-        return Term;
-    })();
-    kiwi.Term = Term;
-})(kiwi || (kiwi = {}));
-/*-----------------------------------------------------------------------------
-| Copyright (c) 2014, Nucleic Development Team.
-|
-| Distributed under the terms of the Modified BSD License.
-|
-| The full license is in the file COPYING.txt, distributed with this software.
-|----------------------------------------------------------------------------*/
-/// <reference path="term.ts"/>
 var kiwi;
 (function (kiwi) {
     /**
@@ -155,16 +105,13 @@ var kiwi;
     * @class
     */
     var Expression = (function () {
-        /**
-        * Construct a new Expression.
-        */
-        function Expression(terms, constant) {
-            if (typeof constant === "undefined") { constant = 0.0; }
-            this._terms = terms.slice();
-            this._constant = constant;
+        function Expression() {
+            var parsed = parseArgs(arguments);
+            this._terms = parsed.terms;
+            this._constant = parsed.constant;
         }
         /**
-        * Returns the array of terms in the expression.
+        * Returns the mapping of terms in the expression.
         *
         * This *must* be treated as const.
         */
@@ -183,16 +130,60 @@ var kiwi;
         * Returns the computed value of the expression.
         */
         Expression.prototype.value = function () {
-            var terms = this._terms;
             var result = this._constant;
-            for (var i = 0, n = terms.length; i < n; ++i) {
-                result += terms[i].value();
+            var iter = this._terms.iter();
+            var pair;
+            while (pair = iter.next()) {
+                result += pair.first.value() * pair.second;
             }
             return result;
         };
         return Expression;
     })();
     kiwi.Expression = Expression;
+
+    
+
+    /**
+    * The map type used to create the term map.
+    */
+    var MapType = tsutils.AssocArray;
+
+    /**
+    * An internal argument parsing function.
+    */
+    function parseArgs(args) {
+        var constant = 0.0;
+        var factory = function () {
+            return 0.0;
+        };
+        var terms = new MapType(kiwi.Variable.Compare);
+        for (var i = 0, n = args.length; i < n; ++i) {
+            var item = args[i];
+            if (typeof item === "number") {
+                constant += item;
+            } else if (item instanceof kiwi.Variable) {
+                var pair = terms.setDefault(item, factory);
+                pair.second += 1.0;
+            } else if (item instanceof Array) {
+                var array = item;
+                if (array.length !== 2) {
+                    throw new Error("array must have length 2");
+                }
+                if (typeof array[0] !== "number") {
+                    throw new Error("array element 0 must be a number");
+                }
+                if (!(array[1] instanceof kiwi.Variable)) {
+                    throw new Error("array element 1 must be a Variable");
+                }
+                var pair = terms.setDefault(array[1], factory);
+                pair.second += array[0];
+            } else {
+                throw new Error("invalid Expression argument: " + item);
+            }
+        }
+        return { terms: terms, constant: constant };
+    }
 })(kiwi || (kiwi = {}));
 /*-----------------------------------------------------------------------------
 | Copyright (c) 2014, Nucleic Development Team.
@@ -254,8 +245,6 @@ var kiwi;
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-/// <reference path="variable.ts"/>
-/// <reference path="term.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 var kiwi;
@@ -289,7 +278,7 @@ var kiwi;
         function Constraint(expression, operator, strength) {
             if (typeof strength === "undefined") { strength = kiwi.Strength.required; }
             this._operator = operator;
-            this._expression = reduce(expression);
+            this._expression = expression;
             this._strength = kiwi.Strength.clip(strength);
             this._id = CnId++;
         }
@@ -335,35 +324,6 @@ var kiwi;
     * The internal constraint id counter.
     */
     var CnId = 0;
-
-    /**
-    * The internal expression reduction function.
-    */
-    function reduce(expr) {
-        var coeffMap = {};
-        var variables = [];
-        var terms = expr.terms();
-        for (var i = 0, n = terms.length; i < n; ++i) {
-            var term = terms[i];
-            var variable = term.variable();
-            var coefficient = term.coefficient();
-            var id = variable.id();
-            var coeff = coeffMap[id];
-            if (typeof coeff !== "undefined") {
-                coeffMap[id] = coeff + coefficient;
-            } else {
-                variables.push(variable);
-                coeffMap[id] = coefficient;
-            }
-        }
-        var newTerms = [];
-        for (var i = 0, n = variables.length; i < n; ++i) {
-            var variable = variables[i];
-            var coefficient = coeffMap[variable.id()];
-            newTerms.push(new kiwi.Term(variable, coefficient));
-        }
-        return new kiwi.Expression(newTerms, expr.constant());
-    }
 })(kiwi || (kiwi = {}));
 /*-----------------------------------------------------------------------------
 | Copyright (c) 2014, Nucleic Development Team.
@@ -374,7 +334,6 @@ var kiwi;
 |----------------------------------------------------------------------------*/
 /// <reference path="../thirdparty/tsutils.d.ts"/>
 /// <reference path="variable.ts"/>
-/// <reference path="term.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="strength.ts"/>
 /// <reference path="constraint.ts"/>
@@ -507,8 +466,7 @@ var kiwi;
             if (strength === kiwi.Strength.required) {
                 throw new Error("bad required strength");
             }
-            var term = new kiwi.Term(variable);
-            var expr = new kiwi.Expression([term]);
+            var expr = new kiwi.Expression(variable);
             var cn = new kiwi.Constraint(expr, 2 /* Eq */, strength);
             this.addConstraint(cn);
             var tag = this._cns.find(cn).second;
@@ -632,17 +590,16 @@ var kiwi;
             var row = new Row(expr.constant());
 
             // Substitute the current basic variables into the row.
-            var terms = expr.terms();
-            for (var i = 0, n = terms.length; i < n; ++i) {
-                var term = terms[i];
-                var coefficient = term.coefficient();
-                if (!nearZero(coefficient)) {
-                    var symbol = this._getVarSymbol(term.variable());
-                    var pair = this._rows.find(symbol);
-                    if (pair) {
-                        row.insertRow(pair.second, coefficient);
+            var termIter = expr.terms().iter();
+            var termPair;
+            while (termPair = termIter.next()) {
+                if (!nearZero(termPair.second)) {
+                    var symbol = this._getVarSymbol(termPair.first);
+                    var basicPair = this._rows.find(symbol);
+                    if (basicPair) {
+                        row.insertRow(basicPair.second, termPair.second);
                     } else {
-                        row.insertSymbol(symbol, coefficient);
+                        row.insertSymbol(symbol, termPair.second);
                     }
                 }
             }

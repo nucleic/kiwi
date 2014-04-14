@@ -52,36 +52,6 @@ declare module kiwi {
 }
 declare module kiwi {
     /**
-    * A term in a constraint expression.
-    *
-    * @class
-    */
-    class Term {
-        /**
-        * Construct a new Term.
-        *
-        * @param variable The variable of the term.
-        * @param [coefficient] The coefficient of the term.
-        */
-        constructor(variable: Variable, coefficient?: number);
-        /**
-        * Returns the variable of the term.
-        */
-        public variable(): Variable;
-        /**
-        * Returns the coefficient of the term.
-        */
-        public coefficient(): number;
-        /**
-        * Returns the computed value of the term.
-        */
-        public value(): number;
-        private _variable;
-        private _coefficient;
-    }
-}
-declare module kiwi {
-    /**
     * An expression of terms and a constant.
     *
     * @class
@@ -89,14 +59,20 @@ declare module kiwi {
     class Expression {
         /**
         * Construct a new Expression.
+        *
+        * The constructor accepts an arbitrary number of parameters,
+        * each of which must be one of the following types:
+        *  - a number
+        *  - a Variable
+        *  - a 2-tuple of [number, Variable]
         */
-        constructor(terms: Term[], constant?: number);
+        constructor(...args: any[]);
         /**
-        * Returns the array of terms in the expression.
+        * Returns the mapping of terms in the expression.
         *
         * This *must* be treated as const.
         */
-        public terms(): Term[];
+        public terms(): tsutils.IMap<Variable, number>;
         /**
         * Returns the constant of the expression.
         */
