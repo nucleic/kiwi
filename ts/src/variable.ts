@@ -32,7 +32,6 @@ module kiwi
         constructor( name: string = "" )
         {
             this._name = name;
-            this._id = VarId++;
         }
 
         /**
@@ -91,10 +90,10 @@ module kiwi
             this._value = value;
         }
 
-        private _id: number;
         private _name: string;
         private _value: number = 0.0;
         private _context: any = null;
+        private _id: number = VarId++;
     }
 
 

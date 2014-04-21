@@ -58,7 +58,6 @@ module kiwi
             this._operator = operator;
             this._expression = expression;
             this._strength = Strength.clip( strength );
-            this._id = CnId++;
         }
 
         /**
@@ -93,10 +92,10 @@ module kiwi
             return this._strength;
         }
 
-        private _id: number;
         private _expression: Expression;
         private _operator: Operator;
         private _strength: number;
+        private _id: number = CnId++;
     }
 
 
