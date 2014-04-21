@@ -5,13 +5,19 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-module kiwi {
+
+// <reference path="expression.ts">
+// <reference path="strength.ts">
+
+module kiwi
+{
 
     /**
      * An enum defining the linear constraint operators.
      */
     export
-    enum Operator {
+    enum Operator
+    {
         Le,  // <=
         Ge,  // >=
         Eq   // ==
@@ -27,12 +33,14 @@ module kiwi {
      * @class
      */
     export
-    class Constraint {
+    class Constraint
+    {
 
         /**
          * A static constraint comparison function.
          */
-        static Compare(a: Constraint, b: Constraint): number {
+        static Compare( a: Constraint, b: Constraint ): number
+        {
             return a.id() - b.id();
         }
 
@@ -46,39 +54,43 @@ module kiwi {
         constructor(
             expression: Expression,
             operator: Operator,
-            strength: number = Strength.required)
+            strength: number = Strength.required )
         {
             this._operator = operator;
             this._expression = expression;
-            this._strength = Strength.clip(strength);
+            this._strength = Strength.clip( strength );
             this._id = CnId++;
         }
 
         /**
          * Returns the unique id number of the constraint.
          */
-        id(): number {
+        id(): number
+        {
             return this._id;
         }
 
         /**
          * Returns the expression of the constraint.
          */
-        expression(): Expression {
+        expression(): Expression
+        {
             return this._expression;
         }
 
         /**
          * Returns the relational operator of the constraint.
          */
-        op(): Operator {
+        op(): Operator
+        {
             return this._operator;
         }
 
         /**
          * Returns the strength of the constraint.
          */
-        strength(): number {
+        strength(): number
+        {
             return this._strength;
         }
 
