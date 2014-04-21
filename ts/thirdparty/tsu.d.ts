@@ -6,7 +6,11 @@ declare module tsu {
         /**
         * Returns the next item from the iterator or undefined.
         */
-        next(): T;
+        __next__(): T;
+        /**
+        * Returns this same iterator.
+        */
+        __iter__(): IIterator<T>;
     }
     /**
     * An interface defining an iterable object.
@@ -15,41 +19,37 @@ declare module tsu {
         /**
         * Returns an iterator over the object contents.
         */
-        iter(): IIterator<T>;
+        __iter__(): IIterator<T>;
     }
     /**
     * An interface which defines a reversible object.
     */
     interface IReversible<T> {
         /**
-        * Returns a reverse iterator over the object contents.
+        * Returns a iterator over the reversed object contents.
         */
-        reverseIter(): IIterator<T>;
+        __reversed__(): IIterator<T>;
     }
     /**
     * An iterator for an array of items.
     */
-    class ArrayIterator<T> implements IIterator<T>, IIterable<T>, IReversible<T> {
+    class ArrayIterator<T> implements IIterator<T> {
         constructor(array: T[], index?: number);
         /**
         * Returns the next item from the iterator or undefined.
         */
-        public next(): T;
+        public __next__(): T;
         /**
-        * Return a new iterator from this iterator.
+        * Returns this same iterator.
         */
-        public iter(): ArrayIterator<T>;
-        /**
-        * Return a reverse iterator from this iterator.
-        */
-        public reverseIter(): ReverseArrayIterator<T>;
+        public __iter__(): ArrayIterator<T>;
         private _array;
         private _index;
     }
     /**
     * A reverse iterator for an array of items.
     */
-    class ReverseArrayIterator<T> implements IIterator<T>, IIterable<T>, IReversible<T> {
+    class ReverseArrayIterator<T> implements IIterator<T> {
         /**
         * Construct a new ReverseArrayIterator.
         *
@@ -60,15 +60,11 @@ declare module tsu {
         /**
         * Returns the next item from the iterator or undefined.
         */
-        public next(): T;
+        public __next__(): T;
         /**
-        * Return a new iterator from this iterator.
+        * Returns this same iterator.
         */
-        public iter(): ReverseArrayIterator<T>;
-        /**
-        * Return a reverse iterator from this iterator.
-        */
-        public reverseIter(): ArrayIterator<T>;
+        public __iter__(): ReverseArrayIterator<T>;
         private _array;
         private _index;
     }
@@ -88,6 +84,10 @@ declare module tsu {
     */
     function reversed<T>(object: T[]): ReverseArrayIterator<T>;
     function reversed<T>(object: IReversible<T>): IIterator<T>;
+    /**
+    * Returns the next value from an iterator, or undefined.
+    */
+    function next<T>(iterator: IIterator<T>): T;
     /**
     * Convert the given array or iterable into an array.
     *
@@ -286,11 +286,11 @@ declare module tsu {
         /**
         * Returns an iterator over the array of items.
         */
-        public iter(): ArrayIterator<T>;
+        public __iter__(): ArrayIterator<T>;
         /**
         * Returns a reverse iterator over the array of items.
         */
-        public reverseIter(): ReverseArrayIterator<T>;
+        public __reversed__(): ReverseArrayIterator<T>;
         public _array: T[];
     }
 }

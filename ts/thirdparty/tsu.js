@@ -31,22 +31,15 @@ var tsu;
         /**
         * Returns the next item from the iterator or undefined.
         */
-        ArrayIterator.prototype.next = function () {
+        ArrayIterator.prototype.__next__ = function () {
             return this._array[this._index++];
         };
 
         /**
-        * Return a new iterator from this iterator.
+        * Returns this same iterator.
         */
-        ArrayIterator.prototype.iter = function () {
-            return new ArrayIterator(this._array, this._index);
-        };
-
-        /**
-        * Return a reverse iterator from this iterator.
-        */
-        ArrayIterator.prototype.reverseIter = function () {
-            return new ReverseArrayIterator(this._array, this._index);
+        ArrayIterator.prototype.__iter__ = function () {
+            return this;
         };
         return ArrayIterator;
     })();
@@ -70,22 +63,15 @@ var tsu;
         /**
         * Returns the next item from the iterator or undefined.
         */
-        ReverseArrayIterator.prototype.next = function () {
+        ReverseArrayIterator.prototype.__next__ = function () {
             return this._array[--this._index];
         };
 
         /**
-        * Return a new iterator from this iterator.
+        * Returns this same iterator.
         */
-        ReverseArrayIterator.prototype.iter = function () {
-            return new ReverseArrayIterator(this._array, this._index);
-        };
-
-        /**
-        * Return a reverse iterator from this iterator.
-        */
-        ReverseArrayIterator.prototype.reverseIter = function () {
-            return new ArrayIterator(this._array, this._index);
+        ReverseArrayIterator.prototype.__iter__ = function () {
+            return this;
         };
         return ReverseArrayIterator;
     })();
@@ -97,7 +83,7 @@ var tsu;
         if (object instanceof Array) {
             return new ArrayIterator(object);
         }
-        return object.iter();
+        return object.__iter__();
     }
     tsu.iter = iter;
 
@@ -107,9 +93,17 @@ var tsu;
         if (object instanceof Array) {
             return new ReverseArrayIterator(object);
         }
-        return object.reverseIter();
+        return object.__reversed__();
     }
     tsu.reversed = reversed;
+
+    /**
+    * Returns the next value from an iterator, or undefined.
+    */
+    function next(iterator) {
+        return iterator.__next__();
+    }
+    tsu.next = next;
 
     
 
@@ -119,8 +113,8 @@ var tsu;
         }
         var value;
         var array = [];
-        var iter = object.iter();
-        while ((value = iter.next()) !== undefined) {
+        var it = object.__iter__();
+        while ((value = it.__next__()) !== undefined) {
             array.push(value);
         }
         return array;
@@ -138,8 +132,8 @@ var tsu;
             }
         } else {
             var value;
-            var iter = object.iter();
-            while ((value = iter.next()) !== undefined) {
+            var it = object.__iter__();
+            while ((value = it.__next__()) !== undefined) {
                 if (callback(value) === false) {
                     return;
                 }
@@ -158,8 +152,8 @@ var tsu;
             }
         } else {
             var value;
-            var iter = object.iter();
-            while ((value = iter.next()) !== undefined) {
+            var it = object.__iter__();
+            while ((value = it.__next__()) !== undefined) {
                 result.push(callback(value));
             }
         }
@@ -180,8 +174,8 @@ var tsu;
                 }
             }
         } else {
-            var iter = object.iter();
-            while ((value = iter.next()) !== undefined) {
+            var it = object.__iter__();
+            while ((value = it.__next__()) !== undefined) {
                 if (callback(value)) {
                     result.push(value);
                 }
@@ -612,15 +606,15 @@ var tsu;
         /**
         * Returns an iterator over the array of items.
         */
-        ArrayBase.prototype.iter = function () {
-            return new tsu.ArrayIterator(this._array);
+        ArrayBase.prototype.__iter__ = function () {
+            return tsu.iter(this._array);
         };
 
         /**
         * Returns a reverse iterator over the array of items.
         */
-        ArrayBase.prototype.reverseIter = function () {
-            return new tsu.ReverseArrayIterator(this._array);
+        ArrayBase.prototype.__reversed__ = function () {
+            return tsu.reversed(this._array);
         };
         return ArrayBase;
     })();
@@ -780,9 +774,10 @@ var tsu;
         AssociativeArray.prototype.copy = function () {
             var theCopy = new AssociativeArray(this._compare);
             var copyArray = theCopy._array;
-            tsu.forEach(this._array, function (pair) {
-                copyArray.push(pair.copy());
-            });
+            var thisArray = this._array;
+            for (var i = 0, n = thisArray.length; i < n; ++i) {
+                copyArray.push(thisArray[i].copy());
+            }
             return theCopy;
         };
         return AssociativeArray;
