@@ -290,293 +290,6 @@ var kiwi;
 |----------------------------------------------------------------------------*/
 var kiwi;
 (function (kiwi) {
-    /**
-    * An enum defining the available symbol types.
-    *
-    * This enum is an implementation detail. It should not be
-    * used directly by user code.
-    */
-    (function (SymbolType) {
-        SymbolType[SymbolType["Invalid"] = 0] = "Invalid";
-        SymbolType[SymbolType["External"] = 1] = "External";
-        SymbolType[SymbolType["Slack"] = 2] = "Slack";
-        SymbolType[SymbolType["Error"] = 3] = "Error";
-        SymbolType[SymbolType["Dummy"] = 4] = "Dummy";
-    })(kiwi.SymbolType || (kiwi.SymbolType = {}));
-    var SymbolType = kiwi.SymbolType;
-
-    /**
-    * A class representing a symbol in the solver.
-    *
-    * This class is an implementation detail. It should not be
-    * used directly by user code.
-    *
-    * @class
-    */
-    var Symbol = (function () {
-        /**
-        * Construct a new Symbol
-        *
-        * @param [type] The type of the symbol.
-        * @param [id] The unique id number of the symbol.
-        */
-        function Symbol(type, id) {
-            this._id = id;
-            this._type = type;
-        }
-        /**
-        * The static Symbol comparison function.
-        */
-        Symbol.Compare = function (a, b) {
-            return a.id() - b.id();
-        };
-
-        /**
-        * Returns the unique id number of the symbol.
-        */
-        Symbol.prototype.id = function () {
-            return this._id;
-        };
-
-        /**
-        * Returns the type of the symbol.
-        */
-        Symbol.prototype.type = function () {
-            return this._type;
-        };
-        return Symbol;
-    })();
-    kiwi.Symbol = Symbol;
-})(kiwi || (kiwi = {}));
-/*-----------------------------------------------------------------------------
-| Copyright (c) 2014, Nucleic Development Team.
-|
-| Distributed under the terms of the Modified BSD License.
-|
-| The full license is in the file COPYING.txt, distributed with this software.
-|----------------------------------------------------------------------------*/
-var kiwi;
-(function (kiwi) {
-    /**
-    * Tests whether a value is approximately zero.
-    */
-    function nearZero(value) {
-        var eps = 1.0e-8;
-        return value < 0.0 ? -value < eps : value < eps;
-    }
-    kiwi.nearZero = nearZero;
-})(kiwi || (kiwi = {}));
-/*-----------------------------------------------------------------------------
-| Copyright (c) 2014, Nucleic Development Team.
-|
-| Distributed under the terms of the Modified BSD License.
-|
-| The full license is in the file COPYING.txt, distributed with this software.
-|----------------------------------------------------------------------------*/
-/// <reference path="maptype.ts"/>
-/// <reference path="symbol.ts"/>
-/// <reference path="util.ts"/>
-var kiwi;
-(function (kiwi) {
-    /**
-    * An internal row class used by the solver.
-    *
-    * This class is an implementation detail. It should not be
-    * used directly by user code.
-    *
-    * @class
-    */
-    var Row = (function () {
-        /**
-        * Construct a new Row.
-        */
-        function Row(constant) {
-            if (typeof constant === "undefined") { constant = 0.0; }
-            this._cellMap = kiwi.createMap(kiwi.Symbol.Compare);
-            this._constant = constant;
-        }
-        /**
-        * Returns the mapping of symbols to coefficients.
-        */
-        Row.prototype.cells = function () {
-            return this._cellMap;
-        };
-
-        /**
-        * Returns the constant for the row.
-        */
-        Row.prototype.constant = function () {
-            return this._constant;
-        };
-
-        /**
-        * Returns true if the row is a constant value.
-        */
-        Row.prototype.isConstant = function () {
-            return this._cellMap.empty();
-        };
-
-        /**
-        * Returns true if the Row has all dummy symbols.
-        */
-        Row.prototype.allDummies = function () {
-            var cells = this._cellMap;
-            for (var i = 0, n = cells.size(); i < n; ++i) {
-                var pair = cells.itemAt(i);
-                if (pair.first.type() !== 4 /* Dummy */) {
-                    return false;
-                }
-            }
-            return true;
-        };
-
-        /**
-        * Create a copy of the row.
-        */
-        Row.prototype.copy = function () {
-            var theCopy = new Row(this._constant);
-            theCopy._cellMap = this._cellMap.copy();
-            return theCopy;
-        };
-
-        /**
-        * Add a constant value to the row constant.
-        *
-        * Returns the new value of the constant.
-        */
-        Row.prototype.add = function (value) {
-            return this._constant += value;
-        };
-
-        /**
-        * Insert the symbol into the row with the given coefficient.
-        *
-        * If the symbol already exists in the row, the coefficient
-        * will be added to the existing coefficient. If the resulting
-        * coefficient is zero, the symbol will be removed from the row.
-        */
-        Row.prototype.insertSymbol = function (symbol, coefficient) {
-            if (typeof coefficient === "undefined") { coefficient = 1.0; }
-            var pair = this._cellMap.setDefault(symbol, function () {
-                return 0.0;
-            });
-            if (kiwi.nearZero(pair.second += coefficient)) {
-                this._cellMap.erase(symbol);
-            }
-        };
-
-        /**
-        * Insert a row into this row with a given coefficient.
-        *
-        * The constant and the cells of the other row will be
-        * multiplied by the coefficient and added to this row. Any
-        * cell with a resulting coefficient of zero will be removed
-        * from the row.
-        */
-        Row.prototype.insertRow = function (other, coefficient) {
-            if (typeof coefficient === "undefined") { coefficient = 1.0; }
-            this._constant += other._constant * coefficient;
-            var cells = other._cellMap;
-            for (var i = 0, n = cells.size(); i < n; ++i) {
-                var pair = cells.itemAt(i);
-                this.insertSymbol(pair.first, pair.second * coefficient);
-            }
-        };
-
-        /**
-        * Remove a symbol from the row.
-        */
-        Row.prototype.removeSymbol = function (symbol) {
-            this._cellMap.erase(symbol);
-        };
-
-        /**
-        * Reverse the sign of the constant and cells in the row.
-        */
-        Row.prototype.reverseSign = function () {
-            this._constant = -this._constant;
-            var cells = this._cellMap;
-            for (var i = 0, n = cells.size(); i < n; ++i) {
-                var pair = cells.itemAt(i);
-                pair.second = -pair.second;
-            }
-        };
-
-        /**
-        * Solve the row for the given symbol.
-        *
-        * This method assumes the row is of the form
-        * a * x + b * y + c = 0 and (assuming solve for x) will modify
-        * the row to represent the right hand side of
-        * x = -b/a * y - c / a. The target symbol will be removed from
-        * the row, and the constant and other cells will be multiplied
-        * by the negative inverse of the target coefficient.
-        *
-        * The given symbol *must* exist in the row.
-        */
-        Row.prototype.solveFor = function (symbol) {
-            var cells = this._cellMap;
-            var pair = cells.erase(symbol);
-            var coeff = -1.0 / pair.second;
-            this._constant *= coeff;
-            for (var i = 0, n = cells.size(); i < n; ++i) {
-                cells.itemAt(i).second *= coeff;
-            }
-        };
-
-        /**
-        * Solve the row for the given symbols.
-        *
-        * This method assumes the row is of the form
-        * x = b * y + c and will solve the row such that
-        * y = x / b - c / b. The rhs symbol will be removed from the
-        * row, the lhs added, and the result divided by the negative
-        * inverse of the rhs coefficient.
-        *
-        * The lhs symbol *must not* exist in the row, and the rhs
-        * symbol must* exist in the row.
-        */
-        Row.prototype.solveForEx = function (lhs, rhs) {
-            this.insertSymbol(lhs, -1.0);
-            this.solveFor(rhs);
-        };
-
-        /**
-        * Returns the coefficient for the given symbol.
-        */
-        Row.prototype.coefficientFor = function (symbol) {
-            var pair = this._cellMap.find(symbol);
-            return pair !== undefined ? pair.second : 0.0;
-        };
-
-        /**
-        * Substitute a symbol with the data from another row.
-        *
-        * Given a row of the form a * x + b and a substitution of the
-        * form x = 3 * y + c the row will be updated to reflect the
-        * expression 3 * a * y + a * c + b.
-        *
-        * If the symbol does not exist in the row, this is a no-op.
-        */
-        Row.prototype.substitute = function (symbol, row) {
-            var pair = this._cellMap.erase(symbol);
-            if (pair !== undefined) {
-                this.insertRow(row, pair.second);
-            }
-        };
-        return Row;
-    })();
-    kiwi.Row = Row;
-})(kiwi || (kiwi = {}));
-/*-----------------------------------------------------------------------------
-| Copyright (c) 2014, Nucleic Development Team.
-|
-| Distributed under the terms of the Modified BSD License.
-|
-| The full license is in the file COPYING.txt, distributed with this software.
-|----------------------------------------------------------------------------*/
-var kiwi;
-(function (kiwi) {
     (function (Strength) {
         /**
         * Create a new symbolic strength.
@@ -632,10 +345,7 @@ var kiwi;
 /// <reference path="constraint.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="maptype.ts"/>
-/// <reference path="row.ts"/>
 /// <reference path="strength.ts"/>
-/// <reference path="symbol.ts"/>
-/// <reference path="util.ts"/>
 /// <reference path="variable.ts"/>
 var kiwi;
 (function (kiwi) {
@@ -654,7 +364,7 @@ var kiwi;
             this._varMap = createVarMap();
             this._editMap = createEditMap();
             this._infeasibleRows = [];
-            this._objective = new kiwi.Row();
+            this._objective = new Row();
             this._artificial = null;
             this._idTick = 0;
         }
@@ -685,7 +395,7 @@ var kiwi;
             // marker can enter the basis. If the constant is non-zero,
             // then it represents an unsatisfiable constraint.
             if (subject.type() === 0 /* Invalid */ && row.allDummies()) {
-                if (!kiwi.nearZero(row.constant())) {
+                if (!nearZero(row.constant())) {
                     throw new Error("unsatifiable constraint");
                 } else {
                     subject = tag.marker;
@@ -887,13 +597,13 @@ var kiwi;
         */
         Solver.prototype._createRow = function (constraint) {
             var expr = constraint.expression();
-            var row = new kiwi.Row(expr.constant());
+            var row = new Row(expr.constant());
 
             // Substitute the current basic variables into the row.
             var terms = expr.terms();
             for (var i = 0, n = terms.size(); i < n; ++i) {
                 var termPair = terms.itemAt(i);
-                if (!kiwi.nearZero(termPair.second)) {
+                if (!nearZero(termPair.second)) {
                     var symbol = this._getVarSymbol(termPair.first);
                     var basicPair = this._rowMap.find(symbol);
                     if (basicPair !== undefined) {
@@ -1001,7 +711,7 @@ var kiwi;
             // Optimize the artificial objective. This is successful
             // only if the artificial objective is optimized to zero.
             this._optimize(this._artificial);
-            var success = kiwi.nearZero(this._artificial.constant());
+            var success = nearZero(this._artificial.constant());
             this._artificial = null;
 
             // If the artificial variable is basic, pivot the row so that
@@ -1291,7 +1001,7 @@ var kiwi;
         * Returns a new Symbol of the given type.
         */
         Solver.prototype._makeSymbol = function (type) {
-            return new kiwi.Symbol(type, this._idTick++);
+            return new Symbol(type, this._idTick++);
         };
         return Solver;
     })();
@@ -1300,7 +1010,15 @@ var kiwi;
     /**
     * A static invalid symbol
     */
-    var INVALID_SYMBOL = new kiwi.Symbol(0 /* Invalid */, -1);
+    var INVALID_SYMBOL = new Symbol(0 /* Invalid */, -1);
+
+    /**
+    * Test whether a value is approximately zero.
+    */
+    function nearZero(value) {
+        var eps = 1.0e-8;
+        return value < 0.0 ? -value < eps : value < eps;
+    }
 
     
 
@@ -1319,7 +1037,7 @@ var kiwi;
     * An internal function for creating a row map.
     */
     function createRowMap() {
-        return kiwi.createMap(kiwi.Symbol.Compare);
+        return kiwi.createMap(Symbol.Compare);
     }
 
     /**
@@ -1335,6 +1053,239 @@ var kiwi;
     function createEditMap() {
         return kiwi.createMap(kiwi.Variable.Compare);
     }
+
+    /**
+    * An enum defining the available symbol types.
+    */
+    var SymbolType;
+    (function (SymbolType) {
+        SymbolType[SymbolType["Invalid"] = 0] = "Invalid";
+        SymbolType[SymbolType["External"] = 1] = "External";
+        SymbolType[SymbolType["Slack"] = 2] = "Slack";
+        SymbolType[SymbolType["Error"] = 3] = "Error";
+        SymbolType[SymbolType["Dummy"] = 4] = "Dummy";
+    })(SymbolType || (SymbolType = {}));
+
+    /**
+    * An internal class representing a symbol in the solver.
+    */
+    var Symbol = (function () {
+        /**
+        * Construct a new Symbol
+        *
+        * @param [type] The type of the symbol.
+        * @param [id] The unique id number of the symbol.
+        */
+        function Symbol(type, id) {
+            this._id = id;
+            this._type = type;
+        }
+        /**
+        * The static Symbol comparison function.
+        */
+        Symbol.Compare = function (a, b) {
+            return a.id() - b.id();
+        };
+
+        /**
+        * Returns the unique id number of the symbol.
+        */
+        Symbol.prototype.id = function () {
+            return this._id;
+        };
+
+        /**
+        * Returns the type of the symbol.
+        */
+        Symbol.prototype.type = function () {
+            return this._type;
+        };
+        return Symbol;
+    })();
+
+    /**
+    * An internal row class used by the solver.
+    */
+    var Row = (function () {
+        /**
+        * Construct a new Row.
+        */
+        function Row(constant) {
+            if (typeof constant === "undefined") { constant = 0.0; }
+            this._cellMap = kiwi.createMap(Symbol.Compare);
+            this._constant = constant;
+        }
+        /**
+        * Returns the mapping of symbols to coefficients.
+        */
+        Row.prototype.cells = function () {
+            return this._cellMap;
+        };
+
+        /**
+        * Returns the constant for the row.
+        */
+        Row.prototype.constant = function () {
+            return this._constant;
+        };
+
+        /**
+        * Returns true if the row is a constant value.
+        */
+        Row.prototype.isConstant = function () {
+            return this._cellMap.empty();
+        };
+
+        /**
+        * Returns true if the Row has all dummy symbols.
+        */
+        Row.prototype.allDummies = function () {
+            var cells = this._cellMap;
+            for (var i = 0, n = cells.size(); i < n; ++i) {
+                var pair = cells.itemAt(i);
+                if (pair.first.type() !== 4 /* Dummy */) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        /**
+        * Create a copy of the row.
+        */
+        Row.prototype.copy = function () {
+            var theCopy = new Row(this._constant);
+            theCopy._cellMap = this._cellMap.copy();
+            return theCopy;
+        };
+
+        /**
+        * Add a constant value to the row constant.
+        *
+        * Returns the new value of the constant.
+        */
+        Row.prototype.add = function (value) {
+            return this._constant += value;
+        };
+
+        /**
+        * Insert the symbol into the row with the given coefficient.
+        *
+        * If the symbol already exists in the row, the coefficient
+        * will be added to the existing coefficient. If the resulting
+        * coefficient is zero, the symbol will be removed from the row.
+        */
+        Row.prototype.insertSymbol = function (symbol, coefficient) {
+            if (typeof coefficient === "undefined") { coefficient = 1.0; }
+            var pair = this._cellMap.setDefault(symbol, function () {
+                return 0.0;
+            });
+            if (nearZero(pair.second += coefficient)) {
+                this._cellMap.erase(symbol);
+            }
+        };
+
+        /**
+        * Insert a row into this row with a given coefficient.
+        *
+        * The constant and the cells of the other row will be
+        * multiplied by the coefficient and added to this row. Any
+        * cell with a resulting coefficient of zero will be removed
+        * from the row.
+        */
+        Row.prototype.insertRow = function (other, coefficient) {
+            if (typeof coefficient === "undefined") { coefficient = 1.0; }
+            this._constant += other._constant * coefficient;
+            var cells = other._cellMap;
+            for (var i = 0, n = cells.size(); i < n; ++i) {
+                var pair = cells.itemAt(i);
+                this.insertSymbol(pair.first, pair.second * coefficient);
+            }
+        };
+
+        /**
+        * Remove a symbol from the row.
+        */
+        Row.prototype.removeSymbol = function (symbol) {
+            this._cellMap.erase(symbol);
+        };
+
+        /**
+        * Reverse the sign of the constant and cells in the row.
+        */
+        Row.prototype.reverseSign = function () {
+            this._constant = -this._constant;
+            var cells = this._cellMap;
+            for (var i = 0, n = cells.size(); i < n; ++i) {
+                var pair = cells.itemAt(i);
+                pair.second = -pair.second;
+            }
+        };
+
+        /**
+        * Solve the row for the given symbol.
+        *
+        * This method assumes the row is of the form
+        * a * x + b * y + c = 0 and (assuming solve for x) will modify
+        * the row to represent the right hand side of
+        * x = -b/a * y - c / a. The target symbol will be removed from
+        * the row, and the constant and other cells will be multiplied
+        * by the negative inverse of the target coefficient.
+        *
+        * The given symbol *must* exist in the row.
+        */
+        Row.prototype.solveFor = function (symbol) {
+            var cells = this._cellMap;
+            var pair = cells.erase(symbol);
+            var coeff = -1.0 / pair.second;
+            this._constant *= coeff;
+            for (var i = 0, n = cells.size(); i < n; ++i) {
+                cells.itemAt(i).second *= coeff;
+            }
+        };
+
+        /**
+        * Solve the row for the given symbols.
+        *
+        * This method assumes the row is of the form
+        * x = b * y + c and will solve the row such that
+        * y = x / b - c / b. The rhs symbol will be removed from the
+        * row, the lhs added, and the result divided by the negative
+        * inverse of the rhs coefficient.
+        *
+        * The lhs symbol *must not* exist in the row, and the rhs
+        * symbol must* exist in the row.
+        */
+        Row.prototype.solveForEx = function (lhs, rhs) {
+            this.insertSymbol(lhs, -1.0);
+            this.solveFor(rhs);
+        };
+
+        /**
+        * Returns the coefficient for the given symbol.
+        */
+        Row.prototype.coefficientFor = function (symbol) {
+            var pair = this._cellMap.find(symbol);
+            return pair !== undefined ? pair.second : 0.0;
+        };
+
+        /**
+        * Substitute a symbol with the data from another row.
+        *
+        * Given a row of the form a * x + b and a substitution of the
+        * form x = 3 * y + c the row will be updated to reflect the
+        * expression 3 * a * y + a * c + b.
+        *
+        * If the symbol does not exist in the row, this is a no-op.
+        */
+        Row.prototype.substitute = function (symbol, row) {
+            var pair = this._cellMap.erase(symbol);
+            if (pair !== undefined) {
+                this.insertRow(row, pair.second);
+            }
+        };
+        return Row;
+    })();
 })(kiwi || (kiwi = {}));
 /*-----------------------------------------------------------------------------
 | Copyright (c) 2014, Nucleic Development Team.
@@ -1346,9 +1297,6 @@ var kiwi;
 /// <reference path="constraint.ts"/>
 /// <reference path="expression.ts"/>
 /// <reference path="maptype.ts"/>
-/// <reference path="row.ts"/>
 /// <reference path="solver.ts"/>
 /// <reference path="strength.ts"/>
-/// <reference path="symbol.ts"/>
-/// <reference path="util.ts"/>
 /// <reference path="variable.ts"/>
