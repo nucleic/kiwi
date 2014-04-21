@@ -783,12 +783,6 @@ module kiwi
 
 
     /**
-     * A static invalid symbol
-     */
-    var INVALID_SYMBOL = new Symbol( SymbolType.Invalid, -1 );
-
-
-    /**
      * Test whether a value is approximately zero.
      */
     function nearZero( value: number ): boolean
@@ -922,6 +916,12 @@ module kiwi
         private _id: number;
         private _type: SymbolType;
     }
+
+
+    /**
+     * A static invalid symbol
+     */
+    var INVALID_SYMBOL = new Symbol( SymbolType.Invalid, -1 );
 
 
     /**

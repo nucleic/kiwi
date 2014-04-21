@@ -1008,11 +1008,6 @@ var kiwi;
     kiwi.Solver = Solver;
 
     /**
-    * A static invalid symbol
-    */
-    var INVALID_SYMBOL = new Symbol(0 /* Invalid */, -1);
-
-    /**
     * Test whether a value is approximately zero.
     */
     function nearZero(value) {
@@ -1102,6 +1097,11 @@ var kiwi;
         };
         return Symbol;
     })();
+
+    /**
+    * A static invalid symbol
+    */
+    var INVALID_SYMBOL = new Symbol(0 /* Invalid */, -1);
 
     /**
     * An internal row class used by the solver.
