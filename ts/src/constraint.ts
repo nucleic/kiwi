@@ -35,7 +35,6 @@ module kiwi
     export
     class Constraint
     {
-
         /**
          * A static constraint comparison function.
          */

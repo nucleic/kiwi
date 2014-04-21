@@ -16,7 +16,6 @@ module kiwi
     export
     class Variable
     {
-
         /**
          * A static variable comparison function.
          */
