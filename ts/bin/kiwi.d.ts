@@ -1,120 +1,4 @@
-/// <reference path="../thirdparty/tsutils.d.ts" />
-declare module kiwi {
-    module Strength {
-        /**
-        * Create a new symbolic strength.
-        */
-        function create(a: number, b: number, c: number, w?: number): number;
-        /**
-        * The 'required' symbolic strength.
-        */
-        var required: number;
-        /**
-        * The 'strong' symbolic strength.
-        */
-        var strong: number;
-        /**
-        * The 'medium' symbolic strength.
-        */
-        var medium: number;
-        /**
-        * The 'weak' symbolic strength.
-        */
-        var weak: number;
-        /**
-        * Clip a symbolic strength to the allowed min and max.
-        */
-        function clip(value: number): number;
-    }
-}
-declare module kiwi {
-    /**
-    * The primary user constraint variable.
-    *
-    * @class
-    */
-    class Variable {
-        /**
-        * A static variable comparison function.
-        */
-        static Compare(a: Variable, b: Variable): number;
-        /**
-        * Construct a new Variable
-        *
-        * @param [name] The name to associated with the variable.
-        */
-        constructor(name?: string);
-        /**
-        * Returns the unique id number of the variable.
-        */
-        public id(): number;
-        /**
-        * Returns the name of the variable.
-        */
-        public name(): string;
-        /**
-        * Set the name of the variable.
-        */
-        public setName(name: string): void;
-        /**
-        * Returns the user context object of the variable.
-        */
-        public context(): any;
-        /**
-        * Set the user context object of the variable.
-        */
-        public setContext(context: any): void;
-        /**
-        * Returns the value of the variable.
-        */
-        public value(): number;
-        /**
-        * Set the value of the variable.
-        */
-        public setValue(value: number): void;
-        private _id;
-        private _name;
-        private _value;
-        private _context;
-    }
-}
-declare module kiwi {
-    /**
-    * An expression of terms and a constant.
-    *
-    * @class
-    */
-    class Expression {
-        /**
-        * Construct a new Expression.
-        *
-        * The constructor accepts an arbitrary number of parameters,
-        * each of which must be one of the following types:
-        *  - number
-        *  - Variable
-        *  - 2-tuple of [number, Variable]
-        *
-        * The parameters are summed. The tuples are multiplied.
-        */
-        constructor(...args: any[]);
-        /**
-        * Returns the mapping of terms in the expression.
-        *
-        * This *must* be treated as const.
-        */
-        public terms(): tsutils.IMap<Variable, number>;
-        /**
-        * Returns the constant of the expression.
-        */
-        public constant(): number;
-        /**
-        * Returns the computed value of the expression.
-        */
-        public value(): number;
-        private _terms;
-        private _constant;
-    }
-}
+/// <reference path="../thirdparty/tsu.d.ts" />
 declare module kiwi {
     /**
     * An enum defining the linear constraint operators.
@@ -161,10 +45,292 @@ declare module kiwi {
         * Returns the strength of the constraint.
         */
         public strength(): number;
-        private _id;
         private _expression;
         private _operator;
         private _strength;
+        private _id;
+    }
+}
+declare module kiwi {
+    interface IMap<T, U> extends tsu.AssociativeArray<T, U> {
+    }
+    function createMap<T, U>(compare: tsu.ICompare<T, T>): IMap<T, U>;
+}
+declare module kiwi {
+    /**
+    * The primary user constraint variable.
+    *
+    * @class
+    */
+    class Variable {
+        /**
+        * A static variable comparison function.
+        */
+        static Compare(a: Variable, b: Variable): number;
+        /**
+        * Construct a new Variable
+        *
+        * @param [name] The name to associated with the variable.
+        */
+        constructor(name?: string);
+        /**
+        * Returns the unique id number of the variable.
+        */
+        public id(): number;
+        /**
+        * Returns the name of the variable.
+        */
+        public name(): string;
+        /**
+        * Set the name of the variable.
+        */
+        public setName(name: string): void;
+        /**
+        * Returns the user context object of the variable.
+        */
+        public context(): any;
+        /**
+        * Set the user context object of the variable.
+        */
+        public setContext(context: any): void;
+        /**
+        * Returns the value of the variable.
+        */
+        public value(): number;
+        /**
+        * Set the value of the variable.
+        */
+        public setValue(value: number): void;
+        private _name;
+        private _value;
+        private _context;
+        private _id;
+    }
+}
+declare module kiwi {
+    /**
+    * An expression of variable terms and a constant.
+    *
+    * @class
+    */
+    class Expression {
+        /**
+        * Construct a new Expression.
+        *
+        * The constructor accepts an arbitrary number of parameters,
+        * each of which must be one of the following types:
+        *  - number
+        *  - Variable
+        *  - 2-tuple of [number, Variable]
+        *
+        * The parameters are summed. The tuples are multiplied.
+        */
+        constructor(...args: any[]);
+        /**
+        * Returns the mapping of terms in the expression.
+        *
+        * This *must* be treated as const.
+        */
+        public terms(): IMap<Variable, number>;
+        /**
+        * Returns the constant of the expression.
+        */
+        public constant(): number;
+        /**
+        * Returns the computed value of the expression.
+        */
+        public value(): number;
+        private _terms;
+        private _constant;
+    }
+}
+declare module kiwi {
+    /**
+    * An enum defining the available symbol types.
+    *
+    * This enum is an implementation detail. It should not be
+    * used directly by user code.
+    */
+    enum SymbolType {
+        Invalid = 0,
+        External = 1,
+        Slack = 2,
+        Error = 3,
+        Dummy = 4,
+    }
+    /**
+    * A class representing a symbol in the solver.
+    *
+    * This class is an implementation detail. It should not be
+    * used directly by user code.
+    *
+    * @class
+    */
+    class Symbol {
+        /**
+        * The static Symbol comparison function.
+        */
+        static Compare(a: Symbol, b: Symbol): number;
+        /**
+        * Construct a new Symbol
+        *
+        * @param [type] The type of the symbol.
+        * @param [id] The unique id number of the symbol.
+        */
+        constructor(type: SymbolType, id: number);
+        /**
+        * Returns the unique id number of the symbol.
+        */
+        public id(): number;
+        /**
+        * Returns the type of the symbol.
+        */
+        public type(): SymbolType;
+        private _id;
+        private _type;
+    }
+}
+declare module kiwi {
+    /**
+    * Tests whether a value is approximately zero.
+    */
+    function nearZero(value: number): boolean;
+}
+declare module kiwi {
+    /**
+    * An internal row class used by the solver.
+    *
+    * This class is an implementation detail. It should not be
+    * used directly by user code.
+    *
+    * @class
+    */
+    class Row {
+        /**
+        * Construct a new Row.
+        */
+        constructor(constant?: number);
+        /**
+        * Returns the mapping of symbols to coefficients.
+        */
+        public cells(): IMap<Symbol, number>;
+        /**
+        * Returns the constant for the row.
+        */
+        public constant(): number;
+        /**
+        * Returns true if the row is a constant value.
+        */
+        public isConstant(): boolean;
+        /**
+        * Returns true if the Row has all dummy symbols.
+        */
+        public allDummies(): boolean;
+        /**
+        * Create a copy of the row.
+        */
+        public copy(): Row;
+        /**
+        * Add a constant value to the row constant.
+        *
+        * Returns the new value of the constant.
+        */
+        public add(value: number): number;
+        /**
+        * Insert the symbol into the row with the given coefficient.
+        *
+        * If the symbol already exists in the row, the coefficient
+        * will be added to the existing coefficient. If the resulting
+        * coefficient is zero, the symbol will be removed from the row.
+        */
+        public insertSymbol(symbol: Symbol, coefficient?: number): void;
+        /**
+        * Insert a row into this row with a given coefficient.
+        *
+        * The constant and the cells of the other row will be
+        * multiplied by the coefficient and added to this row. Any
+        * cell with a resulting coefficient of zero will be removed
+        * from the row.
+        */
+        public insertRow(other: Row, coefficient?: number): void;
+        /**
+        * Remove a symbol from the row.
+        */
+        public removeSymbol(symbol: Symbol): void;
+        /**
+        * Reverse the sign of the constant and cells in the row.
+        */
+        public reverseSign(): void;
+        /**
+        * Solve the row for the given symbol.
+        *
+        * This method assumes the row is of the form
+        * a * x + b * y + c = 0 and (assuming solve for x) will modify
+        * the row to represent the right hand side of
+        * x = -b/a * y - c / a. The target symbol will be removed from
+        * the row, and the constant and other cells will be multiplied
+        * by the negative inverse of the target coefficient.
+        *
+        * The given symbol *must* exist in the row.
+        */
+        public solveFor(symbol: Symbol): void;
+        /**
+        * Solve the row for the given symbols.
+        *
+        * This method assumes the row is of the form
+        * x = b * y + c and will solve the row such that
+        * y = x / b - c / b. The rhs symbol will be removed from the
+        * row, the lhs added, and the result divided by the negative
+        * inverse of the rhs coefficient.
+        *
+        * The lhs symbol *must not* exist in the row, and the rhs
+        * symbol must* exist in the row.
+        */
+        public solveForEx(lhs: Symbol, rhs: Symbol): void;
+        /**
+        * Returns the coefficient for the given symbol.
+        */
+        public coefficientFor(symbol: Symbol): number;
+        /**
+        * Substitute a symbol with the data from another row.
+        *
+        * Given a row of the form a * x + b and a substitution of the
+        * form x = 3 * y + c the row will be updated to reflect the
+        * expression 3 * a * y + a * c + b.
+        *
+        * If the symbol does not exist in the row, this is a no-op.
+        */
+        public substitute(symbol: Symbol, row: Row): void;
+        private _cellMap;
+        private _constant;
+    }
+}
+declare module kiwi {
+    module Strength {
+        /**
+        * Create a new symbolic strength.
+        */
+        function create(a: number, b: number, c: number, w?: number): number;
+        /**
+        * The 'required' symbolic strength.
+        */
+        var required: number;
+        /**
+        * The 'strong' symbolic strength.
+        */
+        var strong: number;
+        /**
+        * The 'medium' symbolic strength.
+        */
+        var medium: number;
+        /**
+        * The 'weak' symbolic strength.
+        */
+        var weak: number;
+        /**
+        * Clip a symbolic strength to the allowed min and max.
+        */
+        function clip(value: number): number;
     }
 }
 declare module kiwi {
@@ -340,18 +506,14 @@ declare module kiwi {
         */
         private _anyPivotableSymbol(row);
         /**
-        * Returns true if a Row has all dummy symbols.
-        */
-        private _allDummies(row);
-        /**
         * Returns a new Symbol of the given type.
         */
         private _makeSymbol(type);
-        private _cns;
-        private _rows;
-        private _vars;
-        private _edits;
-        private _infeasible_rows;
+        private _cnMap;
+        private _rowMap;
+        private _varMap;
+        private _editMap;
+        private _infeasibleRows;
         private _objective;
         private _artificial;
         private _idTick;
