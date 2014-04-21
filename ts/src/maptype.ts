@@ -12,8 +12,7 @@ module kiwi
 {
 
     export
-    interface IMap<T, U>
-        extends tsu.AssociativeArray<T, U> { }
+    interface IMap<T, U> extends tsu.AssociativeArray<T, U> { }
 
 
     export
