@@ -303,7 +303,7 @@ var tsu;
 
     
 
-    function makeSet(items, compare) {
+    function asSet(items, compare) {
         var array = tsu.asArray(items);
         var n = array.length;
         if (n <= 1) {
@@ -320,7 +320,7 @@ var tsu;
         }
         return result;
     }
-    tsu.makeSet = makeSet;
+    tsu.asSet = asSet;
 
     /**
     * Test whether a two sorted arrays sets are disjoint.
@@ -1012,7 +1012,7 @@ var tsu;
         if (arg instanceof UniqueArray) {
             return arg._array;
         }
-        return tsu.makeSet(arg, cmp);
+        return tsu.asSet(arg, cmp);
     }
 })(tsu || (tsu = {}));
 /*-----------------------------------------------------------------------------

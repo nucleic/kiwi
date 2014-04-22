@@ -188,8 +188,8 @@ declare module tsu {
     * @param compare The comparison function for the items.
     * @returns The sorted unique array of items.
     */
-    function makeSet<T>(items: T[], compare: ICompare<T, T>): T[];
-    function makeSet<T>(items: IIterable<T>, compare: ICompare<T, T>): T[];
+    function asSet<T>(items: T[], compare: ICompare<T, T>): T[];
+    function asSet<T>(items: IIterable<T>, compare: ICompare<T, T>): T[];
     /**
     * Test whether a two sorted arrays sets are disjoint.
     *
