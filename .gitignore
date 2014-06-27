@@ -1,9 +1,6 @@
-py/COPYING.txt
-py/README.rst
-py/releasenotes.rst
-py/build
-py/dist
-py/kiwi
-py/kiwisolver.egg-info
-py/*.pyd
-py/*.so
+*.pyd
+*.so
+
+build/
+dist/
+kiwisolver.egg-info/
