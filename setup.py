@@ -11,14 +11,14 @@ from setuptools import setup, Extension
 ext_modules = [
     Extension(
         'kiwisolver',
-        ['constraint.cpp',
-         'expression.cpp',
-         'kiwisolver.cpp',
-         'solver.cpp',
-         'strength.cpp',
-         'term.cpp',
-         'variable.cpp'],
-        include_dirs=['.'],
+        ['py/kiwisolver.cpp',
+         'py/constraint.cpp',
+         'py/expression.cpp',
+         'py/solver.cpp',
+         'py/strength.cpp',
+         'py/term.cpp',
+         'py/variable.cpp'],
+        include_dirs=['.', 'kiwi', 'py'],
         language='c++',
     ),
 ]

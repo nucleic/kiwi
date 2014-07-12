@@ -1,3 +1,0 @@
-include *.cpp *.h *.rst *.txt
-exclude build.py
-graft kiwi
