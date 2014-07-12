@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
 
 
 ext_modules = [
@@ -18,15 +19,31 @@ ext_modules = [
          'py/strength.cpp',
          'py/term.cpp',
          'py/variable.cpp'],
-        include_dirs=['.', 'kiwi', 'py'],
+        include_dirs=['.'],
         language='c++',
     ),
 ]
 
 
+class BuildExt(build_ext):
+    """ A custom build extension for adding compiler-specific options.
+
+    """
+    c_opts = {
+        'msvc': ['/EHsc']
+    }
+
+    def build_extensions(self):
+        ct = self.compiler.compiler_type
+        opts = self.c_opts.get(ct, [])
+        for ext in self.extensions:
+            ext.extra_compile_args = opts
+        build_ext.build_extensions(self)
+
+
 setup(
     name='kiwisolver',
-    version='0.1.2',
+    version='0.1.3',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
@@ -34,4 +51,5 @@ setup(
     long_description=open('README.rst').read(),
     install_requires=['distribute'],
     ext_modules=ext_modules,
+    cmdclass={'build_ext': BuildExt},
 )
