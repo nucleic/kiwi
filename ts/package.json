@@ -1,0 +1,52 @@
+{
+  "name": "kiwi",
+  "version": "0.0.1",
+  "homepage": "https://github.com/nucleic/kiwi",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nucleic/kiwi.git"
+  },
+  "main": "src/bin/kiwi.js",
+  "author": {
+    "name": "Chris Colbert <sccolbert@gmail.com>"
+  },
+  "description": "TODO",
+  "keywords": [
+    "cassowary",
+    "kiwi"
+  ],
+  "licenses": [
+    {
+      "type": "MBSD",
+      "url": "https://github.com/nucleic/kiwi/blob/master/COPYING.txt"
+    }
+  ],
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/nucleic/kiwi/issues"
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "files": [
+    "src",
+    "bin",
+    "COPYING.txt"
+  ],
+  "devDependencies": {
+    "benchmark": "^1.0.0",
+    "cassowary": "0.0.2",
+    "chai": "^3.0.0",
+    "grunt": "^0.4.5",
+    "grunt-banner": "^0.3.1",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-uglify": "^0.9.1",
+    "grunt-exec": "^0.4.6",
+    "grunt-jsdoc-to-markdown": "^1.1.1",
+    "grunt-tslint": "^2.0.0",
+    "lodash": "^3.9.3",
+    "mocha": "^2.2.5",
+    "platform": "^1.3.0",
+    "tslint": "^2.1.1"
+  }
+}
