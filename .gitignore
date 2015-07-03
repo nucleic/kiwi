@@ -7,3 +7,4 @@ py/kiwi
 py/kiwisolver.egg-info
 py/*.pyd
 py/*.so
+node_modules
