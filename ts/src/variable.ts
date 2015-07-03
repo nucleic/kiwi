@@ -90,6 +90,17 @@ module kiwi
             this._value = value;
         }
 
+        /**
+         * Returns the JSON representation of the variable.
+         */
+        toJSON(): any
+        {
+            return {
+                name: this._name,
+                value: this._value
+            };
+        }
+
         private _name: string;
         private _value: number = 0.0;
         private _context: any = null;
