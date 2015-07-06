@@ -6,13 +6,15 @@ var _ = (typeof window === 'undefined') ? require('lodash') : window._;
 var Platform = (typeof window === 'undefined') ? require('platform') : window.Platform;
 var Benchmark = (typeof window === 'undefined') ? require('benchmark') : window.Benchmark;
 var c = (typeof window === 'undefined') ? require('cassowary') : window.c; // cassowary
-var kiwi = (typeof window === 'undefined') ? require('kiwi') : window.kiwi;
+var kiwi = (typeof window === 'undefined') ? require('../bin/kiwi.js') : window.kiwi;
 
 var logElement;
 function log(message) {
     console.log(message);
-    logElement = logElement || document.getElementById('log')
-    logElement.innerHTML += (message + '\n');    
+    if (typeof document !== 'undefined') {
+        logElement = logElement || document.getElementById('log')
+        logElement.innerHTML += (message + '\n');
+    }
 }
 
 function createKiwiSolver() {
@@ -74,6 +76,13 @@ function createKiwiSolver() {
     // Calculate
     solver.updateVariables();
 
+    // Uncomment to verify results
+    //console.log('superView: ' + JSON.stringify(superView, undefined, 2));
+    //console.log('subView1: ' + JSON.stringify(subView1, undefined, 2));
+    //console.log('subView2: ' + JSON.stringify(subView2, undefined, 2));
+    assert.equal(subView1.width.value(), 150);
+    assert.equal(subView2.left.value(), 150);
+
     // Return data
     return {
         solver: solver,
@@ -81,13 +90,6 @@ function createKiwiSolver() {
         subView1: subView1,
         subView2: subView2
     };
-
-    // Uncomment to verify results
-    //console.log('superView: ' + JSON.stringify(superView, undefined, 2));
-    //console.log('subView1: ' + JSON.stringify(subView1, undefined, 2));
-    //console.log('subView2: ' + JSON.stringify(subView2, undefined, 2));
-    //assert.equal(subView1.width.value(), 150);
-    //assert.equal(subView2.left.value(), 150);
 }
 
 function createCassowarySolver() {
