@@ -23,7 +23,23 @@ module.exports = function(grunt) {
       }
     },*/
     exec: {
-      build: 'tsc --noImplicitAny -d -out bin/kiwi.js src/kiwi.ts'
+      build: 'tsc --noImplicitAny -m commonjs -d -out bin/kiwi.js src/kiwi.ts',
+      test: 'mocha', // --compilers ts:typescript-require' // HR: can't get internal TS modules to work with typescript-require
+      bench: 'node bench/main.js'
+    },
+    concat: {
+      extras: {
+        src: ['thirdparty/tsu.js', 'bin/kiwi.js'],
+        dest: 'bin/kiwi.js',
+      },
+    },
+    umd: {
+      all: {
+        options: {
+          src: 'bin/kiwi.js',
+          objectToExport: 'kiwi'
+        }
+      }
     },
     uglify: {
       dist: {
@@ -57,12 +73,15 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-banner');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-exec');
+  grunt.loadNpmTasks('grunt-umd');
+  grunt.loadNpmTasks('grunt-contrib-concat');
 
   // Tasks
   grunt.registerTask('lint', ['tslint']);
   //grunt.registerTask('doc', ['jsdoc2md']);
-  //grunt.registerTask('test', ['exec:test']);
-  grunt.registerTask('build', ['exec:build']);
+  grunt.registerTask('build', ['exec:build', 'concat', 'umd']);
+  grunt.registerTask('test', ['build', 'exec:test']);
+  grunt.registerTask('bench', ['build', 'exec:bench']);
   grunt.registerTask('minify', ['uglify', 'usebanner']);
-  grunt.registerTask('default', ['build', 'lint', 'minify']);
+  grunt.registerTask('default', ['build', 'lint', 'minify', 'exec:test']);
 };
