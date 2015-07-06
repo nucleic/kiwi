@@ -8,9 +8,14 @@ var Benchmark = (typeof window === 'undefined') ? require('benchmark') : window.
 var c = (typeof window === 'undefined') ? require('cassowary') : window.c; // cassowary
 var kiwi = (typeof window === 'undefined') ? require('kiwi') : window.kiwi;
 
-//runKiwi();
+var logElement;
+function log(message) {
+    console.log(message);
+    logElement = logElement || document.getElementById('log')
+    logElement.innerHTML += (message + '\n');    
+}
 
-function runKiwi() {
+function createKiwiSolver() {
     var solver = new kiwi.Solver();
     var strength = new kiwi.Strength.create(0, 900, 1000);
 
@@ -69,6 +74,14 @@ function runKiwi() {
     // Calculate
     solver.updateVariables();
 
+    // Return data
+    return {
+        solver: solver,
+        superView: superView,
+        subView1: subView1,
+        subView2: subView2
+    };
+
     // Uncomment to verify results
     //console.log('superView: ' + JSON.stringify(superView, undefined, 2));
     //console.log('subView1: ' + JSON.stringify(subView1, undefined, 2));
@@ -77,7 +90,7 @@ function runKiwi() {
     //assert.equal(subView2.left.value(), 150);
 }
 
-function runCassowary() {
+function createCassowarySolver() {
     var solver = new c.SimplexSolver();
     var strength = new c.Strength('priority', 0, 900, 1000);
 
@@ -136,20 +149,56 @@ function runCassowary() {
     // Calculate
     solver.resolve();
 
+    // Return data
+    return {
+        solver: solver,
+        superView: superView,
+        subView1: subView1,
+        subView2: subView2
+    };
     // Uncomment to verify results
     //assert.equal(subView1.width.value, 150);
     //assert.equal(subView2.left.value, 150);
 }
 
-// run tests
-var suite = new Benchmark.Suite;
-suite.add('Cassowary.js', runCassowary)
-.add('kiwi', runKiwi)
-// add listeners
-.on('cycle', function(event) {
-  console.log(String(event.target));
-})
-.on('complete', function() {
-  console.log('Fastest is ' + this.filter('fastest').pluck('name'));
-})
-.run({ 'async': true });
+var cassowaryData = createCassowarySolver();
+function solveCassowary(data) {
+    var data = cassowaryData;
+    data.solver.suggestValue(data.superView.width, 100);
+    data.solver.suggestValue(data.superView.height, 50);
+    data.solver.resolve();
+    data.solver.suggestValue(data.superView.width, 200);
+    data.solver.suggestValue(data.superView.height, 500);
+    data.solver.resolve();
+}
+
+var kiwiData = createKiwiSolver();
+function solveKiwi(data) {
+    var data = kiwiData;
+    data.solver.suggestValue(data.superView.width, 100);
+    data.solver.suggestValue(data.superView.height, 50);
+    data.solver.updateVariables();
+    data.solver.suggestValue(data.superView.width, 200);
+    data.solver.suggestValue(data.superView.height, 500);
+    data.solver.updateVariables();
+}
+
+
+function runBench(funcCassowary, funcKiwi, name, callback) {
+    log('----- Running ' + name + ' benchmark...');
+    (new Benchmark.Suite).add('Cassowary.js', funcCassowary)
+    .add('kiwi', funcKiwi)
+    // add listeners
+    .on('cycle', function(event) {
+      log(String(event.target));
+    }).on('complete', function() {
+        var fastest = this.filter('fastest')[0];
+        var slowest = this.filter('slowest')[0];
+        log('Fastest is ' + fastest.name + ' (± ' + Math.round(fastest.hz / slowest.hz * 100)/100 + 'x faster)');
+        if (callback) callback();
+    }).run({ 'async': true });
+}
+
+runBench(createCassowarySolver, createKiwiSolver, 'creation', function() {
+    runBench(solveCassowary, solveKiwi, 'solving');
+});
