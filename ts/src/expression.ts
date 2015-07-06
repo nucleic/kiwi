@@ -64,10 +64,11 @@ module kiwi
         value(): number
         {
             var result = this._constant;
-            tsu.forEach( this._terms, ( pair ) =>
+            for( var i = 0, n = this._terms.size(); i < n; i++ )
             {
+                var pair = this._terms.itemAt(i);
                 result += pair.first.value() * pair.second;
-            } );
+            }
             return result;
         }
 
