@@ -23,8 +23,8 @@ function createKiwiSolver() {
 
     // super-view
     var superView = {
-        left: new kiwi.Variable(0),
-        top: new kiwi.Variable(0),
+        left: new kiwi.Variable(),
+        top: new kiwi.Variable(),
         width: new kiwi.Variable(),
         height: new kiwi.Variable(),
         right: new kiwi.Variable(),
