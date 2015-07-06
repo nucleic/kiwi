@@ -89,13 +89,6 @@ declare module tsu {
     */
     function next<T>(iterator: IIterator<T>): T;
     /**
-    * Convert the given array or iterable into an array.
-    *
-    * @param object The array or iterable of interest.
-    */
-    function asArray<T>(object: T[]): T[];
-    function asArray<T>(object: IIterable<T>): T[];
-    /**
     * Execute a function for every item in an iterable.
     *
     * @param object The array or iterable of items.
@@ -103,23 +96,6 @@ declare module tsu {
     */
     function forEach<T>(object: T[], callback: (value: T) => any): void;
     function forEach<T>(object: IIterable<T>, callback: (value: T) => any): void;
-    /**
-    * Map a function over an iterable
-    *
-    * @param object The array or iterable of items.
-    * @param callback The function to apply over each item.
-    */
-    function map<T, U>(object: T[], callback: (value: T) => U): U[];
-    function map<T, U>(object: IIterable<T>, callback: (value: T) => U): U[];
-    /**
-    * Filter an iterable with a given function.
-    *
-    * @param object The array or iterable of items.
-    * @param callback The filter function for the items.
-    * @param context The 'this' arg for the function.
-    */
-    function filter<T>(object: T[], callback: (value: T) => any): T[];
-    function filter<T>(object: IIterable<T>, callback: (value: T) => any): T[];
 }
 declare module tsu {
     /**
@@ -181,70 +157,6 @@ declare module tsu {
     * @returns The found item in the array, or undefined.
     */
     function binaryFind<T, U>(array: T[], value: U, compare: ICompare<T, U>): T;
-    /**
-    * Create a sorted set of items from an array or iterable.
-    *
-    * @param items The items to add to a set.
-    * @param compare The comparison function for the items.
-    * @returns The sorted unique array of items.
-    */
-    function asSet<T>(items: T[], compare: ICompare<T, T>): T[];
-    function asSet<T>(items: IIterable<T>, compare: ICompare<T, T>): T[];
-    /**
-    * Test whether a two sorted arrays sets are disjoint.
-    *
-    * @param first The first sorted array set.
-    * @param second The second sorted array set.
-    * @param compare The value comparison function.
-    * @returns true if the sets are disjoint, false otherwise.
-    */
-    function setIsDisjoint<T>(first: T[], second: T[], compare: ICompare<T, T>): boolean;
-    /**
-    * Test whether one sorted array set is the subset of another.
-    *
-    * @param first The potential subset.
-    * @param second The potential superset.
-    * @param compare The value comparison function.
-    * @returns true if the first set is a subset of the second.
-    */
-    function setIsSubset<T>(first: T[], second: T[], compare: ICompare<T, T>): boolean;
-    /**
-    * Create the set union of two sorted set arrays.
-    var j = 0;
-    *
-    * @param first The first sorted array set.
-    * @param second The second sorted array set.
-    * @param compare The value comparison function.
-    * @returns The set union of the two arrays.
-    */
-    function setUnion<T>(first: T[], second: T[], compare: ICompare<T, T>): T[];
-    /**
-    * Create a set intersection of two sorted set arrays.
-    *
-    * @param first The first sorted array set.
-    * @param second The second sorted array set.
-    * @param compare The value comparison function.
-    * @returns The set intersection of the two arrays.
-    */
-    function setIntersection<T>(first: T[], second: T[], compare: ICompare<T, T>): T[];
-    /**
-    * Create a set difference of two sorted set arrays.
-    *
-    * @param first The first sorted array set.
-    * @param second The second sorted array set.
-    * @param compare The value comparison function.
-    * @returns The set difference of the two arrays.
-    */
-    function setDifference<T>(first: T[], second: T[], compare: ICompare<T, T>): T[];
-    /**
-    * Create a set symmetric difference of two sorted set arrays.
-    *
-    * @param first The first sorted array set.
-    * @param second The second sorted array set.
-    * @param compare The value comparison function.
-    * @returns The set symmetric difference of the two arrays.
-    */
-    function setSymmetricDifference<T>(first: T[], second: T[], compare: ICompare<T, T>): T[];
 }
 declare module tsu {
     /**
@@ -369,146 +281,6 @@ declare module tsu {
         */
         public copy(): AssociativeArray<T, U>;
         private _wrapped;
-        private _compare;
-    }
-}
-declare module tsu {
-    /**
-    * A set container built on a sorted array.
-    *
-    * @class
-    */
-    class UniqueArray<T> extends ArrayBase<T> {
-        /**
-        * Construct a new UniqueArray.
-        *
-        * @param compare The item comparison function.
-        */
-        constructor(compare: ICompare<T, T>);
-        /**
-        * Returns the comparison function for this array.
-        */
-        public comparitor(): ICompare<T, T>;
-        /**
-        * Return the array index of the given item, or -1.
-        *
-        * @param item The item to locate in the array.
-        */
-        public indexOf(item: T): number;
-        /**
-        * Returns true if the item is in the array, false otherwise.
-        *
-        * @param item The item to locate in the array.
-        */
-        public contains(item: T): boolean;
-        /**
-        * Insert an item into the array.
-        *
-        * Returns true if the item is new to the set, false otherwise.
-        *
-        * @param item The item to insert into the array.
-        */
-        public insert(item: T): boolean;
-        /**
-        * Remove an item from the array.
-        *
-        * Returns true if the item was removed, false otherwise.
-        *
-        * @param item The item to remove from the array.
-        */
-        public erase(item: T): boolean;
-        /**
-        * Create a copy of this unique array.
-        */
-        public copy(): UniqueArray<T>;
-        /**
-        * Returns true if the arrays share no common items.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public isDisjoint(object: UniqueArray<T>): boolean;
-        public isDisjoint(object: IIterable<T>): boolean;
-        public isDisjoint(object: T[]): boolean;
-        /**
-        * Test whether this array is a subset of another.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public isSubset(object: UniqueArray<T>): boolean;
-        public isSubset(object: IIterable<T>): boolean;
-        public isSubset(object: T[]): boolean;
-        /**
-        * Test whether this array is a superset of another.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public isSuperset(object: UniqueArray<T>): boolean;
-        public isSuperset(object: IIterable<T>): boolean;
-        public isSuperset(object: T[]): boolean;
-        /**
-        * Returns a new array with the items from both arrays.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public union(object: UniqueArray<T>): UniqueArray<T>;
-        public union(object: IIterable<T>): UniqueArray<T>;
-        public union(object: T[]): UniqueArray<T>;
-        /**
-        * Returns a new array with items common to both arrays.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public intersection(object: UniqueArray<T>): UniqueArray<T>;
-        public intersection(object: IIterable<T>): UniqueArray<T>;
-        public intersection(object: T[]): UniqueArray<T>;
-        /**
-        * Returns a new array without the items from the other array.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public difference(object: UniqueArray<T>): UniqueArray<T>;
-        public difference(object: IIterable<T>): UniqueArray<T>;
-        public difference(object: T[]): UniqueArray<T>;
-        /**
-        * Returns new array with all but the common items.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public symmetricDifference(object: UniqueArray<T>): UniqueArray<T>;
-        public symmetricDifference(object: IIterable<T>): UniqueArray<T>;
-        public symmetricDifference(object: T[]): UniqueArray<T>;
-        /**
-        * Update this array to include the items from the other array.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public unionUpdate(object: UniqueArray<T>): void;
-        public unionUpdate(object: IIterable<T>): void;
-        public unionUpdate(object: T[]): void;
-        /**
-        * Update this array keeping only the items common to both arrays.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public intersectionUpdate(object: UniqueArray<T>): void;
-        public intersectionUpdate(object: IIterable<T>): void;
-        public intersectionUpdate(object: T[]): void;
-        /**
-        * Update this array by removing the items of the other array.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public differenceUpdate(object: UniqueArray<T>): void;
-        public differenceUpdate(object: IIterable<T>): void;
-        public differenceUpdate(object: T[]): void;
-        /**
-        * Update this array to include all but the common items.
-        *
-        * @param object The other array or iterable of interest.
-        */
-        public symmetricDifferenceUpdate(object: UniqueArray<T>): void;
-        public symmetricDifferenceUpdate(object: IIterable<T>): void;
-        public symmetricDifferenceUpdate(object: T[]): void;
         private _compare;
     }
 }
