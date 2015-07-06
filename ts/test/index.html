@@ -1,0 +1,20 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Mocha Tests</title>
+        <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+    </head>
+    <body>
+        <div id="mocha"></div>
+        <script type="text/javascript" src="../node_modules/chai/chai.js"></script>
+        <script type="text/javascript" src="../node_modules/mocha/mocha.js"></script>
+        <script>mocha.setup('bdd')</script>
+        <script type="text/javascript" src="../thirdparty/tsu.js"></script>
+        <script type="text/javascript" src="../bin/kiwi.js"></script>
+        <script type="text/javascript" src="./main.js"></script>
+        <script>
+            mocha.checkLeaks();
+            mocha.run();
+        </script>
+    </body>
+</html>
