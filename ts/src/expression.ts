@@ -89,6 +89,7 @@ module kiwi
 
     /**
      * An internal argument parsing function.
+     * @private
      */
     function parseArgs( args: IArguments ): IParseResult
     {

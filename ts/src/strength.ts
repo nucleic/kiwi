@@ -8,12 +8,21 @@
 module kiwi
 {
 
+    /**
+     * @class Strength
+     */
     export
     module Strength
     {
 
         /**
          * Create a new symbolic strength.
+         *
+         * @param {Number} a strong
+         * @param {Number} b medium
+         * @param {Number} c weak
+         * @param {Number} [w] weight
+         * @return {Number} strength
          */
         export
         function create( a: number, b: number, c: number, w: number = 1.0 )
@@ -51,6 +60,7 @@ module kiwi
 
         /**
          * Clip a symbolic strength to the allowed min and max.
+         * @private
          */
         export
         function clip( value: number )

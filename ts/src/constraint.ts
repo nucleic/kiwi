@@ -10,12 +10,26 @@
 // <reference path="strength.ts">
 
 /**
+ * Kiwi is an efficient implementation of the Cassowary constraint solving
+ * algorithm, based on the seminal Cassowary paper.
+ * It is *not* a refactoring or port of the original C++ solver, but
+ * has been designed from the ground up to be lightweight and fast. Kiwi is
+ * about **8x faster** than [Cassowary.js](https://github.com/slightlyoff/cassowary.js).
+ *
  * @module kiwi
  */
 module kiwi
 {
     /**
      * An enum defining the linear constraint operators.
+     *
+     * |Value|Operator|Description|
+     * |----|-----|-----|
+     * |`Le`|<=|Less than equal|
+     * |`Ge`|>=|Greater than equal|
+     * |`Eq`|==|Equal|
+     *
+     * @enum {Number}
      */
     export
     enum Operator
@@ -27,19 +41,19 @@ module kiwi
 
 
     /**
-     * @class Constraint
-     *
      * A linear constraint equation.
      *
      * A constraint equation is composed of an expression, an operator,
      * and a strength. The RHS of the equation is implicitly zero.
      *
+     * @class
      */
     export
     class Constraint
     {
         /**
          * A static constraint comparison function.
+         * @private
          */
         static Compare( a: Constraint, b: Constraint ): number
         {
@@ -49,9 +63,9 @@ module kiwi
         /**
          * Construct a new Constraint.
          *
-         * @param expression The constraint expression.
-         * @param operator The equation operator.
-         * @param strength The strength of the constraint.
+         * @param {Expression} expression The constraint expression.
+         * @param {Operator} operator The equation operator.
+         * @param {Number} strength The strength of the constraint.
          */
         constructor(
             expression: Expression,
@@ -65,6 +79,7 @@ module kiwi
 
         /**
          * Returns the unique id number of the constraint.
+         * @private
          */
         id(): number
         {
@@ -104,6 +119,7 @@ module kiwi
 
     /**
      * The internal constraint id counter.
+     * @private
      */
     var CnId = 0;
 

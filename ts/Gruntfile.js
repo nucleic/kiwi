@@ -15,15 +15,33 @@ module.exports = function(grunt) {
     'string-replace': {
       dist: {
         files: {
-          'tmp/kiwi-no-internal-modules.js': 'bin/kiwi.js',
+          'tmp/kiwi-no-internal-modules.js': 'bin/kiwi.js'
         },
         options: {
+          // Generating docs for compiled Typescript code isn't easy...
+          // The following replacements were needed for jsdoc2md to do
+          // its processing correctly.
           replacements: [{
             pattern: /\(function\s\(kiwi\)\s{/ig,
             replacement: ''
           }, {
             pattern: /}\)\(kiwi\s\|\|\s\(kiwi\s=\s{}\)\);/ig,
             replacement: ''
+          }, {
+            pattern: /\(function\s\(Operator\)\s{/ig,
+            replacement: 'var Operator;'
+          }, {
+            pattern: /}\)\(kiwi.Operator\s\|\|\s\(kiwi.Operator\s\=\s{}\)\);/ig,
+            replacement: ''
+          }, {
+            pattern: /\(function\s\(Strength\)\s{/ig,
+            replacement: ''
+          }, {
+            pattern: /}\)\(Strength\s\=\skiwi.Strength\s\|\|\s\(kiwi.Strength\s\=\s{}\)\);/ig,
+            replacement: ''
+          }, {
+            pattern: /function\screate\(a,\sb,\sc,\sw\)\s{/ig,
+            replacement: 'Strength.create = function(a, b, c, w) {'
           }]
         }
       }

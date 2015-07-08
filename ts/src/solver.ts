@@ -267,6 +267,7 @@ module kiwi
          * Get the symbol for the given variable.
          *
          * If a symbol does not exist for the variable, one will be created.
+         * @private
          */
         private _getVarSymbol( variable: Variable ): Symbol
         {
@@ -289,6 +290,7 @@ module kiwi
          * will be inverted so the constant becomes positive.
          *
          * Returns the created Row and the tag for tracking the constraint.
+         * @private
          */
         private _createRow( constraint: Constraint ): IRowCreation
         {
@@ -382,6 +384,8 @@ module kiwi
          * 2) A negative slack or error tag variable.
          *
          * If a subject cannot be found, an invalid symbol will be returned.
+         *
+         * @private
          */
         private _chooseSubject( row: Row, tag: ITag ): Symbol
         {
@@ -417,6 +421,8 @@ module kiwi
          * Add the row to the tableau using an artificial variable.
          *
          * This will return false if the constraint cannot be satisfied.
+         *
+         * @private
          */
         private _addWithArtificialVariable( row: Row ): boolean
         {
@@ -466,6 +472,8 @@ module kiwi
          *
          * This method will substitute all instances of the parametric symbol
          * in the tableau and the objective function with the given row.
+         *
+         * @private
          */
         private _substitute( symbol: Symbol, row: Row ): void
         {
@@ -492,6 +500,8 @@ module kiwi
          *
          * This method performs iterations of Phase 2 of the simplex method
          * until the objective function reaches a minimum.
+         *
+         * @private
          */
         private _optimize( objective: Row ): void
         {
@@ -522,6 +532,8 @@ module kiwi
          * function is optimal, but not feasible. This method will perform
          * an iteration of the dual simplex method to make the solution both
          * optimal and feasible.
+         *
+         * @private
          */
         private _dualOptimize(): void
         {
@@ -555,6 +567,8 @@ module kiwi
          * is non-dummy and has a coefficient less than zero. If no symbol meets
          * the criteria, it means the objective function is at a minimum, and an
          * invalid symbol is returned.
+         *
+         * @private
          */
         private _getEnteringSymbol( objective: Row ): Symbol
         {
@@ -579,6 +593,8 @@ module kiwi
          * in the objective function. The provided row *must* be infeasible.
          * If no symbol is found which meats the criteria, an invalid symbol
          * is returned.
+         *
+         * @private
          */
         private _getDualEnteringSymbol( row: Row ): Symbol
         {
@@ -611,6 +627,8 @@ module kiwi
          * map. If no appropriate exit symbol is found, an invalid symbol
          * will be returned. This indicates that the objective function is
          * unbounded.
+         *
+         * @private
          */
         private _getLeavingSymbol( entering: Symbol ): Symbol
         {
@@ -657,6 +675,8 @@ module kiwi
          * If the marker does not exist in any row, an invalid symbol will be
          * returned. This indicates an internal solver error since the marker
          * *should* exist somewhere in the tableau.
+         *
+         * @private
          */
         private _getMarkerLeavingSymbol( marker: Symbol ): Symbol
         {
@@ -714,6 +734,8 @@ module kiwi
 
         /**
          * Remove the effects of a constraint on the objective function.
+         *
+         * @private
          */
         private _removeConstraintEffects( cn: Constraint, tag: ITag ): void
         {
@@ -729,6 +751,8 @@ module kiwi
 
         /**
          * Remove the effects of an error marker on the objective function.
+         *
+         * @private
          */
         private _removeMarkerEffects( marker: Symbol, strength: number ): void
         {
@@ -747,6 +771,8 @@ module kiwi
          * Get the first Slack or Error symbol in the row.
          *
          * If no such symbol is present, an invalid symbol will be returned.
+         *
+         * @private
          */
         private _anyPivotableSymbol( row: Row ): Symbol
         {
@@ -765,6 +791,8 @@ module kiwi
 
         /**
          * Returns a new Symbol of the given type.
+         *
+         * @private
          */
         private _makeSymbol( type: SymbolType ): Symbol
         {
@@ -784,6 +812,7 @@ module kiwi
 
     /**
      * Test whether a value is approximately zero.
+     * @private
      */
     function nearZero( value: number ): boolean
     {
@@ -825,6 +854,7 @@ module kiwi
 
     /**
      * An internal function for creating a constraint map.
+     * @private
      */
     function createCnMap(): IMap<Constraint, ITag>
     {
@@ -834,6 +864,7 @@ module kiwi
 
     /**
      * An internal function for creating a row map.
+     * @private
      */
     function createRowMap(): IMap<Symbol, Row>
     {
@@ -843,6 +874,7 @@ module kiwi
 
     /**
      * An internal function for creating a variable map.
+     * @private
      */
     function createVarMap(): IMap<Variable, Symbol>
     {
@@ -852,6 +884,7 @@ module kiwi
 
     /**
      * An internal function for creating an edit map.
+     * @private
      */
     function createEditMap(): IMap<Variable, IEditInfo>
     {
@@ -861,6 +894,7 @@ module kiwi
 
     /**
      * An enum defining the available symbol types.
+     * @private
      */
     enum SymbolType
     {
@@ -874,6 +908,7 @@ module kiwi
 
     /**
      * An internal class representing a symbol in the solver.
+     * @private
      */
     class Symbol
     {
@@ -920,12 +955,14 @@ module kiwi
 
     /**
      * A static invalid symbol
+     * @private
      */
     var INVALID_SYMBOL = new Symbol( SymbolType.Invalid, -1 );
 
 
     /**
      * An internal row class used by the solver.
+     * @private
      */
     class Row
     {

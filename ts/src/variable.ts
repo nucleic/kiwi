@@ -18,6 +18,7 @@ module kiwi
     {
         /**
          * A static variable comparison function.
+         * @private
          */
         static Compare( a: Variable, b: Variable ): number
         {
@@ -36,6 +37,7 @@ module kiwi
 
         /**
          * Returns the unique id number of the variable.
+         * @private
          */
         id(): number
         {
@@ -60,6 +62,7 @@ module kiwi
 
         /**
          * Returns the user context object of the variable.
+         * @private
          */
         context(): any
         {
@@ -68,6 +71,7 @@ module kiwi
 
         /**
          * Set the user context object of the variable.
+         * @private
          */
         setContext( context: any ): void
         {
@@ -84,6 +88,7 @@ module kiwi
 
         /**
          * Set the value of the variable.
+         * @private
          */
         setValue( value: number ): void
         {
@@ -92,6 +97,7 @@ module kiwi
 
         /**
          * Returns the JSON representation of the variable.
+         * @private
          */
         toJSON(): any
         {
@@ -110,6 +116,7 @@ module kiwi
 
     /**
      * The internal variable id counter.
+     * @private
      */
     var VarId = 0;
 
