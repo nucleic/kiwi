@@ -9,9 +9,11 @@
 // <reference path="expression.ts">
 // <reference path="strength.ts">
 
+/**
+ * @module kiwi
+ */
 module kiwi
 {
-
     /**
      * An enum defining the linear constraint operators.
      */
@@ -25,12 +27,13 @@ module kiwi
 
 
     /**
+     * @class Constraint
+     *
      * A linear constraint equation.
      *
      * A constraint equation is composed of an expression, an operator,
      * and a strength. The RHS of the equation is implicitly zero.
      *
-     * @class
      */
     export
     class Constraint

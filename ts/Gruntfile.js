@@ -12,16 +12,32 @@ module.exports = function(grunt) {
         src: ['src/*.ts']
       }
     },
-    /*jsdoc2md: {
+    'string-replace': {
+      dist: {
+        files: {
+          'tmp/kiwi-no-internal-modules.js': 'bin/kiwi.js',
+        },
+        options: {
+          replacements: [{
+            pattern: /\(function\s\(kiwi\)\s{/ig,
+            replacement: ''
+          }, {
+            pattern: /}\)\(kiwi\s\|\|\s\(kiwi\s=\s{}\)\);/ig,
+            replacement: ''
+          }]
+        }
+      }
+    },
+    jsdoc2md: {
       output: {
         options: {
           'global-index-format': 'none',
           'module-index-format': 'none'
         },
-        src: 'bin/kiwi.js',
+        src: 'tmp/kiwi-no-internal-modules.js',
         dest: 'docs/Kiwi.md'
       }
-    },*/
+    },
     exec: {
       build: 'tsc --noImplicitAny -m commonjs -d -out bin/kiwi.js src/kiwi.ts',
       test: 'mocha', // --compilers ts:typescript-require' // HR: can't get internal TS modules to work with typescript-require
@@ -75,11 +91,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-exec');
   grunt.loadNpmTasks('grunt-umd');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-string-replace');
 
   // Tasks
   grunt.registerTask('lint', ['tslint']);
-  //grunt.registerTask('doc', ['jsdoc2md']);
-  grunt.registerTask('build', ['exec:build', 'concat', 'umd']);
+  grunt.registerTask('doc', ['string-replace', 'jsdoc2md']);
+  grunt.registerTask('build', ['exec:build', 'doc', 'concat', 'umd']);
   grunt.registerTask('test', ['build', 'exec:test']);
   grunt.registerTask('bench', ['build', 'exec:bench']);
   grunt.registerTask('minify', ['uglify', 'usebanner']);

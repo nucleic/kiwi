@@ -10,7 +10,7 @@
   "author": {
     "name": "Chris Colbert <sccolbert@gmail.com>"
   },
-  "description": "TODO",
+  "description": "Kiwi is an efficient implementation of the Cassowary constraint solving algorithm",
   "keywords": [
     "cassowary",
     "kiwi"
@@ -43,6 +43,7 @@
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-exec": "^0.4.6",
     "grunt-jsdoc-to-markdown": "^1.1.1",
+    "grunt-string-replace": "^1.2.0",
     "grunt-tslint": "^2.0.0",
     "grunt-umd": "^2.3.3",
     "lodash": "^3.9.3",
