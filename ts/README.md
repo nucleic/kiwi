@@ -13,7 +13,8 @@ about **8x faster** than [Cassowary.js](https://github.com/slightlyoff/cassowary
 ## Index
 - [Getting started](#getting-started)
 - [Documentation](#documentation)
-- [Benchmark](#benchmark)
+- [Benchmarks](#benchmarks)
+- [Tests](#tests)
 
 ## Getting started
 
@@ -77,6 +78,16 @@ To run the benchmark locally using nodejs, *clone or download this repository* a
 
 	npm install
 	grunt bench
+
+
+## Tests
+
+To run the tests in the browser, [just visit this page](https://rawgit.com/IjzerenHein/kiwi/feature-js/ts/test/index.html).
+
+To run the tests locally using nodejs, *clone or download this repository* and execute the following steps:
+
+	npm install
+	grunt
 
 
 ## Contribute
