@@ -20,12 +20,13 @@ module kiwi
      * each of which must be one of the following types:
      *  - number
      *  - Variable
-     *  - 2-tuple of [number, Variable]
+     *  - Expression
+     *  - 2-tuple of [number, Variable|Expression]
      *
      * The parameters are summed. The tuples are multiplied.
      *
      * @class
-     * @param {...(number|Variable|Array)} args
+     * @param {...(number|Variable|Expression|Array)} args
      */
     export
     class Expression
@@ -61,6 +62,7 @@ module kiwi
         /**
          * Returns the computed value of the expression.
          *
+         * @private
          * @return {Number} computed value of the expression
          */
         value(): number
@@ -72,6 +74,51 @@ module kiwi
                 result += pair.first.value() * pair.second;
             }
             return result;
+        }
+
+        /**
+         * Creates a new Expression by adding a number, variable or expression
+         * to the expression.
+         *
+         * @param {Number|Variable|Expression} value Value to add.
+         * @return {Expression} expression
+         */
+        plus( value: number|Variable|Expression ): Expression
+        {
+            return new Expression(this, value);
+        }
+
+        /**
+         * Creates a new Expression by substracting a number, variable or expression
+         * from the expression.
+         *
+         * @param {Number|Variable|Expression} value Value to substract.
+         * @return {Expression} expression
+         */
+        minus( value: number|Variable|Expression ): Expression {
+            return new Expression(this, typeof value === 'number' ? -value : [-1, value]);
+        }
+
+        /**
+         * Creates a new Expression by multiplying with a fixed number.
+         *
+         * @param {Number} coefficient Coefficient to multiply with.
+         * @return {Expression} expression
+         */
+        multiply( coefficient: number ): Expression
+        {
+            return new Expression([coefficient, this]);
+        }
+
+        /**
+         * Creates a new Expression by dividing with a fixed number.
+         *
+         * @param {Number} coefficient Coefficient to divide by.
+         * @return {Expression} expression
+         */
+        divide( coefficient: number ): Expression
+        {
+            return new Expression([1 / coefficient, this]);
         }
 
         private _terms: IMap<Variable, number>;
@@ -109,6 +156,15 @@ module kiwi
             {
                 terms.setDefault( item, factory ).second += 1.0;
             }
+            else if (item instanceof Expression)
+            {
+                constant += item.constant();
+                var terms2 = item.terms();
+                for (var j = 0, k = terms2.size(); j < k; j++) {
+                    var termPair = terms2.itemAt(j);
+                    terms.setDefault(termPair.first, factory).second += termPair.second;
+                }
+            }
             else if( item instanceof Array )
             {
                 if( item.length !== 2 )
@@ -116,16 +172,25 @@ module kiwi
                     throw new Error( "array must have length 2" );
                 }
                 var value: number = item[ 0 ];
-                var variable: Variable = item[ 1 ];
+                var value2 = item[ 1 ];
                 if( typeof value !== "number" )
                 {
                     throw new Error( "array item 0 must be a number" );
                 }
-                if( !( variable instanceof Variable ) )
-                {
-                    throw new Error( "array item 1 must be a variable" );
+                if (value2 instanceof Variable) {
+                    terms.setDefault(value2, factory).second += value;
                 }
-                terms.setDefault( variable, factory ).second += value;
+                else if (value2 instanceof Expression) {
+                    constant += (value2.constant() * value);
+                    var terms2 = value2.terms();
+                    for (var j = 0, k = terms2.size(); j < k; j++) {
+                        var termPair = terms2.itemAt(j);
+                        terms.setDefault(termPair.first, factory).second += (termPair.second * value);
+                    }
+                }
+                else {
+                    throw new Error("array item 1 must be a variable or expression");
+                }
             }
             else
             {

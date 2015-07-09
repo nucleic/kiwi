@@ -97,6 +97,52 @@ module kiwi
         }
 
         /**
+         * Creates a new Expression by adding a number, variable or expression
+         * to the variable.
+         *
+         * @param {Number|Variable|Expression} value Value to add.
+         * @return {Expression} expression
+         */
+        plus( value: number|Variable|Expression ): Expression
+        {
+            return new Expression(this, value);
+        }
+
+        /**
+         * Creates a new Expression by substracting a number, variable or expression
+         * from the variable.
+         *
+         * @param {Number|Variable|Expression} value Value to substract.
+         * @return {Expression} expression
+         */
+        minus( value: number|Variable|Expression ): Expression
+        {
+            return new Expression(this, typeof value === 'number' ? -value : [-1, value]);
+        }
+
+        /**
+         * Creates a new Expression by multiplying with a fixed number.
+         *
+         * @param {Number} coefficient Coefficient to multiply with.
+         * @return {Expression} expression
+         */
+        multiply( coefficient: number ): Expression
+        {
+            return new Expression([coefficient, this]);
+        }
+
+        /**
+         * Creates a new Expression by dividing with a fixed number.
+         *
+         * @param {Number} coefficient Coefficient to divide by.
+         * @return {Expression} expression
+         */
+        divide( coefficient: number ): Expression
+        {
+            return new Expression([1 / coefficient, this]);
+        }
+
+        /**
          * Returns the JSON representation of the variable.
          * @private
          */
