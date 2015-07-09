@@ -12,7 +12,8 @@ about **8x faster** than [Cassowary.js](https://github.com/slightlyoff/cassowary
 
 ## Index
 - [Getting started](#getting-started)
-- [API Documentation](docs/kiwi.md)
+- [Documentation](#documentation)
+- [Benchmark](#benchmark)
 
 ## Getting started
 
@@ -62,6 +63,20 @@ solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, right], left, 
 solver.updateVariables();
 assert(right, 500);
 ```
+
+## Documentation
+
+- [API Reference](docs/Kiwi.md)
+
+
+## Benchmarks
+
+To run the benchmark in the browser, [just visit this page](bench/index.html).
+
+To run the benchmark locally using nodejs, *clone or download this repository* and execute the following steps:
+
+	npm install
+	grunt bench
 
 
 ## Contribute
