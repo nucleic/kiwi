@@ -74,20 +74,27 @@ module kiwi
      * and a strength. The RHS of the equation is implicitly zero.
      *
      * @class
-     * @param {Expression} expression The constraint expression.
+     * @param {Expression} expression The constraint expression (LHS).
      * @param {Operator} operator The equation operator.
+     * @param {Expression} [rhs] Right hand side of the expression.
      * @param {Number} [strength=Strength.required] The strength of the constraint.
      */
     export
     class Constraint
     {
         constructor(
-            expression: Expression,
+            expression: Expression|Variable,
             operator: Operator,
+            rhs: Expression|Variable|number,
             strength: number = Strength.required) {
             this._operator = operator;
-            this._expression = expression;
             this._strength = Strength.clip(strength);
+            if ((rhs === undefined) && (expression instanceof Expression)) {
+                this._expression = expression;
+            }
+            else {
+                this._expression = expression.minus(rhs);
+            }
         }
 
        /**
