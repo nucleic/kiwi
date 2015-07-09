@@ -64,14 +64,89 @@ function createKiwiSolver() {
     solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.bottom], subView2.top, subView2.height), kiwi.Operator.Eq));
 
     // Position sub-views in super-view
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.left], superView.left), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.top], superView.top), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.bottom], superView.bottom), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.width], subView2.width), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.right], subView2.left), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.right], superView.right), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.top], superView.top), kiwi.Operator.Eq, strength));
-    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.bottom], superView.bottom), kiwi.Operator.Eq, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.left], superView.left), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.top], superView.top), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.bottom], superView.bottom), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.width], subView2.width), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView1.right], subView2.left), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.right], superView.right), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.top], superView.top), kiwi.Operator.Eq, undefined, strength));
+    solver.addConstraint(new kiwi.Constraint(new kiwi.Expression([-1, subView2.bottom], superView.bottom), kiwi.Operator.Eq, undefined, strength));
+
+    // Calculate
+    solver.updateVariables();
+
+    // Uncomment to verify results
+    //console.log('superView: ' + JSON.stringify(superView, undefined, 2));
+    //console.log('subView1: ' + JSON.stringify(subView1, undefined, 2));
+    //console.log('subView2: ' + JSON.stringify(subView2, undefined, 2));
+    assert.equal(subView1.width.value(), 150);
+    assert.equal(subView2.left.value(), 150);
+
+    // Return data
+    return {
+        solver: solver,
+        superView: superView,
+        subView1: subView1,
+        subView2: subView2
+    };
+}
+
+function createKiwiSolverNewAPI() {
+    var solver = new kiwi.Solver();
+    var strength = new kiwi.Strength.create(0, 900, 1000);
+
+    // super-view
+    var superView = {
+        left: new kiwi.Variable(),
+        top: new kiwi.Variable(),
+        width: new kiwi.Variable(),
+        height: new kiwi.Variable(),
+        right: new kiwi.Variable(),
+        bottom: new kiwi.Variable()
+    };
+    solver.createConstraint(superView.left, kiwi.Operator.Eq, 0);
+    solver.createConstraint(superView.top, kiwi.Operator.Eq, 0);
+    solver.createConstraint(superView.right, kiwi.Operator.Eq, superView.left.plus(superView.width));
+    solver.createConstraint(superView.bottom, kiwi.Operator.Eq, superView.top.plus(superView.height));
+    solver.addEditVariable(superView.width, kiwi.Strength.create(999, 1000, 1000));
+    solver.addEditVariable(superView.height, kiwi.Strength.create(999, 1000, 1000));
+    solver.suggestValue(superView.width, 300);
+    solver.suggestValue(superView.height, 200);
+
+    // subView1
+    var subView1 = {
+        left: new kiwi.Variable(),
+        top: new kiwi.Variable(),
+        width: new kiwi.Variable(),
+        height: new kiwi.Variable(),
+        right: new kiwi.Variable(),
+        bottom: new kiwi.Variable()
+    };
+    solver.createConstraint(subView1.right, kiwi.Operator.Eq, subView1.left.plus(subView1.width));
+    solver.createConstraint(subView1.bottom, kiwi.Operator.Eq, subView1.top.plus(subView1.height));
+
+    // subView2
+    var subView2 = {
+        left: new kiwi.Variable(),
+        top: new kiwi.Variable(),
+        width: new kiwi.Variable(),
+        height: new kiwi.Variable(),
+        right: new kiwi.Variable(),
+        bottom: new kiwi.Variable()
+    };
+    solver.createConstraint(subView2.right, kiwi.Operator.Eq, subView2.left.plus(subView2.width));
+    solver.createConstraint(subView2.bottom, kiwi.Operator.Eq, subView2.top.plus(subView2.height));
+
+    // Position sub-views in super-view
+    solver.createConstraint(subView1.left, kiwi.Operator.Eq, superView.left, strength);
+    solver.createConstraint(subView1.top, kiwi.Operator.Eq, superView.top, strength);
+    solver.createConstraint(subView1.bottom, kiwi.Operator.Eq, superView.bottom, strength);
+    solver.createConstraint(subView1.width, kiwi.Operator.Eq, subView2.width, strength);
+    solver.createConstraint(subView1.right, kiwi.Operator.Eq, subView2.left, strength);
+    solver.createConstraint(subView2.right, kiwi.Operator.Eq, superView.right, strength);
+    solver.createConstraint(subView2.top, kiwi.Operator.Eq, superView.top, strength);
+    solver.createConstraint(subView2.bottom, kiwi.Operator.Eq, superView.bottom, strength);
 
     // Calculate
     solver.updateVariables();
@@ -186,12 +261,13 @@ function solveKiwi(data) {
 }
 
 
-function runBench(funcCassowary, funcKiwi, name, callback) {
+function runBench(name, benchmarks, callback) {
     log('----- Running ' + name + ' benchmark...');
-    (new Benchmark.Suite).add('Cassowary.js', funcCassowary)
-    .add('kiwi', funcKiwi)
-    // add listeners
-    .on('cycle', function(event) {
+    var suite = new Benchmark.Suite();
+    for (var i = 0; i < benchmarks.length; i++) {
+        suite.add(benchmarks[i].name, benchmarks[i].fn);
+    }
+    suite.on('cycle', function(event) {
       log(String(event.target));
     }).on('complete', function() {
         var fastest = this.filter('fastest')[0];
@@ -201,6 +277,15 @@ function runBench(funcCassowary, funcKiwi, name, callback) {
     }).run({ 'async': true });
 }
 
-runBench(createCassowarySolver, createKiwiSolver, 'creation', function() {
-    runBench(solveCassowary, solveKiwi, 'solving');
-});
+runBench('creation', [
+    {name: 'Cassowary.js', fn: createCassowarySolver},
+    {name: 'kiwi', fn: createKiwiSolver},
+    {name: 'kiwi new API', fn: createKiwiSolverNewAPI}],
+    function() {
+        runBench('solving', [
+            {name: 'Cassowary.js', fn: solveCassowary}, 
+            {name: 'kiwi', fn: solveKiwi}
+        ]);
+    }
+);
+
