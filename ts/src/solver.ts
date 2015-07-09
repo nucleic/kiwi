@@ -30,16 +30,34 @@ module kiwi
         constructor() { }
 
         /**
+         * Creates and add a constraint to the solver.
+         *
+         * @param {Expression|Variable} lhs Left hand side of the expression
+         * @param {Operator} operator Operator
+         * @param {Expression|Variable|Number} rhs Right hand side of the expression
+         * @param {Number} [strength=Strength.required] Strength
+         */
+        createConstraint(
+            lhs: Expression|Variable,
+            operator: Operator,
+            rhs: Expression|Variable|number,
+            strength: number = Strength.required): Constraint
+        {
+            var cn = new Constraint(lhs, operator, rhs, strength);
+            this.addConstraint(cn);
+            return cn;
+        }
+
+        /**
          * Add a constraint to the solver.
          *
          * @param {Constraint} constraint Constraint to add to the solver
          */
-        addConstraint( constraint: Constraint ): void
+        addConstraint(constraint: Constraint): void
         {
-            var cnPair = this._cnMap.find( constraint );
-            if( cnPair !== undefined )
-            {
-                throw new Error( "duplicate constraint" );
+            var cnPair = this._cnMap.find(constraint);
+            if (cnPair !== undefined) {
+                throw new Error("duplicate constraint");
             }
 
             // Creating a row causes symbols to be reserved for the variables
@@ -140,6 +158,7 @@ module kiwi
          * Test whether the solver contains the constraint.
          *
          * @param {Constraint} constraint Constraint to test for
+         * @return {Bool} true or false
          */
         hasConstraint( constraint: Constraint ): boolean
         {
@@ -165,7 +184,7 @@ module kiwi
                 throw new Error( "bad required strength" );
             }
             var expr = new Expression( variable );
-            var cn = new Constraint( expr, Operator.Eq, strength );
+            var cn = new Constraint( expr, Operator.Eq, undefined, strength );
             this.addConstraint( cn );
             var tag = this._cnMap.find( cn ).second;
             var info = { tag: tag, constraint: cn, constant: 0.0 };
@@ -191,6 +210,7 @@ module kiwi
          * Test whether the solver contains the edit variable.
          *
          * @param {Variable} variable Edit variable to test for
+         * @return {Bool} true or false
          */
         hasEditVariable( variable: Variable ): boolean
         {
