@@ -71,7 +71,7 @@ assert(right, 500);
 
 ## Benchmarks
 
-To run the benchmark in the browser, [just visit this page](bench/index.html).
+To run the benchmark in the browser, [just visit this page](https://rawgit.com/IjzerenHein/kiwi/feature-js/ts/bench/index.html).
 
 To run the benchmark locally using nodejs, *clone or download this repository* and execute the following steps:
 
