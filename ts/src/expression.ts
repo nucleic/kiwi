@@ -16,22 +16,20 @@ module kiwi
     /**
      * An expression of variable terms and a constant.
      *
+     * The constructor accepts an arbitrary number of parameters,
+     * each of which must be one of the following types:
+     *  - number
+     *  - Variable
+     *  - 2-tuple of [number, Variable]
+     *
+     * The parameters are summed. The tuples are multiplied.
+     *
      * @class
+     * @param {...(number|Variable|Array)} args
      */
     export
     class Expression
     {
-        /**
-         * Construct a new Expression.
-         *
-         * The constructor accepts an arbitrary number of parameters,
-         * each of which must be one of the following types:
-         *  - number
-         *  - Variable
-         *  - 2-tuple of [number, Variable]
-         *
-         * The parameters are summed. The tuples are multiplied.
-         */
         constructor( ...args: any[] );
         constructor()
         {
@@ -44,6 +42,7 @@ module kiwi
          * Returns the mapping of terms in the expression.
          *
          * This *must* be treated as const.
+         * @private
          */
         terms(): IMap<Variable, number>
         {
@@ -52,6 +51,7 @@ module kiwi
 
         /**
          * Returns the constant of the expression.
+         * @private
          */
         constant(): number
         {
@@ -60,6 +60,8 @@ module kiwi
 
         /**
          * Returns the computed value of the expression.
+         *
+         * @return {Number} computed value of the expression
          */
         value(): number
         {

@@ -31,6 +31,8 @@ module kiwi
 
         /**
          * Add a constraint to the solver.
+         *
+         * @param {Constraint} constraint Constraint to add to the solver
          */
         addConstraint( constraint: Constraint ): void
         {
@@ -96,6 +98,8 @@ module kiwi
 
         /**
          * Remove a constraint from the solver.
+         *
+         * @param {Constraint} constraint Constraint to remove from the solver
          */
         removeConstraint( constraint: Constraint ): void
         {
@@ -134,6 +138,8 @@ module kiwi
 
         /**
          * Test whether the solver contains the constraint.
+         *
+         * @param {Constraint} constraint Constraint to test for
          */
         hasConstraint( constraint: Constraint ): boolean
         {
@@ -142,6 +148,9 @@ module kiwi
 
         /**
          * Add an edit variable to the solver.
+         *
+         * @param {Variable} variable Edit variable to add to the solver
+         * @param {Number} strength Strength, should be less than `Strength.required`
          */
         addEditVariable( variable: Variable, strength: number ): void
         {
@@ -165,6 +174,8 @@ module kiwi
 
         /**
          * Remove an edit variable from the solver.
+         *
+         * @param {Variable} variable Edit variable to remove from the solver
          */
         removeEditVariable( variable: Variable ): void
         {
@@ -178,6 +189,8 @@ module kiwi
 
         /**
          * Test whether the solver contains the edit variable.
+         *
+         * @param {Variable} variable Edit variable to test for
          */
         hasEditVariable( variable: Variable ): boolean
         {
@@ -186,6 +199,9 @@ module kiwi
 
         /**
          * Suggest the value of an edit variable.
+         *
+         * @param {Variable} variable Edit variable to suggest a value for
+         * @param {Number} value Suggested value
          */
         suggestValue( variable: Variable, value: number ): void
         {

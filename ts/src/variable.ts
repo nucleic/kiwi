@@ -12,10 +12,15 @@ module kiwi
      * The primary user constraint variable.
      *
      * @class
+     * @param {String} [name=""] The name to associated with the variable.
      */
     export
     class Variable
     {
+        constructor(name: string = "") {
+            this._name = name;
+        }
+
         /**
          * A static variable comparison function.
          * @private
@@ -23,16 +28,6 @@ module kiwi
         static Compare( a: Variable, b: Variable ): number
         {
             return a.id() - b.id();
-        }
-
-        /**
-         * Construct a new Variable
-         *
-         * @param [name] The name to associated with the variable.
-         */
-        constructor( name: string = "" )
-        {
-            this._name = name;
         }
 
         /**
@@ -46,6 +41,8 @@ module kiwi
 
         /**
          * Returns the name of the variable.
+         *
+         * @return {String} name of the variable
          */
         name(): string
         {
@@ -54,6 +51,8 @@ module kiwi
 
         /**
          * Set the name of the variable.
+         *
+         * @param {String} name Name of the variable
          */
         setName( name: string ): void
         {
@@ -80,6 +79,8 @@ module kiwi
 
         /**
          * Returns the value of the variable.
+         *
+         * @return {Number} Calculated value
          */
         value(): number
         {
