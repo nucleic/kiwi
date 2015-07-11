@@ -81,7 +81,7 @@ module kiwi
             {
                 if( !nearZero( row.constant() ) )
                 {
-                    throw new Error( "unsatifiable constraint" );
+                    throw new Error( "unsatisfiable constraint" );
                 }
                 else
                 {
