@@ -110,22 +110,72 @@ describe('kiwi', function() {
     describe('Constraint', function() {
         var solver = new kiwi.Solver();
         var vars = {};
-        it('constraint.expression()', function() {
+        it('new Constraint(expr, ...) == constraint.expression()', function() {
             var expr = new kiwi.Expression(10);
             var cn = new kiwi.Constraint(expr, kiwi.Operator.Eq);
             assert.equal(cn.expression(), expr);
         });
-        it('constraint.op()', function() {
+        it('new Constraint(..., Operator.Ge, ...) == constraint.op()', function() {
             var cn = new kiwi.Constraint(new kiwi.Expression(10), kiwi.Operator.Ge);
             assert.equal(cn.op(), kiwi.Operator.Ge);
         });
-        it('constraint.strength()', function() {
+        it('new Constraint(..., ..., ..., Strength.medium) == constraint.strength()', function() {
             var cn = new kiwi.Constraint(new kiwi.Expression(10), kiwi.Operator.Le, undefined, kiwi.Strength.medium);
             assert.equal(cn.strength(), kiwi.Strength.medium);
         });
         it('Optional strength => constraint.strength(): Strength.required', function() {
             var cn = new kiwi.Constraint(new kiwi.Expression(1), kiwi.Operator.Eq);
             assert.equal(cn.strength(), kiwi.Strength.required);
+        });
+        it('solver.addConstraint() => solver.hasConstraint(): true', function() {
+            var cn = new kiwi.Constraint(new kiwi.Expression(1, -1), kiwi.Operator.Eq);
+            assert(!solver.hasConstraint(cn));
+            solver.addConstraint(cn);
+            assert(solver.hasConstraint(cn));
+        });
+        it('solver.removeConstraint() => solver.hasConstraint(): false', function() {
+            var cn = new kiwi.Constraint(new kiwi.Expression(1, -1), kiwi.Operator.Eq);
+            assert(!solver.hasConstraint(cn));
+            solver.addConstraint(cn);
+            assert(solver.hasConstraint(cn));
+            solver.removeConstraint(cn);
+            assert(!solver.hasConstraint(cn));
+        });
+        it('solver.addConstraint() 2x => throw exception: "duplicate constraint"', function() {
+            var cn = new kiwi.Constraint(new kiwi.Expression(1, -1), kiwi.Operator.Eq);
+            solver.addConstraint(cn);
+            try {
+                solver.addConstraint(cn);
+                assert(false);
+            } catch(err) {
+                assert.equal(err.message, 'duplicate constraint');
+            }
+        });
+        it('solver.addConstraint() 2x => throw exception: "unsatisfiable constraint"', function() {
+            // a constraint consisting of all numbers which are not 0
+            var cn = new kiwi.Constraint(new kiwi.Expression(1, -1, 10), kiwi.Operator.Eq);
+            try {
+                solver.addConstraint(cn);
+                assert(false);
+            } catch(err) {
+                assert.equal(err.message, 'unsatisfiable constraint');
+            }
+        });
+        it('solver.addConstraint() 2x => throw exception: "unsatisfiable constraint"', function() {
+            solver = new kiwi.Solver();
+            var width = new kiwi.Variable();
+            var width2 = new kiwi.Variable();
+            var cn = new kiwi.Constraint(new kiwi.Expression(width, 100), kiwi.Operator.Eq);
+            solver.addConstraint(cn);
+            cn = new kiwi.Constraint(new kiwi.Expression(width2, 100), kiwi.Operator.Eq);
+            solver.addConstraint(cn);
+            try {
+                cn = new kiwi.Constraint(new kiwi.Expression(width, width2), kiwi.Operator.Eq);
+                solver.addConstraint(cn);
+                assert(false);
+            } catch(err) {
+                assert.equal(err.message, 'unsatisfiable constraint');
+            }
         });
     });
 
