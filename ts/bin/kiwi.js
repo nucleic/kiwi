@@ -1150,7 +1150,7 @@ var kiwi;
             // then it represents an unsatisfiable constraint.
             if (subject.type() === 0 /* Invalid */ && row.allDummies()) {
                 if (!nearZero(row.constant())) {
-                    throw new Error("unsatifiable constraint");
+                    throw new Error("unsatisfiable constraint");
                 }
                 else {
                     subject = tag.marker;
