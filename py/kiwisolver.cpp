@@ -12,14 +12,17 @@
 
 #define PY_KIWI_VERSION "0.1.3"
 
-
 using namespace PythonHelpers;
 
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#define INITERROR return mod
+#define FROM_STRING PyUnicode_FromString
 #else
 #define GETSTATE(m) (&_kiwisolverstate)
 static struct module_state _kiwisolverstate;
+#define INITERROR return
+#define FROM_STRING PyString_FromString
 #endif
 
 static PyMethodDef
@@ -37,67 +40,41 @@ static struct PyModuleDef kiwisolver_moduledef = {
     NULL
 };
 
-#define INITERROR return NULL
-
 PyMODINIT_FUNC
 PyInit_kiwisolver( void )
 #else
-#define INITERROR return
 PyMODINIT_FUNC
 initkiwisolver( void )
 #endif
 {
-    #if PY_MAJOR_VERSION >= 3
-        PyObject *mod = PyModule_Create( &kiwisolver_moduledef );
-        if( !mod )
-            return mod;
-        if( import_variable() < 0 )
-            return mod;
-        if( import_term() < 0 )
-            return mod;
-        if( import_expression() < 0 )
-            return mod;
-        if( import_constraint() < 0 )
-            return mod;
-        if( import_solver() < 0 )
-            return mod;
-        if( import_strength() < 0 )
-            return mod;
-        PyObject* kiwiversion = PyUnicode_FromString( KIWI_VERSION );
-        if( !kiwiversion )
-            return mod;
-        PyObject* pyversion = PyUnicode_FromString( PY_KIWI_VERSION );
-        if( !pyversion )
-            return mod;
-        PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
-        if( !pystrength )
-            return mod;
-    #else
-        PyObject* mod = Py_InitModule( "kiwisolver", kiwisolver_methods );
-        if( !mod )
-            return;
-        if( import_variable() < 0 )
-            return;
-        if( import_term() < 0 )
-            return;
-        if( import_expression() < 0 )
-            return;
-        if( import_constraint() < 0 )
-            return;
-        if( import_solver() < 0 )
-            return;
-        if( import_strength() < 0 )
-            return;
-        PyObject* kiwiversion = PyString_FromString( KIWI_VERSION );
-        if( !kiwiversion )
-            return;
-        PyObject* pyversion = PyString_FromString( PY_KIWI_VERSION );
-        if( !pyversion )
-            return;
-        PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
-        if( !pystrength )
-            return;
-    #endif
+#if PY_MAJOR_VERSION >= 3
+    PyObject *mod = PyModule_Create( &kiwisolver_moduledef );
+#else
+    PyObject* mod = Py_InitModule( "kiwisolver", kiwisolver_methods );
+#endif
+    if( !mod )
+        INITERROR;
+    if( import_variable() < 0 )
+        INITERROR;
+    if( import_term() < 0 )
+        INITERROR;
+    if( import_expression() < 0 )
+        INITERROR;
+    if( import_constraint() < 0 )
+        INITERROR;
+    if( import_solver() < 0 )
+        INITERROR;
+    if( import_strength() < 0 )
+        INITERROR;
+    PyObject* kiwiversion = FROM_STRING( KIWI_VERSION );
+    if( !kiwiversion )
+        INITERROR;
+    PyObject* pyversion = FROM_STRING( PY_KIWI_VERSION );
+    if( !pyversion )
+        INITERROR;
+    PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
+    if( !pystrength )
+        INITERROR;
 
     PyModule_AddObject( mod, "__version__", pyversion );
     PyModule_AddObject( mod, "__kiwi_version__", kiwiversion );
@@ -114,7 +91,7 @@ initkiwisolver( void )
     PyModule_AddObject( mod, "UnknownEditVariable", newref( UnknownEditVariable ) );
     PyModule_AddObject( mod, "BadRequiredStrength", newref( BadRequiredStrength ) );
 
-    #if PY_MAJOR_VERSION >= 3
-        return mod;
-    #endif
+#if PY_MAJOR_VERSION >= 3
+    return mod;
+#endif
 }
