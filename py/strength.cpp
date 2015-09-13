@@ -23,7 +23,7 @@ struct strength
 static void
 strength_dealloc( PyObject* self )
 {
-    self->ob_type->tp_free( self );
+	Py_TYPE( self )->tp_free( self );
 }
 
 
