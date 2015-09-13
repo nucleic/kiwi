@@ -87,11 +87,11 @@ Expression_repr( Expression* self )
         stream << " + ";
     }
     stream << self->constant;
-    #if PY_MAJOR_VERSION >= 3
-        return PyUnicode_FromString( stream.str().c_str() );
-    #else
-        return PyString_FromString( stream.str().c_str() );
-    #endif
+#if PY_MAJOR_VERSION >= 3
+    return PyUnicode_FromString( stream.str().c_str() );
+#else
+    return PyString_FromString( stream.str().c_str() );
+#endif
 }
 
 
@@ -204,42 +204,42 @@ Expression_as_number = {
     (binaryfunc)Expression_add, /* nb_add */
     (binaryfunc)Expression_sub, /* nb_subtract */
     (binaryfunc)Expression_mul, /* nb_multiply */
-    #if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
     (binaryfunc)Expression_div, /* nb_divide */
-    #endif
+#endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
     (unaryfunc)Expression_neg,  /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
-    #if PY_MAJOR_VERSION > 3
+#if PY_MAJOR_VERSION > 3
     0,                          /* nb_bool */
-    #else
+#else
     0,                          /* nb_nonzero */
-    #endif
+#endif
     0,                          /* nb_invert */
     0,                          /* nb_lshift */
     0,                          /* nb_rshift */
     0,                          /* nb_and */
     0,                          /* nb_xor */
     (binaryfunc)0,              /* nb_or */
-    #if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
     0,                          /* nb_coerce */
-    #endif
+#endif
     0,                          /* nb_int */
     0,                          /* nb_long */
     0,                          /* nb_float */
-    #if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
     0,                          /* nb_oct */
     0,                          /* nb_hex */
-    #endif
+#endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
-    #if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
     0,                          /* nb_inplace_divide */
-    #endif
+#endif
     0,                          /* nb_inplace_power */
     0,                          /* nb_inplace_lshift */
     0,                          /* nb_inplace_rshift */
@@ -250,9 +250,9 @@ Expression_as_number = {
     (binaryfunc)0,              /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
-    #if PY_VERSION_HEX >= 0x02050000
+#if PY_VERSION_HEX >= 0x02050000
     0,                          /* nb_index */
-    #endif
+#endif
 };
 
 
@@ -276,11 +276,11 @@ PyTypeObject Expression_Type = {
     (getattrofunc)0,                        /* tp_getattro */
     (setattrofunc)0,                        /* tp_setattro */
     (PyBufferProcs*)0,                      /* tp_as_buffer */
-    #if PY_MAJOR_VERSION >= 3
+#if PY_MAJOR_VERSION >= 3
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE,
-    #else
+#else
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
-    #endif
+#endif
     0,                                      /* Documentation string */
     (traverseproc)Expression_traverse,      /* tp_traverse */
     (inquiry)Expression_clear,              /* tp_clear */

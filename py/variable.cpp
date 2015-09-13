@@ -22,30 +22,30 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	static const char *kwlist[] = { "name", "context", 0 };
 	PyObject* context = 0;
 
-	#if PY_MAJOR_VERSION >= 3
-		const char* name;
-		int length;
-		if( !PyArg_ParseTupleAndKeywords(
-			args, kwargs, "s#|O:__new__", const_cast<char**>( kwlist ),
-			&name, &length, &context ) )
-			return 0;
-	#else
-		PyObject* name;
-		if( !PyArg_ParseTupleAndKeywords(
-			args, kwargs, "S|O:__new__", const_cast<char**>( kwlist ),
-			&name, &context ) )
-			return 0;
-	#endif
+#if PY_MAJOR_VERSION >= 3
+	const char* name;
+	int length;
+	if( !PyArg_ParseTupleAndKeywords(
+		args, kwargs, "s#|O:__new__", const_cast<char**>( kwlist ),
+		&name, &length, &context ) )
+		return 0;
+#else
+	PyObject* name;
+	if( !PyArg_ParseTupleAndKeywords(
+		args, kwargs, "S|O:__new__", const_cast<char**>( kwlist ),
+		&name, &context ) )
+		return 0;
+#endif
 	PyObject* pyvar = PyType_GenericNew( type, args, kwargs );
 	if( !pyvar )
 		return 0;
 	Variable* self = reinterpret_cast<Variable*>( pyvar );
 	self->context = xnewref( context );
-	#if PY_MAJOR_VERSION >= 3
-		new( &self->variable ) kiwi::Variable( name );
-	#else
-		new( &self->variable ) kiwi::Variable( PyString_AS_STRING( name ) );
-	#endif
+#if PY_MAJOR_VERSION >= 3
+	new( &self->variable ) kiwi::Variable( name );
+#else
+	new( &self->variable ) kiwi::Variable( PyString_AS_STRING( name ) );
+#endif
 	return pyvar;
 }
 
@@ -78,37 +78,37 @@ Variable_dealloc( Variable* self )
 static PyObject*
 Variable_repr( Variable* self )
 {
-	#if PY_MAJOR_VERSION >= 3
-		return PyUnicode_FromString( self->variable.name().c_str() );
-	#else
-		return PyString_FromString( self->variable.name().c_str() );
-	#endif
+#if PY_MAJOR_VERSION >= 3
+	return PyUnicode_FromString( self->variable.name().c_str() );
+#else
+	return PyString_FromString( self->variable.name().c_str() );
+#endif
 }
 
 
 static PyObject*
 Variable_name( Variable* self )
 {
-	#if PY_MAJOR_VERSION >= 3
-		return PyUnicode_FromString( self->variable.name().c_str() );
-	#else
-		return PyString_FromString( self->variable.name().c_str() );
-	#endif
+#if PY_MAJOR_VERSION >= 3
+	return PyUnicode_FromString( self->variable.name().c_str() );
+#else
+	return PyString_FromString( self->variable.name().c_str() );
+#endif
 }
 
 
 static PyObject*
 Variable_setName( Variable* self, PyObject* pystr )
 {
-	#if PY_MAJOR_VERSION >= 3
-		if( !PyUnicode_Check( pystr ) )
-			return py_expected_type_fail( pystr, "unicode" );
-		self->variable.setName( _PyUnicode_AsString( pystr ) );
-	#else
-		if( !PyString_Check( pystr ) )
-			return py_expected_type_fail( pystr, "str" );
-		self->variable.setName( PyString_AS_STRING( pystr ) );
-	#endif
+#if PY_MAJOR_VERSION >= 3
+	if( !PyUnicode_Check( pystr ) )
+		return py_expected_type_fail( pystr, "unicode" );
+	self->variable.setName( _PyUnicode_AsString( pystr ) );
+#else
+	if( !PyString_Check( pystr ) )
+		return py_expected_type_fail( pystr, "str" );
+	self->variable.setName( PyString_AS_STRING( pystr ) );
+#endif
 	Py_RETURN_NONE;
 }
 
@@ -224,42 +224,42 @@ Variable_as_number = {
 	(binaryfunc)Variable_add,   /* nb_add */
 	(binaryfunc)Variable_sub,   /* nb_subtract */
 	(binaryfunc)Variable_mul,   /* nb_multiply */
-	#if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
 	(binaryfunc)Variable_div,   /* nb_divide */
-	#endif
+#endif
 	0,                          /* nb_remainder */
 	0,                          /* nb_divmod */
 	0,                          /* nb_power */
 	(unaryfunc)Variable_neg,    /* nb_negative */
 	0,                          /* nb_positive */
 	0,                          /* nb_absolute */
-	#if PY_MAJOR_VERSION > 3
+#if PY_MAJOR_VERSION > 3
 	0,                          /* nb_bool */
-	#else
+#else
 	0,                          /* nb_nonzero */
-	#endif
+#endif
 	0,                          /* nb_invert */
 	0,                          /* nb_lshift */
 	0,                          /* nb_rshift */
 	0,                          /* nb_and */
 	0,                          /* nb_xor */
 	(binaryfunc)0,              /* nb_or */
-	#if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
 	0,                          /* nb_coerce */
-	#endif
+#endif
 	0,                          /* nb_int */
 	0,                          /* nb_long */
 	0,                          /* nb_float */
-	#if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
 	0,                          /* nb_oct */
 	0,                          /* nb_hex */
-	#endif
+#endif
 	0,                          /* nb_inplace_add */
 	0,                          /* nb_inplace_subtract */
 	0,                          /* nb_inplace_multiply */
-	#if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
 	0,                          /* nb_inplace_divide */
-	#endif
+#endif
 	0,                          /* nb_inplace_remainder */
 	0,                          /* nb_inplace_power */
 	0,                          /* nb_inplace_lshift */
@@ -271,9 +271,9 @@ Variable_as_number = {
 	(binaryfunc)0,              /* nb_true_divide */
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
-	#if PY_VERSION_HEX >= 0x02050000
+#if PY_VERSION_HEX >= 0x02050000
 	(unaryfunc)0,               /* nb_index */
-	#endif
+#endif
 };
 
 
@@ -297,11 +297,11 @@ PyTypeObject Variable_Type = {
 	(getattrofunc)0,                        /* tp_getattro */
 	(setattrofunc)0,                        /* tp_setattro */
 	(PyBufferProcs*)0,                      /* tp_as_buffer */
-	#if PY_MAJOR_VERSION >= 3
+#if PY_MAJOR_VERSION >= 3
 	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
-	#else
+#else
 	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
-	#endif
+#endif
 	0,                                      /* Documentation string */
 	(traverseproc)Variable_traverse,        /* tp_traverse */
 	(inquiry)Variable_clear,                /* tp_clear */
