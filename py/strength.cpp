@@ -101,8 +101,7 @@ strength_methods[] = {
 
 
 PyTypeObject strength_Type = {
-	PyObject_HEAD_INIT( 0 )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"kiwisolver.strength",                  /* tp_name */
 	sizeof( strength ),                     /* tp_basicsize */
 	0,                                      /* tp_itemsize */
