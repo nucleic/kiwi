@@ -17,7 +17,7 @@ class KiwiSolverBasicSanityTests(unittest.TestCase):
         x1 = Variable('x1')
         s.addConstraint(x0 >= 0)
         s.addConstraint(x1 >= 0)
-        s.solve()
+        s.updateVariables()
 
         self.assertEqual(x0.value(), 0.0)
         self.assertEqual(x1.value(), 0.0)
