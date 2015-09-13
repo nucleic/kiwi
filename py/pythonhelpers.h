@@ -16,9 +16,16 @@
     return Py_INCREF(Py_NotImplemented), Py_NotImplemented
 #endif
 
+#ifndef cmpfunc
+#define cmpfunc int
+#endif
 
 #define pyobject_cast( o ) ( reinterpret_cast<PyObject*>( o ) )
 #define pytype_cast( o ) ( reinterpret_cast<PyTypeObject*>( o ) )
+
+struct module_state {
+    PyObject *error;
+};
 
 
 namespace PythonHelpers
@@ -688,6 +695,10 @@ public:
 
 };
 
+/* TODO - is there a better way than this?? */
+#ifndef PyMethod_GET_CLASS
+#define PyMethod_GET_CLASS(m) (PyObject*)Py_TYPE(PyMethod_GET_SELF(m))
+#endif
 
 /*-----------------------------------------------------------------------------
 | Method Ptr

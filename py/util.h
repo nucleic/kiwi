@@ -22,11 +22,13 @@ convert_to_double( PyObject* obj, double& out )
         out = PyFloat_AS_DOUBLE( obj );
         return true;
     }
-    if( PyInt_Check( obj ) )
-    {
-        out = double( PyInt_AsLong( obj ) );
-        return true;
-    }
+    #if PY_MAJOR_VERSION < 3
+        if( PyInt_Check( obj ) )
+        {
+            out = double( PyInt_AsLong( obj ) );
+            return true;
+        }
+    #endif
     if( PyLong_Check( obj ) )
     {
         out = PyLong_AsDouble( obj );
@@ -42,9 +44,15 @@ convert_to_double( PyObject* obj, double& out )
 inline bool
 convert_to_strength( PyObject* value, double& out )
 {
-    if( PyString_Check( value ) )
-    {
-        std::string str( PyString_AS_STRING( value ) );
+    #if PY_MAJOR_VERSION >= 3
+        if( PyUnicode_Check( value ) )
+        {
+            std::string str( _PyUnicode_AsString( value ) );
+    #else
+        if( PyString_Check( value ) )
+        {
+            std::string str( PyString_AS_STRING( value ) );
+    #endif
         if( str == "required" )
             out = kiwi::strength::required;
         else if( str == "strong" )
@@ -74,12 +82,21 @@ convert_to_strength( PyObject* value, double& out )
 inline bool
 convert_to_relational_op( PyObject* value, kiwi::RelationalOperator& out )
 {
-    if( !PyString_Check( value ) )
-    {
-        PythonHelpers::py_expected_type_fail( value, "str" );
-        return false;
-    }
-    std::string str( PyString_AS_STRING( value ) );
+    #if PY_MAJOR_VERSION >= 3
+        if( !PyUnicode_Check( value ) )
+        {
+            PythonHelpers::py_expected_type_fail( value, "unicode" );
+            return false;
+        }
+        std::string str( _PyUnicode_AsString( value ) );
+    #else
+        if( !PyString_Check( value ) )
+        {
+            PythonHelpers::py_expected_type_fail( value, "str" );
+            return false;
+        }
+        std::string str( PyString_AS_STRING( value ) );
+    #endif
     if( str == "==" )
         out = kiwi::OP_EQ;
     else if( str == "<=" )
