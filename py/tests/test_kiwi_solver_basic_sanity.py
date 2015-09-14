@@ -64,9 +64,6 @@ def test_constraint_obj_tree():
     assert isinstance(term0, Term) and isinstance(term1, Term)
     assert isinstance(variable0, Variable) and isinstance(variable1, Variable)
 
-    assert variable0.name() == 'bar'
-    assert variable1.name() == 'foo'
-
 
 def test_basic_solver():
     s = Solver()
