@@ -117,12 +117,13 @@ Term_mul( PyObject* first, PyObject* second )
 	return BinaryInvoke<BinaryMul, Term>()( first, second );
 }
 
-
+#if PY_MAJOR_VERSION < 3
 static PyObject*
 Term_div( PyObject* first, PyObject* second )
 {
 	return BinaryInvoke<BinaryDiv, Term>()( first, second );
 }
+#endif
 
 
 static PyObject*
@@ -184,7 +185,7 @@ Term_as_number = {
 	(unaryfunc)Term_neg,        /* nb_negative */
 	0,                          /* nb_positive */
 	0,                          /* nb_absolute */
-#if PY_MAJOR_VERSION > 3
+#if PY_MAJOR_VERSION >= 3
 	0,                          /* nb_bool */
 #else
 	0,                          /* nb_nonzero */
@@ -225,9 +226,9 @@ Term_as_number = {
 #if PY_VERSION_HEX >= 0x02050000
 	(unaryfunc)0,               /* nb_index */
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION > 4
-    (binaryfunc)0,              /* nb_matrix_multiply */
-    (binaryfunc)0,              /* nb_inplace_matrix_multiply */
+#if PY_VERSION_HEX >= 0x03050000
+	(binaryfunc)0,              /* nb_matrix_multiply */
+	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
 #endif
 };
 
@@ -241,14 +242,12 @@ PyTypeObject Term_Type = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-#if PY_MAJOR_VERSION >= 3
-#if PY_MINOR_VERSION > 4
-    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
 #else
-    ( void* ) 0,                           /* tp_reserved */
-#endif
-#else
-    ( cmpfunc )0,                          /* tp_compare */
+	( cmpfunc )0,                           /* tp_compare */
 #endif
 	(reprfunc)Term_repr,                    /* tp_repr */
 	(PyNumberMethods*)&Term_as_number,      /* tp_as_number */

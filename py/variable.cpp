@@ -155,11 +155,13 @@ Variable_mul( PyObject* first, PyObject* second )
 }
 
 
+#if PY_MAJOR_VERSION < 3
 static PyObject*
 Variable_div( PyObject* first, PyObject* second )
 {
 	return BinaryInvoke<BinaryDiv, Variable>()( first, second );
 }
+#endif
 
 
 static PyObject*
@@ -264,11 +266,11 @@ Variable_as_number = {
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
 #if PY_VERSION_HEX >= 0x02050000
-     (unaryfunc)0,               /* nb_index */
+	(unaryfunc)0,               /* nb_index */
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION > 4
-     (binaryfunc)0,              /* nb_matrix_multiply */
-     (binaryfunc)0,              /* nb_inplace_matrix_multiply */
+#if PY_VERSION_HEX >= 0x03050000
+	(binaryfunc)0,              /* nb_matrix_multiply */
+	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
 #endif
 };
 
@@ -282,14 +284,12 @@ PyTypeObject Variable_Type = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-#if PY_MAJOR_VERSION >= 3
-#if PY_MINOR_VERSION > 4
-    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
 #else
-    ( void* ) 0,                           /* tp_reserved */
-#endif
-#else
-    ( cmpfunc )0,                          /* tp_compare */
+	( cmpfunc )0,                           /* tp_compare */
 #endif
 	(reprfunc)Variable_repr,                /* tp_repr */
 	(PyNumberMethods*)&Variable_as_number,  /* tp_as_number */

@@ -61,10 +61,10 @@ struct BinaryInvoke
 			return Invk()( primary, reinterpret_cast<Variable*>( secondary ) );
 		if( PyFloat_Check( secondary ) )
 			return Invk()( primary, PyFloat_AS_DOUBLE( secondary ) );
-		#if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
 			if( PyInt_Check( secondary ) )
 				return Invk()( primary, double( PyInt_AS_LONG( secondary ) ) );
-		#endif
+#endif
 		if( PyLong_Check( secondary ) )
 		{
 			double v = PyLong_AsDouble( secondary );
