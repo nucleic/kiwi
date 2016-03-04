@@ -8,7 +8,6 @@
 #include <sstream>
 #include <Python.h>
 #include "pythonhelpers.h"
-#include "py23compat.h"
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
@@ -72,7 +71,7 @@ Term_repr( Term* self )
 	std::stringstream stream;
 	stream << self->coefficient << " * ";
 	stream << reinterpret_cast<Variable*>( self->variable )->variable.name();
-	return Py23Str_FromString( stream.str().c_str() );
+	return FROM_STRING( stream.str().c_str() );
 }
 
 

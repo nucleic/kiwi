@@ -8,7 +8,6 @@
 #include <sstream>
 #include <Python.h>
 #include "pythonhelpers.h"
-#include "py23compat.h"
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
@@ -88,7 +87,7 @@ Expression_repr( Expression* self )
         stream << " + ";
     }
     stream << self->constant;
-    return Py23Str_FromString( stream.str().c_str() );
+    return FROM_STRING( stream.str().c_str() );
 }
 
 

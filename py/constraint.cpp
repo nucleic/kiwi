@@ -10,7 +10,6 @@
 #include <Python.h>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
-#include "py23compat.h"
 #include "types.h"
 #include "util.h"
 
@@ -103,7 +102,7 @@ Constraint_repr( Constraint* self )
             break;
     }
     stream << " | strength = " << self->constraint.strength();
-    return Py23Str_FromString( stream.str().c_str() );
+    return FROM_STRING( stream.str().c_str() );
 }
 
 
@@ -121,13 +120,13 @@ Constraint_op( Constraint* self )
     switch( self->constraint.op() )
     {
         case kiwi::OP_EQ:
-            res = Py23Str_FromString( "==" );
+            res = FROM_STRING( "==" );
             break;
         case kiwi::OP_LE:
-            res = Py23Str_FromString( "<=" );
+            res = FROM_STRING( "<=" );
             break;
         case kiwi::OP_GE:
-            res = Py23Str_FromString( ">=" );
+            res = FROM_STRING( ">=" );
             break;
     }
     return res;

@@ -8,7 +8,6 @@
 #include <Python.h>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
-#include "py23compat.h"
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
@@ -79,14 +78,14 @@ Variable_dealloc( Variable* self )
 static PyObject*
 Variable_repr( Variable* self )
 {
-	return Py23Str_FromString( self->variable.name().c_str() );
+	return FROM_STRING( self->variable.name().c_str() );
 }
 
 
 static PyObject*
 Variable_name( Variable* self )
 {
-	return Py23Str_FromString( self->variable.name().c_str() );
+	return FROM_STRING( self->variable.name().c_str() );
 }
 
 

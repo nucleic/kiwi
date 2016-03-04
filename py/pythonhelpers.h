@@ -10,6 +10,15 @@
 #include <structmember.h>
 #include <string>
 
+#if PY_MAJOR_VERSION >= 3
+#define FROM_STRING PyUnicode_FromString
+#define INITERROR return NULL
+#define MOD_INIT_FUNC(name) PyMODINIT_FUNC PyInit_##name(void)
+#else
+#define FROM_STRING PyString_FromString
+#define INITERROR return
+#define MOD_INIT_FUNC(name) PyMODINIT_FUNC init##name(void)
+#endif
 
 #ifndef Py_RETURN_NOTIMPLEMENTED
 #define Py_RETURN_NOTIMPLEMENTED \
