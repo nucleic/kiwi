@@ -8,6 +8,7 @@
 #include <sstream>
 #include <Python.h>
 #include "pythonhelpers.h"
+#include "py23compat.h"
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
@@ -71,11 +72,7 @@ Term_repr( Term* self )
 	std::stringstream stream;
 	stream << self->coefficient << " * ";
 	stream << reinterpret_cast<Variable*>( self->variable )->variable.name();
-#if PY_MAJOR_VERSION >= 3
-	return PyUnicode_FromString( stream.str().c_str() );
-#else
-	return PyString_FromString( stream.str().c_str() );
-#endif
+	return Py23Str_FromString( stream.str().c_str() );
 }
 
 
@@ -229,6 +226,10 @@ Term_as_number = {
 #if PY_VERSION_HEX >= 0x02050000
 	(unaryfunc)0,               /* nb_index */
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION > 4
+    (binaryfunc)0,              /* nb_matrix_multiply */
+    (binaryfunc)0,              /* nb_inplace_matrix_multiply */
+#endif
 };
 
 
@@ -241,7 +242,15 @@ PyTypeObject Term_Type = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-	(cmpfunc)0,                             /* tp_compare */
+#if PY_MAJOR_VERSION >= 3
+#if PY_MINOR_VERSION > 4
+    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#else
+    ( void* ) 0,                           /* tp_reserved */
+#endif
+#else
+    ( cmpfunc )0,                          /* tp_compare */
+#endif
 	(reprfunc)Term_repr,                    /* tp_repr */
 	(PyNumberMethods*)&Term_as_number,      /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */

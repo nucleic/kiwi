@@ -8,6 +8,7 @@
 #include <sstream>
 #include <Python.h>
 #include "pythonhelpers.h"
+#include "py23compat.h"
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
@@ -87,11 +88,7 @@ Expression_repr( Expression* self )
         stream << " + ";
     }
     stream << self->constant;
-#if PY_MAJOR_VERSION >= 3
-    return PyUnicode_FromString( stream.str().c_str() );
-#else
-    return PyString_FromString( stream.str().c_str() );
-#endif
+    return Py23Str_FromString( stream.str().c_str() );
 }
 
 
@@ -213,7 +210,7 @@ Expression_as_number = {
     (unaryfunc)Expression_neg,  /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
-#if PY_MAJOR_VERSION > 3
+#if PY_MAJOR_VERSION >= 3
     0,                          /* nb_bool */
 #else
     0,                          /* nb_nonzero */
@@ -228,7 +225,11 @@ Expression_as_number = {
     0,                          /* nb_coerce */
 #endif
     0,                          /* nb_int */
+#if PY_MAJOR_VERSION >= 3
+    (void *)0,                  /* nb_reserved */
+#else
     0,                          /* nb_long */
+#endif
     0,                          /* nb_float */
 #if PY_MAJOR_VERSION < 3
     0,                          /* nb_oct */
@@ -240,6 +241,7 @@ Expression_as_number = {
 #if PY_MAJOR_VERSION < 3
     0,                          /* nb_inplace_divide */
 #endif
+    0,                          /* nb_inplace_remainder */
     0,                          /* nb_inplace_power */
     0,                          /* nb_inplace_lshift */
     0,                          /* nb_inplace_rshift */
@@ -251,7 +253,11 @@ Expression_as_number = {
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
 #if PY_VERSION_HEX >= 0x02050000
-    0,                          /* nb_index */
+    (unaryfunc)0,                          /* nb_index */
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION > 4
+    (binaryfunc)0,              /* nb_matrix_multiply */
+    (binaryfunc)0,              /* nb_inplace_matrix_multiply */
 #endif
 };
 
@@ -265,7 +271,15 @@ PyTypeObject Expression_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_MAJOR_VERSION >= 3
+#if PY_MINOR_VERSION > 4
+    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#else
+    ( void* ) 0,                           /* tp_reserved */
+#endif
+#else
+    ( cmpfunc )0,                          /* tp_compare */
+#endif
     (reprfunc)Expression_repr,              /* tp_repr */
     (PyNumberMethods*)&Expression_as_number,/* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
