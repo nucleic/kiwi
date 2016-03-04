@@ -10,6 +10,7 @@
 #include <Python.h>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
+#include "py23compat.h"
 #include "types.h"
 #include "util.h"
 
@@ -102,11 +103,7 @@ Constraint_repr( Constraint* self )
             break;
     }
     stream << " | strength = " << self->constraint.strength();
-#if PY_MAJOR_VERSION >= 3
-    return PyUnicode_FromString( stream.str().c_str() );
-#else
-    return PyString_FromString( stream.str().c_str() );
-#endif
+    return Py23Str_FromString( stream.str().c_str() );
 }
 
 
@@ -124,25 +121,13 @@ Constraint_op( Constraint* self )
     switch( self->constraint.op() )
     {
         case kiwi::OP_EQ:
-#if PY_MAJOR_VERSION >= 3
-            res = PyUnicode_FromString( "==" );
-#else
-            res = PyString_FromString( "==" );
-#endif
+            res = Py23Str_FromString( "==" );
             break;
         case kiwi::OP_LE:
-#if PY_MAJOR_VERSION >= 3
-            res = PyUnicode_FromString( "<=" );
-#else
-            res = PyString_FromString( "<=" );
-#endif
+            res = Py23Str_FromString( "<=" );
             break;
         case kiwi::OP_GE:
-#if PY_MAJOR_VERSION >= 3
-            res = PyUnicode_FromString( ">=" );
-#else
-            res = PyString_FromString( ">=" );
-#endif
+            res = Py23Str_FromString( ">=" );
             break;
     }
     return res;
@@ -242,6 +227,10 @@ Constraint_as_number = {
 #if PY_VERSION_HEX >= 0x02050000
     (unaryfunc)0,               /* nb_index */
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION > 4
+    (binaryfunc)0,              /* nb_matrix_multiply */
+    (binaryfunc)0,              /* nb_inplace_matrix_multiply */
+#endif
 };
 
 
@@ -254,7 +243,15 @@ PyTypeObject Constraint_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_MAJOR_VERSION >= 3
+#if PY_MINOR_VERSION > 4
+    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#else
+    ( void* ) 0,                           /* tp_reserved */
+#endif
+#else
+    ( cmpfunc )0,                          /* tp_compare */
+#endif
     (reprfunc)Constraint_repr,              /* tp_repr */
     (PyNumberMethods*)&Constraint_as_number,/* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */

@@ -8,6 +8,7 @@
 #include <Python.h>
 #include <kiwi/kiwi.h>
 #include "pythonhelpers.h"
+#include "py23compat.h"
 #include "types.h"
 
 #define PY_KIWI_VERSION "0.1.3"
@@ -66,10 +67,10 @@ initkiwisolver( void )
         INITERROR;
     if( import_strength() < 0 )
         INITERROR;
-    PyObject* kiwiversion = FROM_STRING( KIWI_VERSION );
+    PyObject* kiwiversion = Py23Str_FromString( KIWI_VERSION );
     if( !kiwiversion )
         INITERROR;
-    PyObject* pyversion = FROM_STRING( PY_KIWI_VERSION );
+    PyObject* pyversion = Py23Str_FromString( PY_KIWI_VERSION );
     if( !pyversion )
         INITERROR;
     PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
