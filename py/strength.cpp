@@ -23,7 +23,7 @@ struct strength
 static void
 strength_dealloc( PyObject* self )
 {
-    self->ob_type->tp_free( self );
+	Py_TYPE( self )->tp_free( self );
 }
 
 
@@ -101,8 +101,7 @@ strength_methods[] = {
 
 
 PyTypeObject strength_Type = {
-	PyObject_HEAD_INIT( 0 )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"kiwisolver.strength",                  /* tp_name */
 	sizeof( strength ),                     /* tp_basicsize */
 	0,                                      /* tp_itemsize */
@@ -110,7 +109,13 @@ PyTypeObject strength_Type = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-	(cmpfunc)0,                             /* tp_compare */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
 	(reprfunc)0,                            /* tp_repr */
 	(PyNumberMethods*)0,                    /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */

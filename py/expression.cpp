@@ -69,7 +69,7 @@ Expression_dealloc( Expression* self )
 {
     PyObject_GC_UnTrack( self );
     Expression_clear( self );
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -87,7 +87,7 @@ Expression_repr( Expression* self )
         stream << " + ";
     }
     stream << self->constant;
-    return PyString_FromString( stream.str().c_str() );
+    return FROM_STRING( stream.str().c_str() );
 }
 
 
@@ -199,30 +199,46 @@ Expression_as_number = {
     (binaryfunc)Expression_add, /* nb_add */
     (binaryfunc)Expression_sub, /* nb_subtract */
     (binaryfunc)Expression_mul, /* nb_multiply */
+#if PY_MAJOR_VERSION < 3
     (binaryfunc)Expression_div, /* nb_divide */
+#endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
     (unaryfunc)Expression_neg,  /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
+#if PY_MAJOR_VERSION >= 3
+    0,                          /* nb_bool */
+#else
     0,                          /* nb_nonzero */
+#endif
     0,                          /* nb_invert */
     0,                          /* nb_lshift */
     0,                          /* nb_rshift */
     0,                          /* nb_and */
     0,                          /* nb_xor */
-    0,                          /* nb_or */
+    (binaryfunc)0,              /* nb_or */
+#if PY_MAJOR_VERSION < 3
     0,                          /* nb_coerce */
+#endif
     0,                          /* nb_int */
+#if PY_MAJOR_VERSION >= 3
+    (void *)0,                  /* nb_reserved */
+#else
     0,                          /* nb_long */
+#endif
     0,                          /* nb_float */
+#if PY_MAJOR_VERSION < 3
     0,                          /* nb_oct */
     0,                          /* nb_hex */
+#endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
+#if PY_MAJOR_VERSION < 3
     0,                          /* nb_inplace_divide */
+#endif
     0,                          /* nb_inplace_remainder */
     0,                          /* nb_inplace_power */
     0,                          /* nb_inplace_lshift */
@@ -230,17 +246,22 @@ Expression_as_number = {
     0,                          /* nb_inplace_and */
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
-    0,                          /* nb_floor_divide */
-    0,                          /* nb_true_divide */
+    (binaryfunc)0,              /* nb_floor_divide */
+    (binaryfunc)Expression_div, /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
-    0,                          /* nb_index */
+#if PY_VERSION_HEX >= 0x02050000
+    (unaryfunc)0,               /* nb_index */
+#endif
+#if PY_VERSION_HEX >= 0x03050000
+    (binaryfunc)0,              /* nb_matrix_multiply */
+    (binaryfunc)0,              /* nb_inplace_matrix_multiply */
+#endif
 };
 
 
 PyTypeObject Expression_Type = {
-    PyObject_HEAD_INIT( 0 )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
     "kiwisolver.Expression",                /* tp_name */
     sizeof( Expression ),                   /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -248,7 +269,13 @@ PyTypeObject Expression_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_VERSION_HEX >= 0x03050000
+    ( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+    ( void* ) 0,                            /* tp_reserved */
+#else
+    ( cmpfunc )0,                           /* tp_compare */
+#endif
     (reprfunc)Expression_repr,              /* tp_repr */
     (PyNumberMethods*)&Expression_as_number,/* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -259,7 +286,11 @@ PyTypeObject Expression_Type = {
     (getattrofunc)0,                        /* tp_getattro */
     (setattrofunc)0,                        /* tp_setattro */
     (PyBufferProcs*)0,                      /* tp_as_buffer */
+#if PY_MAJOR_VERSION >= 3
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE,
+#else
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
+#endif
     0,                                      /* Documentation string */
     (traverseproc)Expression_traverse,      /* tp_traverse */
     (inquiry)Expression_clear,              /* tp_clear */

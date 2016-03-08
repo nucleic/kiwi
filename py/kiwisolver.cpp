@@ -12,43 +12,59 @@
 
 #define PY_KIWI_VERSION "0.1.3"
 
-
 using namespace PythonHelpers;
-
 
 static PyMethodDef
 kiwisolver_methods[] = {
     { 0 } // Sentinel
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef kiwisolver_moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "kiwisolver",
+    NULL,
+    sizeof( struct module_state ),
+    kiwisolver_methods,
+    NULL
+};
 
 PyMODINIT_FUNC
+PyInit_kiwisolver( void )
+#else
+PyMODINIT_FUNC
 initkiwisolver( void )
+#endif
 {
+#if PY_MAJOR_VERSION >= 3
+    PyObject *mod = PyModule_Create( &kiwisolver_moduledef );
+#else
     PyObject* mod = Py_InitModule( "kiwisolver", kiwisolver_methods );
+#endif
     if( !mod )
-        return;
+        INITERROR;
     if( import_variable() < 0 )
-        return;
+        INITERROR;
     if( import_term() < 0 )
-        return;
+        INITERROR;
     if( import_expression() < 0 )
-        return;
+        INITERROR;
     if( import_constraint() < 0 )
-        return;
+        INITERROR;
     if( import_solver() < 0 )
-        return;
+        INITERROR;
     if( import_strength() < 0 )
-        return;
-    PyObject* kiwiversion = PyString_FromString( KIWI_VERSION );
+        INITERROR;
+    PyObject* kiwiversion = FROM_STRING( KIWI_VERSION );
     if( !kiwiversion )
-        return;
-    PyObject* pyversion = PyString_FromString( PY_KIWI_VERSION );
+        INITERROR;
+    PyObject* pyversion = FROM_STRING( PY_KIWI_VERSION );
     if( !pyversion )
-        return;
+        INITERROR;
     PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
     if( !pystrength )
-        return;
+        INITERROR;
+
     PyModule_AddObject( mod, "__version__", pyversion );
     PyModule_AddObject( mod, "__kiwi_version__", kiwiversion );
     PyModule_AddObject( mod, "strength", pystrength );
@@ -63,4 +79,8 @@ initkiwisolver( void )
     PyModule_AddObject( mod, "DuplicateEditVariable", newref( DuplicateEditVariable ) );
     PyModule_AddObject( mod, "UnknownEditVariable", newref( UnknownEditVariable ) );
     PyModule_AddObject( mod, "BadRequiredStrength", newref( BadRequiredStrength ) );
+
+#if PY_MAJOR_VERSION >= 3
+    return mod;
+#endif
 }
