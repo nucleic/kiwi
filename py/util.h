@@ -47,7 +47,7 @@ convert_to_strength( PyObject* value, double& out )
 #if PY_MAJOR_VERSION >= 3
     if( PyUnicode_Check( value ) )
     {
-        std::string str( _PyUnicode_AsString( value ) );
+        std::string str( PyUnicode_AsUTF8( value ) );
 #else
     if( PyString_Check( value ) )
     {
@@ -88,7 +88,7 @@ convert_to_relational_op( PyObject* value, kiwi::RelationalOperator& out )
         PythonHelpers::py_expected_type_fail( value, "unicode" );
         return false;
     }
-    std::string str( _PyUnicode_AsString( value ) );
+    std::string str( PyUnicode_AsUTF8( value ) );
 #else
     if( !PyString_Check( value ) )
     {
