@@ -117,13 +117,12 @@ Term_mul( PyObject* first, PyObject* second )
 	return BinaryInvoke<BinaryMul, Term>()( first, second );
 }
 
-#if PY_MAJOR_VERSION < 3
+
 static PyObject*
 Term_div( PyObject* first, PyObject* second )
 {
 	return BinaryInvoke<BinaryDiv, Term>()( first, second );
 }
-#endif
 
 
 static PyObject*
@@ -220,7 +219,7 @@ Term_as_number = {
 	0,                          /* nb_inplace_xor */
 	0,                          /* nb_inplace_or */
 	(binaryfunc)0,              /* nb_floor_divide */
-	(binaryfunc)0,              /* nb_true_divide */
+	(binaryfunc)Term_div,       /* nb_true_divide */
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
 #if PY_VERSION_HEX >= 0x02050000

@@ -141,13 +141,12 @@ Expression_mul( PyObject* first, PyObject* second )
     return BinaryInvoke<BinaryMul, Expression>()( first, second );
 }
 
-#if PY_MAJOR_VERSION < 3
-    static PyObject*
-    Expression_div( PyObject* first, PyObject* second )
-    {
-        return BinaryInvoke<BinaryDiv, Expression>()( first, second );
-    }
-#endif
+
+static PyObject*
+Expression_div( PyObject* first, PyObject* second )
+{
+    return BinaryInvoke<BinaryDiv, Expression>()( first, second );
+}
 
 
 static PyObject*
@@ -248,7 +247,7 @@ Expression_as_number = {
     0,                          /* nb_inplace_xor */
     0,                          /* nb_inplace_or */
     (binaryfunc)0,              /* nb_floor_divide */
-    (binaryfunc)0,              /* nb_true_divide */
+    (binaryfunc)Expression_div, /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
 #if PY_VERSION_HEX >= 0x02050000

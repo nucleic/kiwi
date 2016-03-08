@@ -24,10 +24,9 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 
 #if PY_MAJOR_VERSION >= 3
 	const char* name;
-	int length;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "s#|O:__new__", const_cast<char**>( kwlist ),
-		&name, &length, &context ) )
+		args, kwargs, "s|O:__new__", const_cast<char**>( kwlist ),
+		&name, &context ) )
 		return 0;
 #else
 	PyObject* name;
@@ -95,7 +94,7 @@ Variable_setName( Variable* self, PyObject* pystr )
 #if PY_MAJOR_VERSION >= 3
 	if( !PyUnicode_Check( pystr ) )
 		return py_expected_type_fail( pystr, "unicode" );
-	self->variable.setName( _PyUnicode_AsString( pystr ) );
+	self->variable.setName( PyUnicode_AsUTF8( pystr ) );
 #else
 	if( !PyString_Check( pystr ) )
 		return py_expected_type_fail( pystr, "str" );
@@ -155,13 +154,11 @@ Variable_mul( PyObject* first, PyObject* second )
 }
 
 
-#if PY_MAJOR_VERSION < 3
 static PyObject*
 Variable_div( PyObject* first, PyObject* second )
 {
 	return BinaryInvoke<BinaryDiv, Variable>()( first, second );
 }
-#endif
 
 
 static PyObject*
@@ -262,7 +259,7 @@ Variable_as_number = {
 	0,                          /* nb_inplace_xor */
 	0,                          /* nb_inplace_or */
 	(binaryfunc)0,              /* nb_floor_divide */
-	(binaryfunc)0,              /* nb_true_divide */
+	(binaryfunc)Variable_div,   /* nb_true_divide */
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
 #if PY_VERSION_HEX >= 0x02050000

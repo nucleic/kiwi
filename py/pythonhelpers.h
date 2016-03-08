@@ -26,7 +26,7 @@
 #endif
 
 #ifndef cmpfunc
-#define cmpfunc int
+#define cmpfunc void*
 #endif
 
 #define pyobject_cast( o ) ( reinterpret_cast<PyObject*>( o ) )
@@ -704,10 +704,6 @@ public:
 
 };
 
-/* TODO - is there a better way than this?? */
-#ifndef PyMethod_GET_CLASS
-#define PyMethod_GET_CLASS(m) (PyObject*)Py_TYPE(PyMethod_GET_SELF(m))
-#endif
 
 /*-----------------------------------------------------------------------------
 | Method Ptr
@@ -737,11 +733,12 @@ public:
         return PyObjectPtr( PythonHelpers::xnewref( PyMethod_GET_FUNCTION( m_pyobj ) ) );
     }
 
+#if PY_MAJOR_VERSION < 3
     PyObjectPtr get_class() const
     {
         return PyObjectPtr( PythonHelpers::xnewref( PyMethod_GET_CLASS( m_pyobj ) ) );
     }
-
+#endif
 };
 
 
