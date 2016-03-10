@@ -27,7 +27,7 @@ def test_term_creation():
     assert str(t) == '100 * foo'
 
 
-def test_variable_arith_operators():
+def test_term_arith_operators():
     """Test the arithmetic operation on terms.
 
     """
@@ -101,7 +101,7 @@ def test_variable_arith_operators():
             terms[1].variable() is v2 and terms[1].coefficient() == -1)
 
 
-def test_variable_rich_compare_operations():
+def test_term_rich_compare_operations():
     """Test using comparison on variables.
 
     """

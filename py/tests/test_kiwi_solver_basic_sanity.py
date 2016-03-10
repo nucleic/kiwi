@@ -36,6 +36,7 @@ def edit_context(solver, vars):
     for v in vars:
         solver.removeEditVariable(v)
 
+
 def get_simple_constraint():
     foo = Variable('foo')
     bar = Variable('bar')
