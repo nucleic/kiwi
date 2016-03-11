@@ -112,3 +112,26 @@ def test_solving_under_constrained_system():
     assert c.expression().value() == 21
     assert c.expression().terms()[0].value() == 20
     assert c.expression().terms()[0].variable().value() == 10
+
+
+def test_solving_with_strength():
+    """Test solving a system with unstatisfiable non-required constraint.
+
+    """
+    v1 = Variable('foo')
+    v2 = Variable('bar')
+    s = Solver()
+
+    s.addConstraint(v1 + v2 == 0)
+    s.addConstraint(v1 == 10)
+    s.addConstraint((v2 >= 0) | 'weak')
+    s.updateVariables()
+    assert v1.value() == 10 and v2.value() == -10
+
+    s.reset()
+
+    s.addConstraint(v1 + v2 == 0)
+    s.addConstraint((v1 >= 10) | 'medium')
+    s.addConstraint((v2 == 2) | 'strong')
+    s.updateVariables()
+    assert v1.value() == -2 and v2.value() == 2
