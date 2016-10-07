@@ -145,6 +145,11 @@ module kiwi
             return this._strength;
         }
 
+        toString(): string
+        {
+            return this._expression.toString() + " " + ["<=", ">=", "="][this._operator] + " 0 (" + this._strength.toString() + ")";
+        }
+
         private _expression: Expression;
         private _operator: Operator;
         private _strength: number;

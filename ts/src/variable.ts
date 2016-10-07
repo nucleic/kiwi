@@ -153,6 +153,11 @@ module kiwi
                 value: this._value
             };
         }
+        
+        toString(): string
+        {
+            return this._context + "[" + this._name + ":" + this._value + "]";
+        }
 
         private _name: string;
         private _value: number = 0.0;
