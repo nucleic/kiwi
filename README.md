@@ -28,7 +28,7 @@ Include kiwi in your html and javascript file:
 
 ```html
 <head>
-  <script type="text/javascript" src="node_modules/kiwi-solver/bin/kiwi.js"></script>
+  <script type="text/javascript" src="node_modules/kiwi/lib/kiwi.js"></script>
 </head>
 ```
 
@@ -39,7 +39,7 @@ var kiwi = window.kiwi;
 Or when using requirejs or a bundler like browserify or webpack, use:
 
 ```javascript
-var kiwi = require('kiwi-solver');
+var kiwi = require('kiwi.js');
 ```
 
 The following example creates a solver which automatically calculates the width:
@@ -72,7 +72,7 @@ assert(right, 500);
 
 ## Benchmarks
 
-To run the benchmark in the browser, [just visit this page](https://rawgit.com/IjzerenHein/kiwi/feature-js/ts/bench/index.html).
+To run the benchmark in the browser, [just visit this page](https://rawgit.com/IjzerenHein/kiwi/laster/bench/index.html).
 
 To run the benchmark locally using nodejs, *clone or download this repository* and execute the following steps:
 
@@ -82,7 +82,7 @@ To run the benchmark locally using nodejs, *clone or download this repository* a
 
 ## Tests
 
-To run the tests in the browser, [just visit this page](https://rawgit.com/IjzerenHein/kiwi/feature-js/ts/test/index.html).
+To run the tests in the browser, [just visit this page](https://rawgit.com/IjzerenHein/kiwi/master/test/index.html).
 
 To run the tests locally using nodejs, *clone or download this repository* and execute the following steps:
 

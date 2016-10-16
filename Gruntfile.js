@@ -5,9 +5,6 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     tslint: {
-      options: {
-        configuration: '' //grunt.file.readJSON('tslint.json')
-      },
       files: {
         src: ['src/*.ts']
       }
@@ -15,7 +12,7 @@ module.exports = function(grunt) {
     'string-replace': {
       dist: {
         files: {
-          'tmp/kiwi-no-internal-modules.js': 'bin/kiwi.js'
+          'tmp/kiwi-no-internal-modules.js': 'lib/kiwi.js'
         },
         options: {
           // Generating docs for compiled Typescript code isn't easy...
@@ -57,28 +54,28 @@ module.exports = function(grunt) {
       }
     },
     exec: {
-      build: 'tsc --noImplicitAny -m commonjs -d -out bin/kiwi.js src/kiwi.ts',
+      build: 'tsc --noImplicitAny -m commonjs -d -out lib/kiwi.js src/kiwi.ts',
       test: 'mocha', // --compilers ts:typescript-require' // HR: can't get internal TS modules to work with typescript-require
       bench: 'node bench/main.js'
     },
     concat: {
       extras: {
-        src: ['thirdparty/tsu.js', 'bin/kiwi.js'],
-        dest: 'bin/kiwi.js',
+        src: ['thirdparty/tsu.js', 'lib/kiwi.js'],
+        dest: 'lib/kiwi.js',
       },
     },
     umd: {
       all: {
         options: {
-          src: 'bin/kiwi.js',
+          src: 'lib/kiwi.js',
           objectToExport: 'kiwi'
         }
       }
     },
     uglify: {
       dist: {
-        src: './bin/kiwi.js',
-        dest: './bin/kiwi.min.js'
+        src: './lib/kiwi.js',
+        dest: './lib/kiwi.min.js'
       }
     },
     usebanner: {
@@ -87,7 +84,7 @@ module.exports = function(grunt) {
           position: 'top',
           banner:
             '/*-----------------------------------------------------------------------------\n' +
-            '| Copyright (c) 2014, Nucleic Development Team.\n' +
+            '| Copyright (c) 2014-2016, Nucleic Development Team & H. Rutjes.\n' +
             '|\n' +
             '| Distributed under the terms of the Modified BSD License.\n' +
             '|\n' +
@@ -95,7 +92,7 @@ module.exports = function(grunt) {
             '-----------------------------------------------------------------------------*/'
         },
         files: {
-          src: ['bin/kiwi.min.js']
+          src: ['lib/kiwi.min.js']
         }
       }
     }

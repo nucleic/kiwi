@@ -94,6 +94,7 @@ declare module kiwi {
          * @return {Number} strength
          */
         strength(): number;
+        toString(): string;
         private _expression;
         private _operator;
         private _strength;
@@ -192,6 +193,7 @@ declare module kiwi {
          * @private
          */
         toJSON(): any;
+        toString(): string;
         private _name;
         private _value;
         private _context;
@@ -265,6 +267,8 @@ declare module kiwi {
          * @return {Expression} expression
          */
         divide(coefficient: number): Expression;
+        isConstant(): boolean;
+        toString(): string;
         private _terms;
         private _constant;
     }

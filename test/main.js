@@ -1,6 +1,6 @@
 /*global describe, it*/
 var assert = (typeof window === 'undefined') ? require('assert') : window.chai.assert;
-var kiwi = (typeof window === 'undefined') ? require('../bin/kiwi.js') : window.kiwi;
+var kiwi = (typeof window === 'undefined') ? require('../lib/kiwi.js') : window.kiwi;
 
 describe('kiwi', function() {
     it('create Solver', function() {
