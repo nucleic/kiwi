@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<script src="thirdparty/tsu.js"></script>
+		<script src="lib/kiwi.js"></script>
+		<script>
+			var x1 = new kiwi.Variable();
+			var x2 = new kiwi.Variable();
+			var x3 = new kiwi.Variable();
+
+			var e1 = new kiwi.Expression(x1, x2, x3);
+			var e2 = new kiwi.Expression(x1, -5, -9.5);
+
+			var c1 = new kiwi.Constraint(e1, kiwi.Operator.Eq);
+			var c2 = new kiwi.Constraint(e2, kiwi.Operator.Eq);
+
+			var solver = new kiwi.Solver();
+			solver.addConstraint(c1);
+			solver.addConstraint(c2);
+			solver.addEditVariable(x2, kiwi.Strength.strong);
+
+			function doit() {
+			    console.time("elapsed");
+				for (var i = 0; i < 1000000; ++i) {
+					solver.suggestValue(x2, i);
+					solver.updateVariables();
+				}
+				console.timeEnd("elapsed");
+				console.log("x1", x1.value());
+				console.log("x2", x2.value());
+				console.log("x3", x3.value());
+			}
+
+		</script>
+        <title>Sample</title>
+	</head>
+    <body>
+	    <button type="button" onclick="doit()">Do It!</button>
+    </body>
+</html>
