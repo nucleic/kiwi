@@ -121,6 +121,28 @@ module kiwi
             return new Expression([1 / coefficient, this]);
         }
 
+        isConstant(): boolean
+        {
+            return this._terms.size() == 0;
+        }
+        
+        toString(): string
+        {
+            var result = this._terms._array.map(function(pair, idx)
+            {
+                return (pair.second + "*" + pair.first.toString());
+            }).join(" + ");
+                    
+            if (!this.isConstant() && this._constant !== 0)
+            {
+                result += " + ";
+            }
+                    
+            result += this._constant;
+                    
+            return result;
+        }
+        
         private _terms: IMap<Variable, number>;
         private _constant: number;
     }
