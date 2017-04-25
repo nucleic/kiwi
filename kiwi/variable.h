@@ -24,7 +24,10 @@ public:
 	public:
 		Context() {}
 		virtual ~Context() {}
-	};
+    };
+
+  Variable() :
+    m_data( new VariableData( "", 0 ) ) {}
 
 	Variable( Context* context = 0 ) :
 		m_data( new VariableData( "", context ) ) {}
