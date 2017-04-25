@@ -26,6 +26,9 @@ public:
 		virtual ~Context() {}
 	};
 
+	Variable( Context* context = 0 ) :
+		m_data( new VariableData( "", context ) ) {}
+
 	Variable( const std::string& name, Context* context = 0 ) :
 		m_data( new VariableData( name, context ) ) {}
 
