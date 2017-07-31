@@ -23,15 +23,15 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	PyObject* context = 0;
 
 #if PY_MAJOR_VERSION >= 3
-	const char* name;
+	const char* name = 0;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "s|O:__new__", const_cast<char**>( kwlist ),
+		args, kwargs, "|sO:__new__", const_cast<char**>( kwlist ),
 		&name, &context ) )
 		return 0;
 #else
-	PyObject* name;
+	PyObject* name = 0;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "S|O:__new__", const_cast<char**>( kwlist ),
+		args, kwargs, "|SO:__new__", const_cast<char**>( kwlist ),
 		&name, &context ) )
 		return 0;
 #endif
@@ -40,11 +40,20 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		return 0;
 	Variable* self = reinterpret_cast<Variable*>( pyvar );
 	self->context = xnewref( context );
+
+   if( name != 0 )
+   {
 #if PY_MAJOR_VERSION >= 3
-	new( &self->variable ) kiwi::Variable( name );
+    	new( &self->variable ) kiwi::Variable( name );
 #else
-	new( &self->variable ) kiwi::Variable( PyString_AS_STRING( name ) );
+    	new( &self->variable ) kiwi::Variable( PyString_AS_STRING( name ) );
 #endif
+   }
+   else
+   {
+      new( &self->variable ) kiwi::Variable();
+   }
+
 	return pyvar;
 }
 
