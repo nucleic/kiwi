@@ -13,11 +13,11 @@ from kiwisolver import Variable, Term, Expression, Constraint, strength
 
 
 def test_variable_methods():
-    """Test teh variable modification methods.
+    """Test the variable modification methods.
 
     """
-    v = Variable('foo')
-    assert v.name() == 'foo'
+    v = Variable()
+    assert v.name() == ""
     v.setName('bar')
     assert v.name() == 'bar'
     with pytest.raises(TypeError):
