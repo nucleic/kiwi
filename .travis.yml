@@ -4,6 +4,7 @@ python:
   - 2.7
   - 3.4
   - 3.5
+  - 3.6
 cache:
   directories:
     - $HOME/.cache
@@ -15,4 +16,4 @@ before_install:
 install:
   - python setup.py develop
 script:
-  - nosetests py/tests/
+  - py.test py/tests/

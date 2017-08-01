@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -49,7 +49,7 @@ setup(
     url='https://github.com/nucleic/kiwi',
     description='A fast implementation of the Cassowary constraint solver',
     long_description=open('README.rst').read(),
-    install_requires=['distribute'],
+    install_requires=['setuptools'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
 )
