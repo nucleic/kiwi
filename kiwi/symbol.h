@@ -46,20 +46,21 @@ public:
 		return m_type;
 	}
 
-	bool operator<( const Symbol& other ) const
-	{
-		return m_id < other.m_id;
-	}
-
-	bool operator==( const Symbol& other ) const
-	{
-		return m_id == other.m_id;
-	}
-
 private:
 
 	Id m_id;
 	Type m_type;
+
+	friend bool operator<( const Symbol& lhs, const Symbol& rhs )
+	{
+		return lhs.m_id < rhs.m_id;
+	}
+
+	friend bool operator==( const Symbol& lhs, const Symbol& rhs )
+	{
+		return lhs.m_id == rhs.m_id;
+	}
+
 };
 
 } // namespace impl

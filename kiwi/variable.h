@@ -78,11 +78,6 @@ public:
 		return m_data == other.m_data;
 	}
 
-	bool operator<( const Variable& other ) const
-	{
-		return m_data < other.m_data;
-	}
-
 private:
 
 	class VariableData : public SharedData
@@ -116,6 +111,11 @@ private:
 	};
 
 	SharedDataPtr<VariableData> m_data;
+
+	friend bool operator<( const Variable& lhs, const Variable& rhs )
+	{
+		return lhs.m_data < rhs.m_data;
+	}
 };
 
 } // namespace kiwi

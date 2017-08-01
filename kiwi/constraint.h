@@ -53,21 +53,6 @@ public:
 		return m_data->m_strength;
 	}
 
-	bool operator<( const Constraint& other ) const
-	{
-		return m_data < other.m_data;
-	}
-
-	bool operator==( const Constraint& other ) const
-	{
-		return m_data == other.m_data;
-	}
-
-	bool operator!=( const Constraint& other ) const
-	{
-		return m_data != other.m_data;
-	}
-
 	bool operator!() const
 	{
 		return !m_data;
@@ -119,6 +104,21 @@ private:
 	};
 
 	SharedDataPtr<ConstraintData> m_data;
+
+        friend bool operator<( const Constraint& lhs, const Constraint& rhs )
+        {
+                return lhs.m_data < rhs.m_data;
+        }
+
+        friend bool operator==( const Constraint& lhs, const Constraint& rhs )
+        {
+                return lhs.m_data == rhs.m_data;
+        }
+
+        friend bool operator!=( const Constraint& lhs, const Constraint& rhs )
+        {
+                return lhs.m_data != rhs.m_data;
+        }
 };
 
 } // namespace kiwi
