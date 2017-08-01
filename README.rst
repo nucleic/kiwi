@@ -1,6 +1,9 @@
 Welcome to Kiwi
 ===============
 
+.. image:: https://travis-ci.org/nucleic/kiwi.svg?branch=master
+    :target: https://travis-ci.org/nucleic/kiwi
+
 Kiwi is an efficient C++ implementation of the Cassowary constraint solving
 algorithm. Kiwi is an implementation of the algorithm based on the seminal
 Cassowary paper. It is *not* a refactoring of the original C++ solver. Kiwi

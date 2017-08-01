@@ -1,6 +1,14 @@
 Kiwi Release Notes
 ==================
 
+Wrappers x.x.x | Solver x.x.x | xx/xx/xxxx
+------------------------------------------
+- Allow anonymous variables (solver PR #32, wrappers PR #22)
+- Solver: Define binary operators as free functions (PR #23)
+- Wrappers: support for Python 3 (PR #13)
+- Wrappers: drop distribute dependency in favor of setuptools (PR #22)
+- Wrappers: add a comprehensive test suite
+
 Wrappers 0.1.3 | Solver 0.1.1 | 07/12/2013
 ------------------------------------------
 - Update the build script to remove the need for build.py
