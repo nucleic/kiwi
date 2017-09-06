@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,8 +7,8 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#define KIWI_MAJOR_VERSION 0
-#define KIWI_MINOR_VERSION 1
-#define KIWI_MICRO_VERSION 1
-#define KIWI_VERSION_HEX 0x000101
-#define KIWI_VERSION "0.1.1"
+#define KIWI_MAJOR_VERSION 1
+#define KIWI_MINOR_VERSION 0
+#define KIWI_MICRO_VERSION 0
+#define KIWI_VERSION_HEX 0x010000
+#define KIWI_VERSION "1.0.0"

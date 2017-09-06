@@ -1,7 +1,7 @@
 Kiwi Release Notes
 ==================
 
-Wrappers x.x.x | Solver x.x.x | xx/xx/xxxx
+Wrappers 1.0.0 | Solver 1.0.0 | 09/06/2017
 ------------------------------------------
 - Allow anonymous variables (solver PR #32, wrappers PR #22)
 - Solver: Define binary operators as free functions (PR #23)
