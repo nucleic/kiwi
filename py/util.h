@@ -44,14 +44,19 @@ convert_to_double( PyObject* obj, double& out )
 inline bool
 convert_to_strength( PyObject* value, double& out )
 {
+  std::string str;
+
 #if PY_MAJOR_VERSION >= 3
     if( PyUnicode_Check( value ) )
     {
-        std::string str( PyUnicode_AsUTF8( value ) );
+      str = PyUnicode_AsUTF8( value );
 #else
-    if( PyString_Check( value ) )
+    if( PyString_Check( value ) | PyUnicode_Check( value ))
     {
-        std::string str( PyString_AS_STRING( value ) );
+      if( PyUnicode_Check( value ) )
+          str = PyString_AS_STRING(PyUnicode_AsASCIIString( value ) );
+      else
+          str = PyString_AS_STRING( value ) ;
 #endif
         if( str == "required" )
             out = kiwi::strength::required;
