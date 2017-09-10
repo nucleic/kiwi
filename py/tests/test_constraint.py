@@ -38,7 +38,7 @@ def test_constraint_or_operator():
     for s in (u'weak', 'medium', 'strong', u'required',
               strength.create(1, 1, 0)):
         c2 = c | s
-        if isinstance(s, str):
+        if isinstance(s, (type(''), type(u''))):
             assert c2.strength() == getattr(strength, s)
         else:
             assert c2.strength() == s

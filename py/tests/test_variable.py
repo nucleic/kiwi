@@ -22,8 +22,8 @@ def test_variable_methods():
     assert v.name() == 'bar'
     v.setName(u'foo')
     assert v.name() == 'foo'
-    with pytest.raises(TypeError):
-        if sys.version_info >= (3,):
+    if sys.version_info >= (3,):
+        with pytest.raises(TypeError):
             v.setName(b'r')
 
     assert v.value() == 0.0
