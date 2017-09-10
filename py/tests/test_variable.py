@@ -32,7 +32,7 @@ def test_variable_methods():
     v.setContext(ctx)
     assert v.context() is ctx
 
-    assert str(v) == 'bar'
+    assert str(v) == 'foo'
 
 
 def test_variable_arith_operators():

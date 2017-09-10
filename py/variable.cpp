@@ -97,18 +97,18 @@ Variable_setName( Variable* self, PyObject* pystr )
    std::string str;
    PyObject* ascii_str;
 
-   if( PyString_Check( value ) | PyUnicode_Check( value ))
+   if( PyString_Check( pystr ) | PyUnicode_Check( pystr ))
    {
-     if( PyUnicode_Check( value ) )
+     if( PyUnicode_Check( pystr ) )
      {
-         ascii_str = PyUnicode_AsASCIIString( value );
+         ascii_str = PyUnicode_AsASCIIString( pystr );
          str = PyString_AS_STRING( ascii_str );
          Py_DECREF( ascii_str );
      }
      else
-         str = PyString_AS_STRING( value ) ;
+         str = PyString_AS_STRING( pystr ) ;
 	else
-		return py_expected_type_fail( pystr, "str" );
+		return py_expected_type_fail( pystr, "str or unicode" );
 	self->variable.setName( str );
 #endif
 	Py_RETURN_NONE;
