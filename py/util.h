@@ -51,10 +51,12 @@ convert_to_strength( PyObject* value, double& out )
     {
       str = PyUnicode_AsUTF8( value );
 #else
+    PyObject* ascii_str;
+
     if( PyString_Check( value ) | PyUnicode_Check( value ))
     {
       if( PyUnicode_Check( value ) )
-          PyObject* ascii_str = PyUnicode_AsASCIIString( value );
+          ascii_str = PyUnicode_AsASCIIString( value );
           str = PyString_AS_STRING( ascii_str );
           Py_DECREF( ascii_str );
       else
