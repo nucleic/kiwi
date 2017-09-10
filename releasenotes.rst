@@ -1,6 +1,11 @@
 Kiwi Release Notes
 ==================
 
+Wrappers x.x.x | Solver x.x.x | unreleased
+------------------------------------------
+- allow unicode strings for variable name in Python 2
+- allow unicode strings as strength specifiers in Python 2
+
 Wrappers 1.0.0 | Solver 1.0.0 | 09/06/2017
 ------------------------------------------
 - Allow anonymous variables (solver PR #32, wrappers PR #22)
