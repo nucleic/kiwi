@@ -31,7 +31,7 @@ def test_constraint_creation():
         assert c.strength() == getattr(strength, s)
 
     if sys.version_info < (3,):
-        with pytest.raises(UnicodeDecodeError):
+        with pytest.raises(UnicodeEncodeError):
             c = Constraint(v + 1, '>=', u'γ')
 
 
