@@ -94,9 +94,22 @@ Variable_setName( Variable* self, PyObject* pystr )
 		return py_expected_type_fail( pystr, "unicode" );
 	self->variable.setName( PyUnicode_AsUTF8( pystr ) );
 #else
-	if( !PyString_Check( pystr ) )
+   std::string str;
+   PyObject* ascii_str;
+
+   if( PyString_Check( value ) | PyUnicode_Check( value ))
+   {
+     if( PyUnicode_Check( value ) )
+     {
+         ascii_str = PyUnicode_AsASCIIString( value );
+         str = PyString_AS_STRING( ascii_str );
+         Py_DECREF( ascii_str );
+     }
+     else
+         str = PyString_AS_STRING( value ) ;
+	else
 		return py_expected_type_fail( pystr, "str" );
-	self->variable.setName( PyString_AS_STRING( pystr ) );
+	self->variable.setName( str );
 #endif
 	Py_RETURN_NONE;
 }

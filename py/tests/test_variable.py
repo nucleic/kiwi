@@ -20,11 +20,11 @@ def test_variable_methods():
     assert v.name() == ""
     v.setName('bar')
     assert v.name() == 'bar'
+    v.setName(u'foo')
+    assert v.name() == 'foo'
     with pytest.raises(TypeError):
         if sys.version_info >= (3,):
             v.setName(b'r')
-        else:
-            v.setName(u'r')
 
     assert v.value() == 0.0
 
@@ -96,7 +96,7 @@ def test_variable_rich_compare_operations():
 
     """
     v = Variable('foo')
-    v2 = Variable('bar')
+    v2 = Variable(u'bar')
 
     for op, symbol in ((operator.le, '<='), (operator.eq, '=='),
                        (operator.ge, '>=')):

@@ -35,7 +35,7 @@ def test_constraint_or_operator():
     v = Variable('foo')
     c = Constraint(v + 1, '==')
 
-    for s in ('weak', 'medium', 'strong', 'required',
+    for s in (u'weak', 'medium', 'strong', u'required',
               strength.create(1, 1, 0)):
         c2 = c | s
         if isinstance(s, str):
