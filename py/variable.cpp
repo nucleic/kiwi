@@ -107,6 +107,7 @@ Variable_setName( Variable* self, PyObject* pystr )
      }
      else
          str = PyString_AS_STRING( pystr ) ;
+   }
 	else
 		return py_expected_type_fail( pystr, "str or unicode" );
 	self->variable.setName( str );
