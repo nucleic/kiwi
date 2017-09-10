@@ -44,7 +44,7 @@ convert_to_double( PyObject* obj, double& out )
 inline bool
 convert_to_strength( PyObject* value, double& out )
 {
-  std::string str;
+    std::string str;
 
 #if PY_MAJOR_VERSION >= 3
     if( PyUnicode_Check( value ) )
@@ -58,6 +58,8 @@ convert_to_strength( PyObject* value, double& out )
       if( PyUnicode_Check( value ) )
       {
           ascii_str = PyUnicode_AsASCIIString( value );
+          if( !ascii_str )
+              return 0;
           str = PyString_AS_STRING( ascii_str );
           Py_DECREF( ascii_str );
       }

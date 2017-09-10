@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Copyright (c) 2014-2017, Nucleic Development Team.
 #
@@ -5,6 +6,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import sys
+import pytest
 from kiwisolver import Variable, Constraint, strength
 
 
@@ -26,6 +29,10 @@ def test_constraint_creation():
     for s in ('weak', 'medium', 'strong', 'required'):
         c = Constraint(v + 1, '>=', s)
         assert c.strength() == getattr(strength, s)
+
+    if sys.version_info < (3,):
+        with pytest.raises(UnicodeDecodeError):
+            c = Constraint(v + 1, '>=', u'γ')
 
 
 def test_constraint_or_operator():

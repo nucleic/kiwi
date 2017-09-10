@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Copyright (c) 2014-2017, Nucleic Development Team.
 #
@@ -25,6 +26,9 @@ def test_variable_methods():
     if sys.version_info >= (3,):
         with pytest.raises(TypeError):
             v.setName(b'r')
+    if sys.version_info < (3,):
+        with pytest.raises(UnicodeDecodeError):
+            v.setName(u'γ')
 
     assert v.value() == 0.0
 

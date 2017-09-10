@@ -102,6 +102,8 @@ Variable_setName( Variable* self, PyObject* pystr )
      if( PyUnicode_Check( pystr ) )
      {
          ascii_str = PyUnicode_AsASCIIString( pystr );
+         if( !ascii_str )
+             return 0;
          str = PyString_AS_STRING( ascii_str );
          Py_DECREF( ascii_str );
      }
