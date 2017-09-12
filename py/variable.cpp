@@ -21,8 +21,8 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
 	static const char *kwlist[] = { "name", "context", 0 };
 	PyObject* context = 0;
+	PyObject* name = 0;
 
-	PyObject* name;
 	if( !PyArg_ParseTupleAndKeywords(
 		args, kwargs, "|OO:__new__", const_cast<char**>( kwlist ),
 		&name, &context ) )
