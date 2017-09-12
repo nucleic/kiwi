@@ -93,7 +93,7 @@ Variable_setName( Variable* self, PyObject* pystr )
 	if( !PyUnicode_Check( pystr ) )
 		return py_expected_type_fail( pystr, "unicode" );
 #else
-   if( !(PyString_Check( value ) | PyUnicode_Check( value ) ) )
+   if( !(PyString_Check( py_str ) | PyUnicode_Check( py_str ) ) )
     {
         PythonHelpers::py_expected_type_fail( value, "str or unicode" );
         return false;
