@@ -42,10 +42,10 @@ convert_to_double( PyObject* obj, double& out )
 
 
 inline bool
-convert_pystr_to_str( PyObject* pystr, std::string& out )
+convert_pystr_to_str( PyObject* value, std::string& out )
 {
 #if PY_MAJOR_VERSION >= 3
-    std::string str( PyUnicode_AsUTF8( pystr ) );
+    out = PyUnicode_AsUTF8( value );
 #else
     if( PyUnicode_Check( pystr ) )
     {
@@ -55,7 +55,7 @@ convert_pystr_to_str( PyObject* pystr, std::string& out )
         out = PyString_AS_STRING( py_str.get() );
     }
     else
-        out = PyString_AS_STRING( pystr );
+        out = PyString_AS_STRING( value );
 #endif
     return true;
 }
