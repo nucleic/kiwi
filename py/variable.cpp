@@ -21,40 +21,42 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
 	static const char *kwlist[] = { "name", "context", 0 };
 	PyObject* context = 0;
-
-#if PY_MAJOR_VERSION >= 3
-	const char* name = 0;
-	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "|sO:__new__", const_cast<char**>( kwlist ),
-		&name, &context ) )
-		return 0;
-#else
 	PyObject* name = 0;
+
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "|SO:__new__", const_cast<char**>( kwlist ),
+		args, kwargs, "|OO:__new__", const_cast<char**>( kwlist ),
 		&name, &context ) )
 		return 0;
-#endif
-	PyObject* pyvar = PyType_GenericNew( type, args, kwargs );
+
+	PyObjectPtr pyvar( PyType_GenericNew( type, args, kwargs ) );
 	if( !pyvar )
 		return 0;
-	Variable* self = reinterpret_cast<Variable*>( pyvar );
+
+	Variable* self = reinterpret_cast<Variable*>( pyvar.get() );
 	self->context = xnewref( context );
 
-   if( name != 0 )
-   {
+	if( name != 0 )
+	{
 #if PY_MAJOR_VERSION >= 3
-    	new( &self->variable ) kiwi::Variable( name );
+		if( !PyUnicode_Check( name ) )
+			return py_expected_type_fail( name, "unicode" );
 #else
-    	new( &self->variable ) kiwi::Variable( PyString_AS_STRING( name ) );
+		if( !( PyString_Check( name ) | PyUnicode_Check( name ) ) )
+		{
+			return py_expected_type_fail( name, "str or unicode" );
+		}
 #endif
-   }
-   else
-   {
-      new( &self->variable ) kiwi::Variable();
-   }
+		std::string c_name;
+		if( !convert_pystr_to_str(name, c_name) )
+			return 0;
+		new( &self->variable ) kiwi::Variable( c_name );
+	}
+	else
+	{
+		new( &self->variable ) kiwi::Variable();
+	}
 
-	return pyvar;
+	return pyvar.release();
 }
 
 
@@ -103,12 +105,16 @@ Variable_setName( Variable* self, PyObject* pystr )
 #if PY_MAJOR_VERSION >= 3
 	if( !PyUnicode_Check( pystr ) )
 		return py_expected_type_fail( pystr, "unicode" );
-	self->variable.setName( PyUnicode_AsUTF8( pystr ) );
 #else
-	if( !PyString_Check( pystr ) )
-		return py_expected_type_fail( pystr, "str" );
-	self->variable.setName( PyString_AS_STRING( pystr ) );
+   if( !(PyString_Check( pystr ) | PyUnicode_Check( pystr ) ) )
+    {
+        return py_expected_type_fail( pystr, "str or unicode" );
+    }
 #endif
+   std::string str;
+   if( !convert_pystr_to_str( pystr, str ) )
+       return 0;
+   self->variable.setName( str );
 	Py_RETURN_NONE;
 }
 

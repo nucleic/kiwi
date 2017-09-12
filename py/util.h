@@ -42,17 +42,38 @@ convert_to_double( PyObject* obj, double& out )
 
 
 inline bool
+convert_pystr_to_str( PyObject* value, std::string& out )
+{
+#if PY_MAJOR_VERSION >= 3
+    out = PyUnicode_AsUTF8( value );
+#else
+    if( PyUnicode_Check( value ) )
+    {
+        PythonHelpers::PyObjectPtr py_str( PyUnicode_AsUTF8String( value ) );
+        if( !py_str )
+             return false;
+        out = PyString_AS_STRING( py_str.get() );
+    }
+    else
+        out = PyString_AS_STRING( value );
+#endif
+    return true;
+}
+
+
+inline bool
 convert_to_strength( PyObject* value, double& out )
 {
 #if PY_MAJOR_VERSION >= 3
     if( PyUnicode_Check( value ) )
     {
-        std::string str( PyUnicode_AsUTF8( value ) );
 #else
-    if( PyString_Check( value ) )
+    if( PyString_Check( value ) | PyUnicode_Check( value ))
     {
-        std::string str( PyString_AS_STRING( value ) );
 #endif
+        std::string str;
+        if( !convert_pystr_to_str( value, str ) )
+            return false;
         if( str == "required" )
             out = kiwi::strength::required;
         else if( str == "strong" )
@@ -88,15 +109,16 @@ convert_to_relational_op( PyObject* value, kiwi::RelationalOperator& out )
         PythonHelpers::py_expected_type_fail( value, "unicode" );
         return false;
     }
-    std::string str( PyUnicode_AsUTF8( value ) );
 #else
-    if( !PyString_Check( value ) )
+    if( !(PyString_Check( value ) | PyUnicode_Check( value ) ) )
     {
-        PythonHelpers::py_expected_type_fail( value, "str" );
+        PythonHelpers::py_expected_type_fail( value, "str or unicode" );
         return false;
     }
-    std::string str( PyString_AS_STRING( value ) );
 #endif
+    std::string str;
+    if( !convert_pystr_to_str( value, str ) )
+        return false;
     if( str == "==" )
         out = kiwi::OP_EQ;
     else if( str == "<=" )

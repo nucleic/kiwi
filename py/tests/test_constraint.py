@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Copyright (c) 2014-2017, Nucleic Development Team.
 #
@@ -33,12 +34,12 @@ def test_constraint_or_operator():
 
     """
     v = Variable('foo')
-    c = Constraint(v + 1, '==')
+    c = Constraint(v + 1, u'==')
 
-    for s in ('weak', 'medium', 'strong', 'required',
+    for s in (u'weak', 'medium', 'strong', u'required',
               strength.create(1, 1, 0)):
         c2 = c | s
-        if isinstance(s, str):
+        if isinstance(s, (type(''), type(u''))):
             assert c2.strength() == getattr(strength, s)
         else:
             assert c2.strength() == s

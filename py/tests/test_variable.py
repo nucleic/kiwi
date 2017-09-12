@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Copyright (c) 2014-2017, Nucleic Development Team.
 #
@@ -18,13 +19,13 @@ def test_variable_methods():
     """
     v = Variable()
     assert v.name() == ""
-    v.setName('bar')
-    assert v.name() == 'bar'
-    with pytest.raises(TypeError):
-        if sys.version_info >= (3,):
+    v.setName(u'γ')
+    assert v.name() == 'γ'
+    v.setName('foo')
+    assert v.name() == 'foo'
+    if sys.version_info >= (3,):
+        with pytest.raises(TypeError):
             v.setName(b'r')
-        else:
-            v.setName(u'r')
 
     assert v.value() == 0.0
 
@@ -32,7 +33,7 @@ def test_variable_methods():
     v.setContext(ctx)
     assert v.context() is ctx
 
-    assert str(v) == 'bar'
+    assert str(v) == 'foo'
 
 
 def test_variable_arith_operators():
@@ -96,7 +97,7 @@ def test_variable_rich_compare_operations():
 
     """
     v = Variable('foo')
-    v2 = Variable('bar')
+    v2 = Variable(u'γ')
 
     for op, symbol in ((operator.le, '<='), (operator.eq, '=='),
                        (operator.ge, '>=')):
