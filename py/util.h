@@ -55,7 +55,7 @@ convert_pystr_to_str( PyObject* pystr, std::string& out )
         out = PyString_AS_STRING( py_str.get() );
     }
     else
-        out = PyString_AS_STRING( pystr ) );
+        out = PyString_AS_STRING( pystr );
 #endif
     return true;
 }
