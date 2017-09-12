@@ -22,9 +22,9 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	static const char *kwlist[] = { "name", "context", 0 };
 	PyObject* context = 0;
 
-	const char* name = 0;
+	PyObject* name;
 	if( !PyArg_ParseTupleAndKeywords(
-		args, kwargs, "|sO:__new__", const_cast<char**>( kwlist ),
+		args, kwargs, "|OO:__new__", const_cast<char**>( kwlist ),
 		&name, &context ) )
 		return 0;
 
@@ -36,7 +36,19 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 
    if( name != 0 )
    {
-    	new( &self->variable ) kiwi::Variable( name );
+#if PY_MAJOR_VERSION >= 3
+      if( !PyUnicode_Check( name ) )
+    	   return py_expected_type_fail( name, "unicode" );
+#else
+      if( !(PyString_Check( name ) | PyUnicode_Check( name ) ) )
+      {
+         return py_expected_type_fail( name, "str or unicode" );
+      }
+#endif
+      std::string c_name;
+      if( !convert_pystr_to_str(name, c_name) )
+          return 0;
+    	new( &self->variable ) kiwi::Variable( c_name );
    }
    else
    {

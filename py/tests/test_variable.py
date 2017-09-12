@@ -19,9 +19,9 @@ def test_variable_methods():
     """
     v = Variable()
     assert v.name() == ""
-    v.setName('bar')
-    assert v.name() == 'bar'
-    v.setName(u'foo')
+    v.setName(u'γ')
+    assert v.name() == 'γ'
+    v.setName('foo')
     assert v.name() == 'foo'
     if sys.version_info >= (3,):
         with pytest.raises(TypeError):
