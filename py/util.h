@@ -42,30 +42,38 @@ convert_to_double( PyObject* obj, double& out )
 
 
 inline bool
+convert_pystr_to_str( PyObject* pystr, std::string& out )
+{
+#if PY_MAJOR_VERSION >= 3
+    std::string str( PyUnicode_AsUTF8( pystr ) );
+#else
+    if( PyUnicode_Check( pystr ) )
+    {
+        PythonHelpers::PyObjectPtr py_str( PyUnicode_AsUTF8String( value ) );
+        if( !py_str )
+             return false;
+        out = PyString_AS_STRING( py_str.get() ) );
+    }
+    else
+        out = PyString_AS_STRING( pystr ) );
+#endif
+    return true;
+}
+
+
+inline bool
 convert_to_strength( PyObject* value, double& out )
 {
-    std::string str;
-
 #if PY_MAJOR_VERSION >= 3
     if( PyUnicode_Check( value ) )
     {
-      str = PyUnicode_AsUTF8( value );
 #else
-    PyObject* ascii_str;
-
     if( PyString_Check( value ) | PyUnicode_Check( value ))
     {
-      if( PyUnicode_Check( value ) )
-      {
-          ascii_str = PyUnicode_AsASCIIString( value );
-          if( !ascii_str )
-              return 0;
-          str = PyString_AS_STRING( ascii_str );
-          Py_DECREF( ascii_str );
-      }
-      else
-          str = PyString_AS_STRING( value ) ;
 #endif
+        std::string str;
+        if( !convert_pystr_to_str( value, str ) )
+            return false;
         if( str == "required" )
             out = kiwi::strength::required;
         else if( str == "strong" )
@@ -101,15 +109,16 @@ convert_to_relational_op( PyObject* value, kiwi::RelationalOperator& out )
         PythonHelpers::py_expected_type_fail( value, "unicode" );
         return false;
     }
-    std::string str( PyUnicode_AsUTF8( value ) );
 #else
-    if( !PyString_Check( value ) )
+    if( !(PyString_Check( value ) | PyUnicode_Check( value ) ) )
     {
-        PythonHelpers::py_expected_type_fail( value, "str" );
+        PythonHelpers::py_expected_type_fail( value, "str or unicode" );
         return false;
     }
-    std::string str( PyString_AS_STRING( value ) );
 #endif
+    std::string str;
+    if( !convert_pystr_to_str( value, str ) )
+        return false;
     if( str == "==" )
         out = kiwi::OP_EQ;
     else if( str == "<=" )

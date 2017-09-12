@@ -40,7 +40,7 @@ def test_constraint_or_operator():
 
     """
     v = Variable('foo')
-    c = Constraint(v + 1, '==')
+    c = Constraint(v + 1, u'==')
 
     for s in (u'weak', 'medium', 'strong', u'required',
               strength.create(1, 1, 0)):

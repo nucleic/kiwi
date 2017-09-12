@@ -26,9 +26,6 @@ def test_variable_methods():
     if sys.version_info >= (3,):
         with pytest.raises(TypeError):
             v.setName(b'r')
-    if sys.version_info < (3,):
-        with pytest.raises(UnicodeEncodeError):
-            v.setName(u'γ')
 
     assert v.value() == 0.0
 

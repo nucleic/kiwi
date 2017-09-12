@@ -92,28 +92,17 @@ Variable_setName( Variable* self, PyObject* pystr )
 #if PY_MAJOR_VERSION >= 3
 	if( !PyUnicode_Check( pystr ) )
 		return py_expected_type_fail( pystr, "unicode" );
-	self->variable.setName( PyUnicode_AsUTF8( pystr ) );
 #else
-   std::string str;
-   PyObject* ascii_str;
-
-   if( PyString_Check( pystr ) | PyUnicode_Check( pystr ))
-   {
-     if( PyUnicode_Check( pystr ) )
-     {
-         ascii_str = PyUnicode_AsASCIIString( pystr );
-         if( !ascii_str )
-             return 0;
-         str = PyString_AS_STRING( ascii_str );
-         Py_DECREF( ascii_str );
-     }
-     else
-         str = PyString_AS_STRING( pystr ) ;
-   }
-	else
-		return py_expected_type_fail( pystr, "str or unicode" );
-	self->variable.setName( str );
+   if( !(PyString_Check( value ) | PyUnicode_Check( value ) ) )
+    {
+        PythonHelpers::py_expected_type_fail( value, "str or unicode" );
+        return false;
+    }
 #endif
+   std::string str;
+   if( !convert_pystr_to_str( pystr, str ) )
+       return false;
+   self->variable.setName( str );
 	Py_RETURN_NONE;
 }
 
