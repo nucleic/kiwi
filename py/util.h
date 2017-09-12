@@ -52,7 +52,7 @@ convert_pystr_to_str( PyObject* pystr, std::string& out )
         PythonHelpers::PyObjectPtr py_str( PyUnicode_AsUTF8String( value ) );
         if( !py_str )
              return false;
-        out = PyString_AS_STRING( py_str.get() ) );
+        out = PyString_AS_STRING( py_str.get() );
     }
     else
         out = PyString_AS_STRING( pystr ) );
