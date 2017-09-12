@@ -93,15 +93,14 @@ Variable_setName( Variable* self, PyObject* pystr )
 	if( !PyUnicode_Check( pystr ) )
 		return py_expected_type_fail( pystr, "unicode" );
 #else
-   if( !(PyString_Check( py_str ) | PyUnicode_Check( py_str ) ) )
+   if( !(PyString_Check( pystr ) | PyUnicode_Check( pystr ) ) )
     {
-        PythonHelpers::py_expected_type_fail( value, "str or unicode" );
-        return false;
+        return py_expected_type_fail( pystr, "str or unicode" );
     }
 #endif
    std::string str;
    if( !convert_pystr_to_str( pystr, str ) )
-       return false;
+       return 0;
    self->variable.setName( str );
 	Py_RETURN_NONE;
 }
