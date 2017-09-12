@@ -47,7 +47,7 @@ convert_pystr_to_str( PyObject* value, std::string& out )
 #if PY_MAJOR_VERSION >= 3
     out = PyUnicode_AsUTF8( value );
 #else
-    if( PyUnicode_Check( pystr ) )
+    if( PyUnicode_Check( value ) )
     {
         PythonHelpers::PyObjectPtr py_str( PyUnicode_AsUTF8String( value ) );
         if( !py_str )
