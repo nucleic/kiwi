@@ -28,34 +28,35 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		&name, &context ) )
 		return 0;
 
-	PyObject* pyvar = PyType_GenericNew( type, args, kwargs );
+	PyObjectPtr pyvar( PyType_GenericNew( type, args, kwargs ) );
 	if( !pyvar )
 		return 0;
-	Variable* self = reinterpret_cast<Variable*>( pyvar );
+
+	Variable* self = reinterpret_cast<Variable*>( pyvar.get() );
 	self->context = xnewref( context );
 
-   if( name != 0 )
-   {
+	if( name != 0 )
+	{
 #if PY_MAJOR_VERSION >= 3
-      if( !PyUnicode_Check( name ) )
-    	   return py_expected_type_fail( name, "unicode" );
+		if( !PyUnicode_Check( name ) )
+			return py_expected_type_fail( name, "unicode" );
 #else
-      if( !(PyString_Check( name ) | PyUnicode_Check( name ) ) )
-      {
-         return py_expected_type_fail( name, "str or unicode" );
-      }
+		if( !( PyString_Check( name ) | PyUnicode_Check( name ) ) )
+		{
+			return py_expected_type_fail( name, "str or unicode" );
+		}
 #endif
-      std::string c_name;
-      if( !convert_pystr_to_str(name, c_name) )
-          return 0;
-    	new( &self->variable ) kiwi::Variable( c_name );
-   }
-   else
-   {
-      new( &self->variable ) kiwi::Variable();
-   }
+		std::string c_name;
+		if( !convert_pystr_to_str(name, c_name) )
+			return 0;
+		new( &self->variable ) kiwi::Variable( c_name );
+	}
+	else
+	{
+		new( &self->variable ) kiwi::Variable();
+	}
 
-	return pyvar;
+	return pyvar.release();
 }
 
 
