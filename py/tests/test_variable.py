@@ -97,7 +97,7 @@ def test_variable_rich_compare_operations():
 
     """
     v = Variable('foo')
-    v2 = Variable(u'bar')
+    v2 = Variable(u'γ')
 
     for op, symbol in ((operator.le, '<='), (operator.eq, '=='),
                        (operator.ge, '>=')):
