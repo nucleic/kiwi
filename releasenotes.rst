@@ -3,6 +3,10 @@ Kiwi Release Notes
 
 Wrappers x.x.x | Solver x.x.x | unreleased
 ------------------------------------------
+
+
+Wrappers 1.0.1 | Solver 1.0.0 | 24/10/2017
+------------------------------------------
 - allow unicode strings for variable name in Python 2
 - allow unicode strings as strength specifiers in Python 2
 
