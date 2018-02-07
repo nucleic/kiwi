@@ -6,6 +6,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import re
 from kiwisolver import Variable, Constraint, strength
 
 
@@ -22,7 +23,8 @@ def test_constraint_creation():
     assert (e.constant() == 1 and
             len(t) == 1 and t[0].variable() is v and t[0].coefficient() == 1)
 
-    assert str(c) == '1 * foo + 1 == 0 | strength = 1.001e+09'
+    constraint_format = '1 \* foo \+ 1 == 0 | strength = 1.001e\+[0]+9'
+    assert re.match(constraint_format, str(c))
 
     for s in ('weak', 'medium', 'strong', 'required'):
         c = Constraint(v + 1, '>=', s)
