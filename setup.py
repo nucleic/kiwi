@@ -49,6 +49,7 @@ setup(
     url='https://github.com/nucleic/kiwi',
     description='A fast implementation of the Cassowary constraint solver',
     long_description=open('README.rst').read(),
+    license='BSD',
     install_requires=['setuptools'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
