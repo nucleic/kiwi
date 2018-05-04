@@ -24,6 +24,14 @@
 namespace kiwi
 {
 
+class SolverDebugInformation {
+ public:
+  SolverDebugInformation(size_t constraints, size_t rows, size_t vars) : numberOfConstraints_(constraints), numberOfRows_(rows), numberOfVariables_(vars) {};
+  int numberOfConstraints_;
+  int numberOfRows_;
+  int numberOfVariables_;
+};
+
 namespace impl
 {
 
@@ -331,6 +339,11 @@ public:
 		m_artificial.reset();
 		m_id_tick = 1;
 	}
+
+  SolverDebugInformation getDebugInformation() {
+    SolverDebugInformation sdi(m_cns.size(), m_rows.size(), m_vars.size());
+    return sdi;
+  }
 
 private:
 
