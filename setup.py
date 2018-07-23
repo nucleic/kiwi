@@ -50,6 +50,18 @@ setup(
     description='A fast implementation of the Cassowary constraint solver',
     long_description=open('README.rst').read(),
     license='BSD',
+    classifiers=[
+          # https://pypi.org/pypi?%3Aaction=list_classifiers
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: Implementation :: CPython',
+      ],
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     install_requires=['setuptools'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
