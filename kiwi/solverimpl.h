@@ -24,6 +24,14 @@
 namespace kiwi
 {
 
+class SolverDebugInformation {
+ public:
+  SolverDebugInformation(size_t constraints, size_t rows, size_t vars) : numberOfConstraints_(constraints), numberOfRows_(rows), numberOfVariables_(vars) {};
+  int numberOfConstraints_;
+  int numberOfRows_;
+  int numberOfVariables_;
+};
+
 namespace impl
 {
 
@@ -88,7 +96,7 @@ public:
 		// constraints and since exceptional conditions are uncommon,
 		// i'm not too worried about aggressive cleanup of the var map.
 		Tag tag;
-		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
+		std::unique_ptr<Row> rowptr( createRow( constraint, tag ) );
 		Symbol subject( chooseSubject( *rowptr, tag ) );
 
 		// If chooseSubject could find a valid entering symbol, one
@@ -155,7 +163,7 @@ public:
 		RowMap::iterator row_it = m_rows.find( tag.marker );
 		if( row_it != m_rows.end() )
 		{
-			std::auto_ptr<Row> rowptr( row_it->second );
+			std::unique_ptr<Row> rowptr( row_it->second );
 			m_rows.erase( row_it );
 		}
 		else
@@ -164,7 +172,7 @@ public:
 			if( row_it == m_rows.end() )
 				throw InternalSolverError( "failed to find leaving row" );
 			Symbol leaving( row_it->first );
-			std::auto_ptr<Row> rowptr( row_it->second );
+			std::unique_ptr<Row> rowptr( row_it->second );
 			m_rows.erase( row_it );
 			rowptr->solveFor( leaving, tag.marker );
 			substitute( tag.marker, *rowptr );
@@ -331,6 +339,11 @@ public:
 		m_artificial.reset();
 		m_id_tick = 1;
 	}
+
+  SolverDebugInformation getDebugInformation() {
+    SolverDebugInformation sdi(m_cns.size(), m_rows.size(), m_vars.size());
+    return sdi;
+  }
 
 private:
 
@@ -511,7 +524,7 @@ private:
 		RowMap::iterator it = m_rows.find( art );
 		if( it != m_rows.end() )
 		{
-			std::auto_ptr<Row> rowptr( it->second );
+			std::unique_ptr<Row> rowptr( it->second );
 			m_rows.erase( it );
 			if( rowptr->cells().empty() )
 				return success;
@@ -829,8 +842,8 @@ private:
 	VarMap m_vars;
 	EditMap m_edits;
 	std::vector<Symbol> m_infeasible_rows;
-	std::auto_ptr<Row> m_objective;
-	std::auto_ptr<Row> m_artificial;
+	std::unique_ptr<Row> m_objective;
+	std::unique_ptr<Row> m_artificial;
 	Symbol::Id m_id_tick;
 };
 

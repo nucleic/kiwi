@@ -150,6 +150,10 @@ public:
 		debug::dump( m_impl );
 	}
 
+ SolverDebugInformation getDebugInformation() {
+   return m_impl.getDebugInformation();
+ }
+
 private:
 
 	Solver( const Solver& );
