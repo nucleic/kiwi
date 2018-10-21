@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -19,7 +19,7 @@ static PyObject*
 Solver_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
 	if( PyTuple_GET_SIZE( args ) != 0 || ( kwargs && PyDict_Size( kwargs ) != 0 ) )
-		return py_type_fail( "Solver.__new__ takes no arguments" );
+		return cppy::type_error( "Solver.__new__ takes no arguments" );
 	PyObject* pysolver = PyType_GenericNew( type, args, kwargs );
 	if( !pysolver )
 		return 0;
@@ -41,7 +41,7 @@ static PyObject*
 Solver_addConstraint( Solver* self, PyObject* other )
 {
 	if( !Constraint::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Constraint" );
+		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
@@ -65,7 +65,7 @@ static PyObject*
 Solver_removeConstraint( Solver* self, PyObject* other )
 {
 	if( !Constraint::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Constraint" );
+		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
@@ -84,9 +84,9 @@ static PyObject*
 Solver_hasConstraint( Solver* self, PyObject* other )
 {
 	if( !Constraint::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Constraint" );
+		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
-	return newref( self->solver.hasConstraint( cn->constraint ) ? Py_True : Py_False );
+	return cppy::incref( self->solver.hasConstraint( cn->constraint ) ? Py_True : Py_False );
 }
 
 
@@ -98,7 +98,7 @@ Solver_addEditVariable( Solver* self, PyObject* args )
 	if( !PyArg_ParseTuple( args, "OO", &pyvar, &pystrength ) )
 		return 0;
 	if( !Variable::TypeCheck( pyvar ) )
-		return py_expected_type_fail( pyvar, "Variable" );
+		return cppy::type_error( pyvar, "Variable" );
 	double strength;
 	if( !convert_to_strength( pystrength, strength ) )
 		return 0;
@@ -125,7 +125,7 @@ static PyObject*
 Solver_removeEditVariable( Solver* self, PyObject* other )
 {
 	if( !Variable::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Variable" );
+		return cppy::type_error( other, "Variable" );
 	Variable* var = reinterpret_cast<Variable*>( other );
 	try
 	{
@@ -144,9 +144,9 @@ static PyObject*
 Solver_hasEditVariable( Solver* self, PyObject* other )
 {
 	if( !Variable::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Variable" );
+		return cppy::type_error( other, "Variable" );
 	Variable* var = reinterpret_cast<Variable*>( other );
-	return newref( self->solver.hasEditVariable( var->variable ) ? Py_True : Py_False );
+	return cppy::incref( self->solver.hasEditVariable( var->variable ) ? Py_True : Py_False );
 }
 
 
@@ -158,7 +158,7 @@ Solver_suggestValue( Solver* self, PyObject* args )
 	if( !PyArg_ParseTuple( args, "OO", &pyvar, &pyvalue ) )
 		return 0;
 	if( !Variable::TypeCheck( pyvar ) )
-		return py_expected_type_fail( pyvar, "Variable" );
+		return cppy::type_error( pyvar, "Variable" );
 	double value;
 	if( !convert_to_double( pyvalue, value ) )
 		return 0;

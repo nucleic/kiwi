@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <Python.h>
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "types.h"
 #include "util.h"
 
@@ -61,10 +61,6 @@ struct BinaryInvoke
 			return Invk()( primary, reinterpret_cast<Variable*>( secondary ) );
 		if( PyFloat_Check( secondary ) )
 			return Invk()( primary, PyFloat_AS_DOUBLE( secondary ) );
-#if PY_MAJOR_VERSION < 3
-		if( PyInt_Check( secondary ) )
-			return Invk()( primary, double( PyInt_AS_LONG( secondary ) ) );
-#endif
 		if( PyLong_Check( secondary ) )
 		{
 			double v = PyLong_AsDouble( secondary );
@@ -94,7 +90,7 @@ PyObject* BinaryMul::operator()( Variable* first, double second )
 	if( !pyterm )
 		return 0;
 	Term* term = reinterpret_cast<Term*>( pyterm );
-	term->variable = PythonHelpers::newref( pyobject_cast( first ) );
+	term->variable = cppy::incref( pyobject_cast( first ) );
 	term->coefficient = second;
 	return pyterm;
 }
@@ -107,7 +103,7 @@ PyObject* BinaryMul::operator()( Term* first, double second )
 	if( !pyterm )
 		return 0;
 	Term* term = reinterpret_cast<Term*>( pyterm );
-	term->variable = PythonHelpers::newref( first->variable );
+	term->variable = cppy::incref( first->variable );
 	term->coefficient = first->coefficient * second;
 	return pyterm;
 }
@@ -117,11 +113,11 @@ template<> inline
 PyObject* BinaryMul::operator()( Expression* first, double second )
 {
 	using namespace PythonHelpers;
-	PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
-	PyObjectPtr terms( PyTuple_New( PyTuple_GET_SIZE( first->terms ) ) );
+	cppy::ptr terms( PyTuple_New( PyTuple_GET_SIZE( first->terms ) ) );
 	if( !terms )
 		return 0;
 	Py_ssize_t end = PyTuple_GET_SIZE( first->terms );
@@ -252,7 +248,7 @@ struct BinaryAdd
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Expression* second )
 {
-	PythonHelpers::PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -268,7 +264,7 @@ template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Term* second )
 {
 	using namespace PythonHelpers;
-	PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	PyObject* terms = PyTuple_New( PyTuple_GET_SIZE( first->terms ) + 1 );
@@ -278,9 +274,9 @@ PyObject* BinaryAdd::operator()( Expression* first, Term* second )
 	for( Py_ssize_t i = 0; i < end; ++i )
 	{
 		PyObject* item = PyTuple_GET_ITEM( first->terms, i );
-		PyTuple_SET_ITEM( terms, i, newref( item ) );
+		PyTuple_SET_ITEM( terms, i, cppy::incref( item ) );
 	}
-	PyTuple_SET_ITEM( terms, end, newref( pyobject_cast( second ) ) );
+	PyTuple_SET_ITEM( terms, end, cppy::incref( pyobject_cast( second ) ) );
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
 	expr->terms = terms;
 	expr->constant = first->constant;
@@ -291,7 +287,7 @@ PyObject* BinaryAdd::operator()( Expression* first, Term* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( BinaryMul()( second, 1.0 ) );
+	cppy::ptr temp( BinaryMul()( second, 1.0 ) );
 	if( !temp )
 		return 0;
 	return operator()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -302,11 +298,11 @@ template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, double second )
 {
 	using namespace PythonHelpers;
-	PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
-	expr->terms = newref( first->terms );
+	expr->terms = cppy::incref( first->terms );
 	expr->constant = first->constant + second;
 	return pyexpr.release();
 }
@@ -315,7 +311,7 @@ PyObject* BinaryAdd::operator()( Expression* first, double second )
 template<> inline
 PyObject* BinaryAdd::operator()( Term* first, double second )
 {
-	PythonHelpers::PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -337,7 +333,7 @@ PyObject* BinaryAdd::operator()( Term* first, Expression* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Term* first, Term* second )
 {
-	PythonHelpers::PyObjectPtr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -352,7 +348,7 @@ PyObject* BinaryAdd::operator()( Term* first, Term* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Term* first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( BinaryMul()( second, 1.0 ) );
+	cppy::ptr temp( BinaryMul()( second, 1.0 ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -362,7 +358,7 @@ PyObject* BinaryAdd::operator()( Term* first, Variable* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, double second )
 {
-	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	cppy::ptr temp( BinaryMul()( first, 1.0 ) );
 	if( !temp )
 		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
@@ -372,7 +368,7 @@ PyObject* BinaryAdd::operator()( Variable* first, double second )
 template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	cppy::ptr temp( BinaryMul()( first, 1.0 ) );
 	if( !temp )
 		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
@@ -382,7 +378,7 @@ PyObject* BinaryAdd::operator()( Variable* first, Variable* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, Term* second )
 {
-	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	cppy::ptr temp( BinaryMul()( first, 1.0 ) );
 	if( !temp )
 		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
@@ -392,7 +388,7 @@ PyObject* BinaryAdd::operator()( Variable* first, Term* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Variable* first, Expression* second )
 {
-	PythonHelpers::PyObjectPtr temp( BinaryMul()( first, 1.0 ) );
+	cppy::ptr temp( BinaryMul()( first, 1.0 ) );
 	if( !temp )
 		return 0;
 	return operator()( reinterpret_cast<Term*>( temp.get() ), second );
@@ -440,7 +436,7 @@ PyObject* BinarySub::operator()( Variable* first, double second )
 template<> inline
 PyObject* BinarySub::operator()( Variable* first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -450,7 +446,7 @@ PyObject* BinarySub::operator()( Variable* first, Variable* second )
 template<> inline
 PyObject* BinarySub::operator()( Variable* first, Term* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -460,7 +456,7 @@ PyObject* BinarySub::operator()( Variable* first, Term* second )
 template<> inline
 PyObject* BinarySub::operator()( Variable* first, Expression* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
@@ -477,7 +473,7 @@ PyObject* BinarySub::operator()( Term* first, double second )
 template<> inline
 PyObject* BinarySub::operator()( Term* first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -487,7 +483,7 @@ PyObject* BinarySub::operator()( Term* first, Variable* second )
 template<> inline
 PyObject* BinarySub::operator()( Term* first, Term* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -497,7 +493,7 @@ PyObject* BinarySub::operator()( Term* first, Term* second )
 template<> inline
 PyObject* BinarySub::operator()( Term* first, Expression* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
@@ -514,7 +510,7 @@ PyObject* BinarySub::operator()( Expression* first, double second )
 template<> inline
 PyObject* BinarySub::operator()( Expression* first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -524,7 +520,7 @@ PyObject* BinarySub::operator()( Expression* first, Variable* second )
 template<> inline
 PyObject* BinarySub::operator()( Expression* first, Term* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -534,7 +530,7 @@ PyObject* BinarySub::operator()( Expression* first, Term* second )
 template<> inline
 PyObject* BinarySub::operator()( Expression* first, Expression* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
@@ -544,7 +540,7 @@ PyObject* BinarySub::operator()( Expression* first, Expression* second )
 template<> inline
 PyObject* BinarySub::operator()( double first, Variable* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -554,7 +550,7 @@ PyObject* BinarySub::operator()( double first, Variable* second )
 template<> inline
 PyObject* BinarySub::operator()( double first, Term* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Term*>( temp.get() ) );
@@ -564,7 +560,7 @@ PyObject* BinarySub::operator()( double first, Term* second )
 template<> inline
 PyObject* BinarySub::operator()( double first, Expression* second )
 {
-	PythonHelpers::PyObjectPtr temp( UnaryNeg()( second ) );
+	cppy::ptr temp( UnaryNeg()( second ) );
 	if( !temp )
 		return 0;
 	return BinaryAdd()( first, reinterpret_cast<Expression*>( temp.get() ) );
@@ -574,10 +570,10 @@ PyObject* BinarySub::operator()( double first, Expression* second )
 template<typename T, typename U>
 PyObject* makecn( T first, U second, kiwi::RelationalOperator op )
 {
-	PythonHelpers::PyObjectPtr pyexpr( BinarySub()( first, second ) );
+	cppy::ptr pyexpr( BinarySub()( first, second ) );
 	if( !pyexpr )
 		return 0;
-	PythonHelpers::PyObjectPtr pycn( PyType_GenericNew( &Constraint_Type, 0, 0 ) );
+	cppy::ptr pycn( PyType_GenericNew( &Constraint_Type, 0, 0 ) );
 	if( !pycn )
 		return 0;
 	Constraint* cn = reinterpret_cast<Constraint*>( pycn.get() );

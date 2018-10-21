@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
@@ -28,24 +28,17 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		&name, &context ) )
 		return 0;
 
-	PyObjectPtr pyvar( PyType_GenericNew( type, args, kwargs ) );
+	cppy::ptr pyvar( PyType_GenericNew( type, args, kwargs ) );
 	if( !pyvar )
 		return 0;
 
 	Variable* self = reinterpret_cast<Variable*>( pyvar.get() );
-	self->context = xnewref( context );
+	self->context = cppy::xincref( context );
 
 	if( name != 0 )
 	{
-#if PY_MAJOR_VERSION >= 3
 		if( !PyUnicode_Check( name ) )
-			return py_expected_type_fail( name, "unicode" );
-#else
-		if( !( PyString_Check( name ) | PyUnicode_Check( name ) ) )
-		{
-			return py_expected_type_fail( name, "str or unicode" );
-		}
-#endif
+			return cppy::type_error( name, "str" );
 		std::string c_name;
 		if( !convert_pystr_to_str(name, c_name) )
 			return 0;  // LCOV_EXCL_LINE
@@ -88,29 +81,22 @@ Variable_dealloc( Variable* self )
 static PyObject*
 Variable_repr( Variable* self )
 {
-	return FROM_STRING( self->variable.name().c_str() );
+	return PyUnicode_FromString( self->variable.name().c_str() );
 }
 
 
 static PyObject*
 Variable_name( Variable* self )
 {
-	return FROM_STRING( self->variable.name().c_str() );
+	return PyUnicode_FromString( self->variable.name().c_str() );
 }
 
 
 static PyObject*
 Variable_setName( Variable* self, PyObject* pystr )
 {
-#if PY_MAJOR_VERSION >= 3
 	if( !PyUnicode_Check( pystr ) )
-		return py_expected_type_fail( pystr, "unicode" );
-#else
-   if( !(PyString_Check( pystr ) | PyUnicode_Check( pystr ) ) )
-    {
-        return py_expected_type_fail( pystr, "str or unicode" );
-    }
-#endif
+		return cppy::type_error( pystr, "str" );
    std::string str;
    if( !convert_pystr_to_str( pystr, str ) )
        return 0;
@@ -123,7 +109,7 @@ static PyObject*
 Variable_context( Variable* self )
 {
 	if( self->context )
-		return newref( self->context );
+		return cppy::incref( self->context );
 	Py_RETURN_NONE;
 }
 
@@ -134,7 +120,7 @@ Variable_setContext( Variable* self, PyObject* value )
 	if( value != self->context )
 	{
 		PyObject* temp = self->context;
-		self->context = newref( value );
+		self->context = cppy::incref( value );
 		Py_XDECREF( temp );
 	}
 	Py_RETURN_NONE;
@@ -230,42 +216,25 @@ Variable_as_number = {
 	(binaryfunc)Variable_add,   /* nb_add */
 	(binaryfunc)Variable_sub,   /* nb_subtract */
 	(binaryfunc)Variable_mul,   /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-	(binaryfunc)Variable_div,   /* nb_divide */
-#endif
 	0,                          /* nb_remainder */
 	0,                          /* nb_divmod */
 	0,                          /* nb_power */
 	(unaryfunc)Variable_neg,    /* nb_negative */
 	0,                          /* nb_positive */
 	0,                          /* nb_absolute */
-#if PY_MAJOR_VERSION >= 3
 	0,                          /* nb_bool */
-#else
-	0,                          /* nb_nonzero */
-#endif
 	0,                          /* nb_invert */
 	0,                          /* nb_lshift */
 	0,                          /* nb_rshift */
 	0,                          /* nb_and */
 	0,                          /* nb_xor */
 	(binaryfunc)0,              /* nb_or */
-#if PY_MAJOR_VERSION < 3
-	0,                          /* nb_coerce */
-#endif
 	0,                          /* nb_int */
 	0,                          /* nb_long */
 	0,                          /* nb_float */
-#if PY_MAJOR_VERSION < 3
-	0,                          /* nb_oct */
-	0,                          /* nb_hex */
-#endif
 	0,                          /* nb_inplace_add */
 	0,                          /* nb_inplace_subtract */
 	0,                          /* nb_inplace_multiply */
-#if PY_MAJOR_VERSION < 3
-	0,                          /* nb_inplace_divide */
-#endif
 	0,                          /* nb_inplace_remainder */
 	0,                          /* nb_inplace_power */
 	0,                          /* nb_inplace_lshift */
@@ -277,13 +246,9 @@ Variable_as_number = {
 	(binaryfunc)Variable_div,   /* nb_true_divide */
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
-#if PY_VERSION_HEX >= 0x02050000
 	(unaryfunc)0,               /* nb_index */
-#endif
-#if PY_VERSION_HEX >= 0x03050000
 	(binaryfunc)0,              /* nb_matrix_multiply */
 	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
-#endif
 };
 
 
@@ -296,13 +261,7 @@ PyTypeObject Variable_Type = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
 	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
 	(reprfunc)Variable_repr,                /* tp_repr */
 	(PyNumberMethods*)&Variable_as_number,  /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -313,11 +272,7 @@ PyTypeObject Variable_Type = {
 	(getattrofunc)0,                        /* tp_getattro */
 	(setattrofunc)0,                        /* tp_setattro */
 	(PyBufferProcs*)0,                      /* tp_as_buffer */
-#if PY_MAJOR_VERSION >= 3
 	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
-#else
-	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
-#endif
 	0,                                      /* Documentation string */
 	(traverseproc)Variable_traverse,        /* tp_traverse */
 	(inquiry)Variable_clear,                /* tp_clear */

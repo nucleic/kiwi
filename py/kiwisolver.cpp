@@ -1,25 +1,26 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "types.h"
 
-#define PY_KIWI_VERSION "1.1.0"
+#define PY_KIWI_VERSION "1.2.0.dev"
 
-using namespace PythonHelpers;
+struct module_state {
+    PyObject *error;
+};
 
 static PyMethodDef
 kiwisolver_methods[] = {
     { 0 } // Sentinel
 };
 
-#if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef kiwisolver_moduledef = {
     PyModuleDef_HEAD_INIT,
     "kiwisolver",
@@ -31,56 +32,46 @@ static struct PyModuleDef kiwisolver_moduledef = {
 
 PyMODINIT_FUNC
 PyInit_kiwisolver( void )
-#else
-PyMODINIT_FUNC
-initkiwisolver( void )
-#endif
 {
-#if PY_MAJOR_VERSION >= 3
     PyObject *mod = PyModule_Create( &kiwisolver_moduledef );
-#else
-    PyObject* mod = Py_InitModule( "kiwisolver", kiwisolver_methods );
-#endif
     if( !mod )
-        INITERROR;
+        return NULL;
     if( import_variable() < 0 )
-        INITERROR;
+        return NULL;
     if( import_term() < 0 )
-        INITERROR;
+        return NULL;
     if( import_expression() < 0 )
-        INITERROR;
+        return NULL;
     if( import_constraint() < 0 )
-        INITERROR;
+        return NULL;
     if( import_solver() < 0 )
-        INITERROR;
+        return NULL;
     if( import_strength() < 0 )
-        INITERROR;
-    PyObject* kiwiversion = FROM_STRING( KIWI_VERSION );
+        return NULL;
+    PyObject* kiwiversion = PyUnicode_FromString( KIWI_VERSION );
     if( !kiwiversion )
-        INITERROR;
-    PyObject* pyversion = FROM_STRING( PY_KIWI_VERSION );
+        return NULL;
+    PyObject* pyversion = PyUnicode_FromString( PY_KIWI_VERSION );
     if( !pyversion )
-        INITERROR;
+        return NULL;
     PyObject* pystrength = PyType_GenericNew( &strength_Type, 0, 0 );
     if( !pystrength )
-        INITERROR;
+        return NULL;
 
     PyModule_AddObject( mod, "__version__", pyversion );
     PyModule_AddObject( mod, "__kiwi_version__", kiwiversion );
     PyModule_AddObject( mod, "strength", pystrength );
-    PyModule_AddObject( mod, "Variable", newref( pyobject_cast( &Variable_Type ) ) );
-    PyModule_AddObject( mod, "Term", newref( pyobject_cast( &Term_Type ) ) );
-    PyModule_AddObject( mod, "Expression", newref( pyobject_cast( &Expression_Type ) ) );
-    PyModule_AddObject( mod, "Constraint", newref( pyobject_cast( &Constraint_Type ) ) );
-    PyModule_AddObject( mod, "Solver", newref( pyobject_cast( &Solver_Type ) ) );
-    PyModule_AddObject( mod, "DuplicateConstraint", newref( DuplicateConstraint ) );
-    PyModule_AddObject( mod, "UnsatisfiableConstraint", newref( UnsatisfiableConstraint ) );
-    PyModule_AddObject( mod, "UnknownConstraint", newref( UnknownConstraint ) );
-    PyModule_AddObject( mod, "DuplicateEditVariable", newref( DuplicateEditVariable ) );
-    PyModule_AddObject( mod, "UnknownEditVariable", newref( UnknownEditVariable ) );
-    PyModule_AddObject( mod, "BadRequiredStrength", newref( BadRequiredStrength ) );
+    PyModule_AddObject( mod, "Variable", cppy::incref( pyobject_cast( &Variable_Type ) ) );
+    PyModule_AddObject( mod, "Term", cppy::incref( pyobject_cast( &Term_Type ) ) );
+    PyModule_AddObject( mod, "Expression", cppy::incref( pyobject_cast( &Expression_Type ) ) );
+    PyModule_AddObject( mod, "Constraint", cppy::incref( pyobject_cast( &Constraint_Type ) ) );
+    PyModule_AddObject( mod, "Solver", cppy::incref( pyobject_cast( &Solver_Type ) ) );
+    PyModule_AddObject( mod, "DuplicateConstraint", cppy::incref( DuplicateConstraint ) );
+    PyModule_AddObject( mod, "UnsatisfiableConstraint", cppy::incref( UnsatisfiableConstraint ) );
+    PyModule_AddObject( mod, "UnknownConstraint", cppy::incref( UnknownConstraint ) );
+    PyModule_AddObject( mod, "DuplicateEditVariable", cppy::incref( DuplicateEditVariable ) );
+    PyModule_AddObject( mod, "UnknownEditVariable", cppy::incref( UnknownEditVariable ) );
+    PyModule_AddObject( mod, "BadRequiredStrength", cppy::incref( BadRequiredStrength ) );
 
-#if PY_MAJOR_VERSION >= 3
     return mod;
-#endif
 }

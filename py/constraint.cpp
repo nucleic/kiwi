@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <sstream>
 #include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "types.h"
 #include "util.h"
 
@@ -29,14 +29,14 @@ Constraint_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         &pyexpr, &pyop, &pystrength ) )
         return 0;
     if( !Expression::TypeCheck( pyexpr ) )
-        return py_expected_type_fail( pyexpr, "Expression" );
+        return cppy::type_error( pyexpr, "Expression" );
     kiwi::RelationalOperator op;
     if( !convert_to_relational_op( pyop, op ) )
         return 0;
     double strength = kiwi::strength::required;
     if( pystrength && !convert_to_strength( pystrength, strength ) )
         return 0;
-    PyObjectPtr pycn( PyType_GenericNew( type, args, kwargs ) );
+    cppy::ptr pycn( PyType_GenericNew( type, args, kwargs ) );
     if( !pycn )
         return 0;
     Constraint* cn = reinterpret_cast<Constraint*>( pycn.get() );
@@ -102,14 +102,14 @@ Constraint_repr( Constraint* self )
             break;
     }
     stream << " | strength = " << self->constraint.strength();
-    return FROM_STRING( stream.str().c_str() );
+    return PyUnicode_FromString( stream.str().c_str() );
 }
 
 
 static PyObject*
 Constraint_expression( Constraint* self )
 {
-    return newref( self->expression );
+    return cppy::incref( self->expression );
 }
 
 
@@ -120,13 +120,13 @@ Constraint_op( Constraint* self )
     switch( self->constraint.op() )
     {
         case kiwi::OP_EQ:
-            res = FROM_STRING( "==" );
+            res = PyUnicode_FromString( "==" );
             break;
         case kiwi::OP_LE:
-            res = FROM_STRING( "<=" );
+            res = PyUnicode_FromString( "<=" );
             break;
         case kiwi::OP_GE:
-            res = FROM_STRING( ">=" );
+            res = PyUnicode_FromString( ">=" );
             break;
     }
     return res;
@@ -153,7 +153,7 @@ Constraint_or( PyObject* pyoldcn, PyObject* value )
         return 0;
     Constraint* oldcn = reinterpret_cast<Constraint*>( pyoldcn );
     Constraint* newcn = reinterpret_cast<Constraint*>( pynewcn );
-    newcn->expression = newref( oldcn->expression );
+    newcn->expression = cppy::incref( oldcn->expression );
     new( &newcn->constraint ) kiwi::Constraint( oldcn->constraint, strength );
     return pynewcn;
 }
@@ -176,42 +176,25 @@ Constraint_as_number = {
     0,                          /* nb_add */
     0,                          /* nb_subtract */
     0,                          /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* nb_divide */
-#endif
     0,                          /* nb_remainder */
     0,                          /* nb_divmod */
     0,                          /* nb_power */
     0,                          /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
-#if PY_MAJOR_VERSION >= 3
     0,                          /* nb_bool */
-#else
-    0,                          /* nb_nonzero */
-#endif
     0,                          /* nb_invert */
     0,                          /* nb_lshift */
     0,                          /* nb_rshift */
     0,                          /* nb_and */
     0,                          /* nb_xor */
     (binaryfunc)Constraint_or,  /* nb_or */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* nb_coerce */
-#endif
     0,                          /* nb_int */
     0,                          /* nb_long */
     0,                          /* nb_float */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* nb_oct */
-    0,                          /* nb_hex */
-#endif
     0,                          /* nb_inplace_add */
     0,                          /* nb_inplace_subtract */
     0,                          /* nb_inplace_multiply */
-#if PY_MAJOR_VERSION < 3
-    0,                          /* nb_inplace_divide */
-#endif
     0,                          /* nb_inplace_remainder */
     0,                          /* nb_inplace_power */
     0,                          /* nb_inplace_lshift */
@@ -223,13 +206,9 @@ Constraint_as_number = {
     (binaryfunc)0,              /* nb_true_divide */
     0,                          /* nb_inplace_floor_divide */
     0,                          /* nb_inplace_true_divide */
-#if PY_VERSION_HEX >= 0x02050000
     (unaryfunc)0,               /* nb_index */
-#endif
-#if PY_VERSION_HEX >= 0x03050000
-    (binaryfunc)0,              /* nb_matrix_multiply */
-    (binaryfunc)0,              /* nb_inplace_matrix_multiply */
-#endif
+	(binaryfunc)0,              /* nb_matrix_multiply */
+	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
 };
 
 
@@ -242,13 +221,7 @@ PyTypeObject Constraint_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
     ( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-    ( void* ) 0,                            /* tp_reserved */
-#else
-    ( cmpfunc )0,                           /* tp_compare */
-#endif
     (reprfunc)Constraint_repr,              /* tp_repr */
     (PyNumberMethods*)&Constraint_as_number,/* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -259,11 +232,7 @@ PyTypeObject Constraint_Type = {
     (getattrofunc)0,                        /* tp_getattro */
     (setattrofunc)0,                        /* tp_setattro */
     (PyBufferProcs*)0,                      /* tp_as_buffer */
-#if PY_MAJOR_VERSION >= 3
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
-#else
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
-#endif
     0,                                      /* Documentation string */
     (traverseproc)Constraint_traverse,      /* tp_traverse */
     (inquiry)Constraint_clear,              /* tp_clear */

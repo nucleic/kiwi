@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -27,7 +27,7 @@ Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		&pyvar, &pycoeff ) )
 		return 0;
 	if( !Variable::TypeCheck( pyvar ) )
-		return py_expected_type_fail( pyvar, "Variable" );
+		return cppy::type_error( pyvar, "Variable" );
 	double coefficient = 1.0;
 	if( pycoeff && !convert_to_double( pycoeff, coefficient ) )
 		return 0;
@@ -35,7 +35,7 @@ Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	if( !pyterm )
 		return 0;
 	Term* self = reinterpret_cast<Term*>( pyterm );
-	self->variable = newref( pyvar );
+	self->variable = cppy::incref( pyvar );
 	self->coefficient = coefficient;
 	return pyterm;
 }
@@ -71,14 +71,14 @@ Term_repr( Term* self )
 	std::stringstream stream;
 	stream << self->coefficient << " * ";
 	stream << reinterpret_cast<Variable*>( self->variable )->variable.name();
-	return FROM_STRING( stream.str().c_str() );
+	return PyUnicode_FromString( stream.str().c_str() );
 }
 
 
 static PyObject*
 Term_variable( Term* self )
 {
-	return newref( self->variable );
+	return cppy::incref( self->variable );
 }
 
 
@@ -175,42 +175,25 @@ Term_as_number = {
 	(binaryfunc)Term_add,       /* nb_add */
 	(binaryfunc)Term_sub,       /* nb_subtract */
 	(binaryfunc)Term_mul,       /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-	(binaryfunc)Term_div,       /* nb_divide */
-#endif
 	0,                          /* nb_remainder */
 	0,                          /* nb_divmod */
 	0,                          /* nb_power */
 	(unaryfunc)Term_neg,        /* nb_negative */
 	0,                          /* nb_positive */
 	0,                          /* nb_absolute */
-#if PY_MAJOR_VERSION >= 3
 	0,                          /* nb_bool */
-#else
-	0,                          /* nb_nonzero */
-#endif
 	0,                          /* nb_invert */
 	0,                          /* nb_lshift */
 	0,                          /* nb_rshift */
 	0,                          /* nb_and */
 	0,                          /* nb_xor */
 	(binaryfunc)0,              /* nb_or */
-#if PY_MAJOR_VERSION < 3
-	0,                          /* nb_coerce */
-#endif
 	0,                          /* nb_int */
 	0,                          /* nb_long */
 	0,                          /* nb_float */
-#if PY_MAJOR_VERSION < 3
-	0,                          /* nb_oct */
-	0,                          /* nb_hex */
-#endif
 	0,                          /* nb_inplace_add */
 	0,                          /* nb_inplace_subtract */
 	0,                          /* nb_inplace_multiply */
-#if PY_MAJOR_VERSION < 3
-	0,                          /* nb_inplace_divide */
-#endif
 	0,                          /* nb_inplace_remainder */
 	0,                          /* nb_inplace_power */
 	0,                          /* nb_inplace_lshift */
@@ -222,13 +205,9 @@ Term_as_number = {
 	(binaryfunc)Term_div,       /* nb_true_divide */
 	0,                          /* nb_inplace_floor_divide */
 	0,                          /* nb_inplace_true_divide */
-#if PY_VERSION_HEX >= 0x02050000
 	(unaryfunc)0,               /* nb_index */
-#endif
-#if PY_VERSION_HEX >= 0x03050000
 	(binaryfunc)0,              /* nb_matrix_multiply */
 	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
-#endif
 };
 
 
@@ -241,13 +220,7 @@ PyTypeObject Term_Type = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
 	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
 	(reprfunc)Term_repr,                    /* tp_repr */
 	(PyNumberMethods*)&Term_as_number,      /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -258,11 +231,7 @@ PyTypeObject Term_Type = {
 	(getattrofunc)0,                        /* tp_getattro */
 	(setattrofunc)0,                        /* tp_setattro */
 	(PyBufferProcs*)0,                      /* tp_as_buffer */
-#if PY_MAJOR_VERSION >= 3
 	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
-#else
-	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES, /* tp_flags */
-#endif
 	0,                                      /* Documentation string */
 	(traverseproc)Term_traverse,            /* tp_traverse */
 	(inquiry)Term_clear,                    /* tp_clear */
