@@ -27,7 +27,7 @@ template<
 class MapType
 {
 public:
-	typedef Loki::AssocVector<K, V, C, A> Type;
+	typedef AssocVector<K, V, C, A> Type;
 	//typedef std::map<K, V, C, A> Type;
 private:
 	MapType();

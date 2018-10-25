@@ -100,7 +100,7 @@ private:
 		~VariableData() {}
 
 		std::string m_name;
-		std::auto_ptr<Context> m_context;
+		std::unique_ptr<Context> m_context;
 		double m_value;
 
 	private:
