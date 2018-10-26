@@ -6,13 +6,10 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "types.h"
 #include "util.h"
-
-
-using namespace PythonHelpers;
 
 
 static PyObject*

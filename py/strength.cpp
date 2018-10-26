@@ -6,13 +6,18 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "util.h"
 
 
-using namespace PythonHelpers;
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
+#endif
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
 
 struct strength
 {

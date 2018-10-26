@@ -14,9 +14,6 @@
 #include "util.h"
 
 
-using namespace PythonHelpers;
-
-
 static PyObject*
 Constraint_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {

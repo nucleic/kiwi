@@ -35,7 +35,8 @@ class BuildExt(build_ext):
 
     """
     c_opts = {
-        'msvc': ['/EHsc']
+        'msvc': ['/EHsc', '/std:c++11'],
+        'unix': ['-std=c++11']
     }
 
     def build_extensions(self):

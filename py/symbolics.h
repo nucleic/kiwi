@@ -112,7 +112,6 @@ PyObject* BinaryMul::operator()( Term* first, double second )
 template<> inline
 PyObject* BinaryMul::operator()( Expression* first, double second )
 {
-	using namespace PythonHelpers;
 	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
@@ -263,7 +262,6 @@ PyObject* BinaryAdd::operator()( Expression* first, Expression* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Term* second )
 {
-	using namespace PythonHelpers;
 	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
@@ -297,7 +295,6 @@ PyObject* BinaryAdd::operator()( Expression* first, Variable* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, double second )
 {
-	using namespace PythonHelpers;
 	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
 	if( !pyexpr )
 		return 0;

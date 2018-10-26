@@ -13,9 +13,6 @@
 #include "util.h"
 
 
-using namespace PythonHelpers;
-
-
 static PyObject*
 Expression_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {

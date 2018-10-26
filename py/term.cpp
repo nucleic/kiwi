@@ -7,13 +7,10 @@
 |----------------------------------------------------------------------------*/
 #include <sstream>
 #include <Python.h>
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
-
-
-using namespace PythonHelpers;
 
 
 static PyObject*
