@@ -5,6 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import pytest
+
 from kiwisolver import strength
 
 
@@ -24,3 +26,6 @@ def test_creating_strength():
     assert strength.create(0, 0, 1) < strength.create(0, 1, 0)
     assert strength.create(0, 1, 0) < strength.create(1, 0, 0)
     assert strength.create(1, 0, 0, 1) < strength.create(1, 0, 0, 4)
+
+    with pytest.raises(TypeError):
+        strength.create('', '', '')

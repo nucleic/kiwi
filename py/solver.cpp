@@ -219,7 +219,8 @@ Solver_methods[] = {
 	  "Update the values of the solver variables." },
 	{ "reset", ( PyCFunction )Solver_reset, METH_NOARGS,
 	  "Reset the solver to the initial empty starting condition." },
-	{ "dump", ( PyCFunction )Solver_dump, METH_NOARGS, "" },
+	{ "dump", ( PyCFunction )Solver_dump, METH_NOARGS,
+	  "Dump a representation of the solver internals to stdout." },
 	{ 0 } // sentinel
 };
 

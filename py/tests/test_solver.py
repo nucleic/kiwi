@@ -135,3 +135,54 @@ def test_solving_with_strength():
     s.addConstraint((v2 == 2) | 'strong')
     s.updateVariables()
     assert v1.value() == -2 and v2.value() == 2
+
+
+STATE=\
+"""Objective
+---------
+10 + 1 * d3 + -1 * d4 + 1 * s5
+
+Tableau
+-------
+v1 | -10 + -1 * d3 + 1 * d4
+v2 | 10 + -1 * d4
+e6 | 10 + 1 * d3 + -1 * d4 + 1 * s5
+
+Infeasible
+----------
+
+Variables
+---------
+bar = v1
+foo = v2
+
+Edit Variables
+--------------
+
+Constraints
+-----------
+1 * bar + -0 >= 0  | strength = 1
+1 * bar + 1 * foo + 0 == 0  | strength = 1.001e+09
+1 * foo + -10 == 0  | strength = 1.001e+09
+
+"""
+
+
+def test_dumping_solver(capsys):
+    """Test dumping the solver internal to stdout.
+
+    """
+    v1 = Variable('foo')
+    v2 = Variable('bar')
+    s = Solver()
+
+    s.addConstraint(v1 + v2 == 0)
+    s.addConstraint(v1 == 10)
+    s.addConstraint((v2 >= 0) | 'weak')
+    s.updateVariables()
+
+    s.dump()
+
+    # XXX diabled because we write from C++ directly
+    # captured = capsys.readouterr()
+    # assert captured.out == STATE

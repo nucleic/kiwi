@@ -23,17 +23,23 @@ def test_variable_methods():
     assert v.name() == 'γ'
     v.setName('foo')
     assert v.name() == 'foo'
+    with pytest.raises(TypeError):
+        v.setName(1)
     if sys.version_info >= (3,):
         with pytest.raises(TypeError):
             v.setName(b'r')
 
     assert v.value() == 0.0
 
+    assert v.context() is None
     ctx = object()
     v.setContext(ctx)
     assert v.context() is ctx
 
     assert str(v) == 'foo'
+
+    with pytest.raises(TypeError):
+        Variable(1)
 
 
 def test_variable_arith_operators():
@@ -47,14 +53,14 @@ def test_variable_arith_operators():
     assert isinstance(neg, Term)
     assert neg.variable() is v and neg.coefficient() == -1
 
-    mul = v * 2
+    mul = v * 2.0
     assert isinstance(mul, Term)
     assert mul.variable() is v and mul.coefficient() == 2
 
     with pytest.raises(TypeError):
         v * v2
 
-    div = v / 2
+    div = v / 2.0
     assert isinstance(div, Term)
     assert div.variable() is v and div.coefficient() == 0.5
 
@@ -90,6 +96,9 @@ def test_variable_arith_operators():
     assert (len(terms) == 2 and
             terms[0].variable() is v and terms[0].coefficient() == 1 and
             terms[1].variable() is v2 and terms[1].coefficient() == -1)
+
+    with pytest.raises(TypeError):
+        v + ''
 
 
 def test_variable_rich_compare_operations():

@@ -5,10 +5,13 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import gc
+import math
 import operator
 
 import pytest
-from kiwisolver import Variable, Term, Expression, Constraint, strength
+
+from kiwisolver import Constraint, Expression, Term, Variable, strength
 
 
 def test_expression_creation():
@@ -31,9 +34,18 @@ def test_expression_creation():
 
     assert str(e2) == '1 * foo + 2 * bar + 3 * aux + 10'
 
+    with pytest.raises(TypeError) as excinfo:
+        Expression((1, v2*2, v3*3))
+    assert 'Term' in excinfo.exconly()
 
-def test_expression_arith_operators():
-    """Test the arithmetic operation on terms.
+    # ensure we test garbage collection.
+    del e2
+    gc.collect()
+
+
+@pytest.fixture()
+def expressions():
+    """Build expressions, terms and variables to test operations.
 
     """
     v = Variable('foo')
@@ -42,6 +54,14 @@ def test_expression_arith_operators():
     t2 = Term(v2)
     e = t + 5
     e2 = v2 - 10
+    return e, e2, t, t2, v, v2
+
+
+def test_expression_neg(expressions):
+    """Test neg on an expression.
+
+    """
+    e, _, _, _, v, _ = expressions
 
     neg = -e
     assert isinstance(neg, Expression)
@@ -50,15 +70,29 @@ def test_expression_arith_operators():
             neg_t[0].variable() is v and neg_t[0].coefficient() == -10 and
             neg.constant() == -5)
 
-    mul = e * 2
-    assert isinstance(mul, Expression)
-    mul_t = mul.terms()
-    assert (len(mul_t) == 1 and
-            mul_t[0].variable() is v and mul_t[0].coefficient() == 20 and
-            mul.constant() == 10)
+
+def test_expression_mul(expressions):
+    """Test expresion multiplication.
+
+    """
+    e, _, _, _, v, _ = expressions
+
+    for mul in (e * 2.0, 2.0 * e):
+        assert isinstance(mul, Expression)
+        mul_t = mul.terms()
+        assert (len(mul_t) == 1 and
+                mul_t[0].variable() is v and mul_t[0].coefficient() == 20 and
+                mul.constant() == 10)
 
     with pytest.raises(TypeError):
         e * v
+
+
+def test_expression_div(expressions):
+    """Test expression divisions.
+
+    """
+    e, _, _, _, v, v2 = expressions
 
     div = e / 2
     assert isinstance(div, Expression)
@@ -70,12 +104,22 @@ def test_expression_arith_operators():
     with pytest.raises(TypeError):
         e / v2
 
-    add = e + 2
-    assert isinstance(add, Expression)
-    assert add.constant() == 7
-    terms = add.terms()
-    assert (len(terms) == 1 and terms[0].variable() is v and
-            terms[0].coefficient() == 10)
+    with pytest.raises(ZeroDivisionError):
+        e / 0
+
+
+def test_expression_addition(expressions):
+    """Test expressions additions.
+
+    """
+    e, e2, _, t2, v, v2 = expressions
+
+    for add in (e + 2, 2.0 + e):
+        assert isinstance(add, Expression)
+        assert add.constant() == 7
+        terms = add.terms()
+        assert (len(terms) == 1 and terms[0].variable() is v and
+                terms[0].coefficient() == 10)
 
     add2 = e + v2
     assert isinstance(add2, Expression)
@@ -101,28 +145,39 @@ def test_expression_arith_operators():
             terms[0].variable() is v and terms[0].coefficient() == 10 and
             terms[1].variable() is v2 and terms[1].coefficient() == 1)
 
-    sub = e - 2
-    assert isinstance(sub, Expression)
-    assert sub.constant() == 3
-    terms = sub.terms()
-    assert (len(terms) == 1 and terms[0].variable() is v and
-            terms[0].coefficient() == 10)
 
-    sub2 = e - v2
-    assert isinstance(sub2, Expression)
-    assert sub2.constant() == 5
-    terms = sub2.terms()
-    assert (len(terms) == 2 and
-            terms[0].variable() is v and terms[0].coefficient() == 10 and
-            terms[1].variable() is v2 and terms[1].coefficient() == -1)
+def test_expressions_substraction(expressions):
+    """Test expression substraction.
 
-    sub3 = e - t2
-    assert isinstance(sub3, Expression)
-    assert sub3.constant() == 5
-    terms = sub3.terms()
-    assert (len(terms) == 2 and
-            terms[0].variable() is v and terms[0].coefficient() == 10 and
-            terms[1].variable() is v2 and terms[1].coefficient() == -1)
+    """
+    e, e2, _, t2, v, v2 = expressions
+
+    for sub, diff in zip((e - 2, 2.0 - e), (3, -3)):
+        assert isinstance(sub, Expression)
+        assert sub.constant() == diff
+        terms = sub.terms()
+        assert (len(terms) == 1 and terms[0].variable() is v and
+                terms[0].coefficient() == math.copysign(10, diff))
+
+    for sub2, diff in zip((e - v2, v2 - e), (5, -5)):
+        assert isinstance(sub2, Expression)
+        assert sub2.constant() == diff
+        terms = sub2.terms()
+        assert (len(terms) == 2 and
+                terms[0].variable() is v and
+                terms[0].coefficient() == math.copysign(10, diff) and
+                terms[1].variable() is v2 and
+                 terms[1].coefficient() == -math.copysign(1, diff))
+
+    for sub3, diff in zip((e - t2, t2 - e), (5, -5)):
+        assert isinstance(sub3, Expression)
+        assert sub3.constant() == diff
+        terms = sub3.terms()
+        assert (len(terms) == 2 and
+                terms[0].variable() is v and
+                terms[0].coefficient() == math.copysign(10, diff) and
+                terms[1].variable() is v2 and
+                terms[1].coefficient() == -math.copysign(1, diff))
 
     sub4 = e - e2
     assert isinstance(sub3, Expression)
@@ -133,30 +188,37 @@ def test_expression_arith_operators():
             terms[1].variable() is v2 and terms[1].coefficient() == -1)
 
 
-def test_expression_rich_compare_operations():
+@pytest.mark.parametrize("op, symbol",
+                         [(operator.le, '<='),
+                          (operator.eq, '=='),
+                          (operator.ge, '>='),
+                          (operator.lt, None),
+                          (operator.ne, None),
+                          (operator.gt, None)])
+def test_expression_rich_compare_operations(op, symbol):
     """Test using comparison on variables.
 
     """
-    v = Variable('foo')
+    v1 = Variable('foo')
     v2 = Variable('bar')
-    t1 = Term(v, 10)
+    t1 = Term(v1, 10)
     e1 = t1 + 5
     e2 = v2 - 10
 
-    for op, symbol in ((operator.le, '<='), (operator.eq, '=='),
-                       (operator.ge, '>=')):
+    if symbol is not None:
         c = op(e1, e2)
         assert isinstance(c, Constraint)
         e = c.expression()
         t = e.terms()
         assert len(t) == 2
-        if t[0].variable() is not v:
+        if t[0].variable() is not v1:
             t = (t[1], t[0])
-        assert (t[0].variable() is v and t[0].coefficient() == 10 and
+        assert (t[0].variable() is v1 and t[0].coefficient() == 10 and
                 t[1].variable() is v2 and t[1].coefficient() == -1)
         assert e.constant() == 15
         assert c.op() == symbol and c.strength() == strength.required
 
-    for op in (operator.lt, operator.ne, operator.gt):
-        with pytest.raises(TypeError):
-            op(v, v2)
+    else:
+        with pytest.raises(TypeError) as excinfo:
+            op(e1, e2)
+        assert "kiwisolver.Expression" in excinfo.exconly()
