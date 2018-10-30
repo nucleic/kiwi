@@ -81,7 +81,7 @@ public:
 		if( m_cns.find( constraint ) != m_cns.end() )
 			throw DuplicateConstraint( constraint );
 
-		// Creating a row causes symbols to reserved for the variables
+		// Creating a row causes symbols to be reserved for the variables
 		// in the constraint. If this method exits with an exception,
 		// then its possible those variables will linger in the var map.
 		// Since its likely that those variables will be used in other
@@ -91,7 +91,7 @@ public:
 		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
 		Symbol subject( chooseSubject( *rowptr, tag ) );
 
-		// If chooseSubject could find a valid entering symbol, one
+		// If chooseSubject could not find a valid entering symbol, one
 		// last option is available if the entire row is composed of
 		// dummy variables. If the constant of the row is zero, then
 		// this represents redundant constraints and the new dummy
@@ -506,7 +506,7 @@ private:
 		bool success = nearZero( m_artificial->constant() );
 		m_artificial.reset();
 
-		// If the artificial variable is basic, pivot the row so that
+		// If the artificial variable is not basic, pivot the row so that
 		// it becomes basic. If the row is constant, exit early.
 		RowMap::iterator it = m_rows.find( art );
 		if( it != m_rows.end() )

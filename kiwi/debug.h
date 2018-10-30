@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include "constraint.h"
 #include "solverimpl.h"
@@ -24,150 +25,150 @@ class DebugHelper
 
 public:
 
-	static void dump( const SolverImpl& solver )
+	static void dump( const SolverImpl& solver, std::ostream& out )
 	{
-		std::cout << "Objective" << std::endl;
-		std::cout << "---------" << std::endl;
-		dump( *solver.m_objective );
-		std::cout << std::endl;
-		std::cout << "Tableau" << std::endl;
-		std::cout << "-------" << std::endl;
-		dump( solver.m_rows );
-		std::cout << std::endl;
-		std::cout << "Infeasible" << std::endl;
-		std::cout << "----------" << std::endl;
-		dump( solver.m_infeasible_rows );
-		std::cout << std::endl;
-		std::cout << "Variables" << std::endl;
-		std::cout << "---------" << std::endl;
-		dump( solver.m_vars );
-		std::cout << std::endl;
-		std::cout << "Edit Variables" << std::endl;
-		std::cout << "--------------" << std::endl;
-		dump( solver.m_edits );
-		std::cout << std::endl;
-		std::cout << "Constraints" << std::endl;
-		std::cout << "-----------" << std::endl;
-		dump( solver.m_cns );
-		std::cout << std::endl;
-		std::cout << std::endl;
+		out << "Objective" << std::endl;
+		out << "---------" << std::endl;
+		dump( *solver.m_objective, out );
+		out << std::endl;
+		out << "Tableau" << std::endl;
+		out << "-------" << std::endl;
+		dump( solver.m_rows, out );
+		out << std::endl;
+		out << "Infeasible" << std::endl;
+		out << "----------" << std::endl;
+		dump( solver.m_infeasible_rows, out );
+		out << std::endl;
+		out << "Variables" << std::endl;
+		out << "---------" << std::endl;
+		dump( solver.m_vars, out );
+		out << std::endl;
+		out << "Edit Variables" << std::endl;
+		out << "--------------" << std::endl;
+		dump( solver.m_edits, out );
+		out << std::endl;
+		out << "Constraints" << std::endl;
+		out << "-----------" << std::endl;
+		dump( solver.m_cns, out );
+		out << std::endl;
+		out << std::endl;
 	}
 
-	static void dump( const SolverImpl::RowMap& rows )
+	static void dump( const SolverImpl::RowMap& rows, std::ostream& out )
 	{
 		typedef SolverImpl::RowMap::const_iterator iter_t;
 		iter_t end = rows.end();
 		for( iter_t it = rows.begin(); it != end; ++it )
 		{
-			dump( it->first );
-			std::cout << " | ";
-			dump( *it->second );
+			dump( it->first, out );
+			out << " | ";
+			dump( *it->second, out );
 		}
 	}
 
-	static void dump( const std::vector<Symbol>& symbols )
+	static void dump( const std::vector<Symbol>& symbols, std::ostream& out )
 	{
 		typedef std::vector<Symbol>::const_iterator iter_t;
 		iter_t end = symbols.end();
 		for( iter_t it = symbols.begin(); it != end; ++it )
 		{
-			dump( *it );
-			std::cout << std::endl;
+			dump( *it, out );
+			out << std::endl;
 		}
 	}
 
-	static void dump( const SolverImpl::VarMap& vars )
+	static void dump( const SolverImpl::VarMap& vars, std::ostream& out )
 	{
 		typedef SolverImpl::VarMap::const_iterator iter_t;
 		iter_t end = vars.end();
 		for( iter_t it = vars.begin(); it != end; ++it )
 		{
-			std::cout << it->first.name() << " = ";
-			dump( it->second );
-			std::cout << std::endl;
+			out << it->first.name() << " = ";
+			dump( it->second, out );
+			out << std::endl;
 		}
 	}
 
-	static void dump( const SolverImpl::CnMap& cns )
+	static void dump( const SolverImpl::CnMap& cns, std::ostream& out )
 	{
 		typedef SolverImpl::CnMap::const_iterator iter_t;
 		iter_t end = cns.end();
 		for( iter_t it = cns.begin(); it != end; ++it )
-			dump( it->first );
+			dump( it->first, out );
 	}
 
-	static void dump( const SolverImpl::EditMap& edits )
+	static void dump( const SolverImpl::EditMap& edits, std::ostream& out )
 	{
 		typedef SolverImpl::EditMap::const_iterator iter_t;
 		iter_t end = edits.end();
 		for( iter_t it = edits.begin(); it != end; ++it )
-			std::cout << it->first.name() << std::endl;
+			out << it->first.name() << std::endl;
 	}
 
-	static void dump( const Row& row )
+	static void dump( const Row& row, std::ostream& out )
 	{
 		typedef Row::CellMap::const_iterator iter_t;
-		std::cout << row.constant();
+		out << row.constant();
 		iter_t end = row.cells().end();
 		for( iter_t it = row.cells().begin(); it != end; ++it )
 		{
-			std::cout << " + " << it->second << " * ";
-			dump( it->first );
+			out << " + " << it->second << " * ";
+			dump( it->first, out );
 		}
-		std::cout << std::endl;
+		out << std::endl;
 	}
 
-	static void dump( const Symbol& symbol )
+	static void dump( const Symbol& symbol, std::ostream& out )
 	{
 		switch( symbol.type() )
 		{
 			case Symbol::Invalid:
-				std::cout << "i";
+				out << "i";
 				break;
 			case Symbol::External:
-				std::cout << "v";
+				out << "v";
 				break;
 			case Symbol::Slack:
-				std::cout << "s";
+				out << "s";
 				break;
 			case Symbol::Error:
-				std::cout << "e";
+				out << "e";
 				break;
 			case Symbol::Dummy:
-				std::cout << "d";
+				out << "d";
 				break;
 			default:
 				break;
 		}
-		std::cout << symbol.id();
+		out << symbol.id();
 	}
 
-	static void dump( const Constraint& cn )
+	static void dump( const Constraint& cn, std::ostream& out )
 	{
 		typedef std::vector<Term>::const_iterator iter_t;
 		iter_t begin = cn.expression().terms().begin();
 		iter_t end = cn.expression().terms().end();
 		for( iter_t it = begin; it != end; ++it )
 		{
-			std::cout << it->coefficient() << " * ";
-			std::cout << it->variable().name() << " + ";
+			out << it->coefficient() << " * ";
+			out << it->variable().name() << " + ";
 		}
-		std::cout << cn.expression().constant();
+		out << cn.expression().constant();
 		switch( cn.op() )
 		{
 			case OP_LE:
-				std::cout << " <= 0 ";
+				out << " <= 0 ";
 				break;
 			case OP_GE:
-				std::cout << " >= 0 ";
+				out << " >= 0 ";
 				break;
 			case OP_EQ:
-				std::cout << " == 0 ";
+				out << " == 0 ";
 				break;
 			default:
 				break;
 		}
-		std::cout << " | strength = " << cn.strength() << std::endl;
+		out << " | strength = " << cn.strength() << std::endl;
 	}
 };
 
@@ -180,7 +181,15 @@ namespace debug
 template<typename T>
 void dump( const T& value )
 {
-	impl::DebugHelper::dump( value );
+	impl::DebugHelper::dump( value, std::cout );
+}
+
+template<typename T>
+std::string dumps( const T& value )
+{
+	std::stringstream stream;
+	impl::DebugHelper::dump( value, stream );
+	return stream.str();
 }
 
 } // namespace debug
