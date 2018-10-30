@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2014-2017, Nucleic Development Team.
+# Copyright (c) 2014-2018, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -62,7 +62,34 @@ def test_managing_edit_variable():
     s.reset()
     assert not s.hasEditVariable(v2)
 
-    # XXX need to suggest value in more complex situations
+
+def test_suggesting_values_for_edit_variables():
+    """Test suggesting values in different situations.
+
+    """
+    # Suggest value for an edit variable entering a weak equality
+    s = Solver()
+    v1 = Variable('foo')
+
+    s.addEditVariable(v1, 'medium')
+    s.addConstraint((v1 == 1) | 'weak')
+    s.suggestValue(v1, 2)
+    s.updateVariables()
+    assert v1.value() == 2
+
+    # Suggest a value for an edit variable entering multiple solver rows
+    s.reset()
+    v1 = Variable('foo')
+    v2 = Variable('bar')
+    s = Solver()
+
+    s.addEditVariable(v2, 'weak')
+    s.addConstraint(v1 + v2 == 0)
+    s.addConstraint((v2 <= -1))
+    s.addConstraint((v2 >= 0) | 'weak')
+    s.suggestValue(v2, 0)
+    s.updateVariables()
+    assert v2.value() <= -1
 
 
 def test_managing_constraints():
@@ -204,6 +231,6 @@ def test_dumping_solver(capsys):
     s.dump()
 
     state = s.dumps()
-    for header in  ('Objective', 'Tableau', 'Infeasible', 'Variables',
-                    'Edit Variables', 'Constraints'):
+    for header in ('Objective', 'Tableau', 'Infeasible', 'Variables',
+                   'Edit Variables', 'Constraints'):
         assert header in state
