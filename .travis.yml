@@ -35,4 +35,9 @@ install:
 script:
   - py.test py/tests
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - lcov --capture --directory . --output-file coverage.info
+  - lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter system-files
+  - lcov --list coverage.info
+  # Uploading to CodeCov but excluding gcov reports
+  - bash <(curl -s https://codecov.io/bash) -f "!*.gcov" -X gcov || echo "Codecov did not collect coverage reports"
+
