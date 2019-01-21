@@ -606,7 +606,7 @@ private:
 			m_infeasible_rows.pop_back();
 			RowMap::iterator it = m_rows.find( leaving );
 			if( it != m_rows.end() &&
-			    !allDummies( *it->second ) &&
+			    !( allDummies( *it->second ) && nearZero( it->second->constant() ) ) &&
 				it->second->constant() < 0.0 )
 			{
 				Symbol entering( getDualEnteringSymbol( *it->second ) );
