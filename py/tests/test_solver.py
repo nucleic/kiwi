@@ -266,6 +266,7 @@ def test_handling_infeasible_constraints():
 
     # Create an infeasible condition triggering a dual optimization
     s.suggestValue(xm, 90)
+    s.updateVariables()
     assert xl.value() + xr.value() == 2*xm.value()
     assert xl.value() == 80
     assert xr.value() == 100
