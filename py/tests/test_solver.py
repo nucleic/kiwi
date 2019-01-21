@@ -234,3 +234,38 @@ def test_dumping_solver(capsys):
     for header in ('Objective', 'Tableau', 'Infeasible', 'Variables',
                    'Edit Variables', 'Constraints'):
         assert header in state
+
+
+def test_handling_infeasible_constraints():
+    """Test that we properly handle infeasible constraints.
+
+    We use the example of the cassowary paper to generate an infeasible
+    situation after updating an edit variable which causes the solver to use
+    the dual optimization.
+
+    """
+    xm = Variable('xm')
+    xl = Variable('xl')
+    xr = Variable('xr')
+    s = Solver()
+
+    s.addEditVariable(xm, 'strong')
+    s.addEditVariable(xl, 'weak')
+    s.addEditVariable(xr, 'weak')
+    s.addConstraint(2*xm == xl + xr)
+    s.addConstraint(xl + 20 <= xr)
+    s.addConstraint(xl >= -10)
+    s.addConstraint(xr <= 100)
+
+    s.suggestValue(xm, 40)
+    s.suggestValue(xr, 50)
+    s.suggestValue(xl, 30)
+
+    # First update causing a normal update.
+    s.suggestValue(xm, 60)
+
+    # Create an infeasible condition triggering a dual optimization
+    s.suggestValue(xm, 90)
+    assert xl.value + xr.value == 2*xm.value
+    assert xl.value == 80
+    assert xr.value == 100
