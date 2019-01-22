@@ -6,6 +6,10 @@ dist: xenial
 sudo: required
 cache: pip
 
+addons:
+  apt:
+    packages: lcov
+
 branches:
   only:
     - master

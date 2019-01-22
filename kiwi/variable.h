@@ -23,7 +23,7 @@ public:
 	{
 	public:
 		Context() {}
-		virtual ~Context() {}
+		virtual ~Context() {}  // LCOV_EXCL_LINE
 	};
 
 	Variable( Context* context = 0 ) :
