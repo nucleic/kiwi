@@ -20,7 +20,7 @@ In addition to the C++ solver, Kiwi ships with hand-rolled Python bindings.
    :maxdepth: 2
 
    Getting started <basis/index.rst>
-   Use cases <use_cases.index.rst>
+   Use cases <use_cases/index.rst>
    API Documentation <api/index.rst>
 
 Indices and tables

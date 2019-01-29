@@ -1,8 +1,7 @@
 .. _basis-installation:
 
-=====================
-Installing Kiwisolver
-=====================
+Installing Kiwisolver on Python
+===============================
 
 .. include:: ../substitutions.sub
 
