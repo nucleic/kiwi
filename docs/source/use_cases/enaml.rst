@@ -9,14 +9,14 @@ user interfaces with minimal effort. It relies on Kiwi to layout widgets.
 To implement its layout, Enaml uses a nestable model. Containers widgets
 handle the constraints generation used to layout their children. Furthermore,
 they pass to their their children a representation of the bounding box in
-which they should leave which allows the widgets to position themselves inside
+which they should live which allows the widgets to position themselves inside
 their parent. Since each leaf component has a "preferred size", the system can
 be solved from the bottom-up and set the size the parents based on the required
 space of the children. If at a later time the parent is resized, this new input
-can be used to solve the problem.
+can be used to solve the layout problem.
 
 The following sections will describe in more details how the constraints are
-generated and the preferred_size estimated.
+generated and the preferred size estimated.
 
 Widget variables
 ----------------
@@ -50,8 +50,8 @@ https://github.com/nucleic/enaml/blob/master/enaml/layout/constrainable.py
 Constraints definition
 ----------------------
 
-Using the above variable, one can express any constraints, however even for
-simple vertical or horizontal boxes the constraints to actually define, in
+Using the above variable, one can express any constraints. However, even for
+simple vertical or horizontal boxes, the constraints to define, in
 particular if one needs to introduce some spacing around the objects, become
 quite painful to write by hand.
 
@@ -61,7 +61,7 @@ constraints are handled, by studing the following example in details:
 
 .. image:: enaml_hbox.svg
 
-Here we consider a container widget with three child widget. The outer black
+Here we consider a container widget with three child widgets. The outer black
 frame represents the limit of the container. The dashed frame represents the
 contents visible to children when defining their constraint. The container uses
 the margin definition to relate the outer left, top, width and height to their
@@ -82,6 +82,11 @@ the spacers to generate the constraints by simply glueing the anchors of
 surrounding widgets. Each spacer can generate multiple constraints which gives
 this process a lot of flexibility.
 
+.. note::
+
+    In practice, `hbox` itself relies on some helpers but the above gives you
+    the general idea.
+
 For further details you can have a look at the source of the helpers described
 in this section which can be found in the Enaml source:
 
@@ -100,7 +105,7 @@ So far we have only defined the constraints that represent the layout, we will
 now turn to how Enaml pass those to the solver and how it handle updates and
 solver resets.
 
-By default, each container manage its own solver independently. This has
+By default, each container manages its own solver independently. This has
 the advantage of keeping the system relatively smalls and hence allow for
 faster updates. When setting up the solver, the container will add for each
 widget a set of constraints reflecting the preference of the widget regarding
@@ -113,12 +118,12 @@ such as the best size for the container (requesting a size of 0 with a 0.1*weak
 strength), its min size (0 size, medium strength) and max size (max size,
 medium strength).
 
-When the parent is resized, the solver is invoked again with the new value as
-suggestion. On the other hand, if the constraints change either because widgets
-have been added or removed or because the users modified them, the solver is
-reset and the constraints are rebuilt-from scratch. This means that we never
-keep the solver around long enough to have to worry about memory consumption
-due to unused variables in the solver.
+When the parent is resized, the solver is invoked again with the new width and
+height as suggestion. On the other hand, if the constraints change either
+because widgets have been added or removed or because the users modified them,
+the solver is reset and the constraints are rebuilt-from scratch. This means
+that we never keep the solver around long enough to have to worry about memory
+consumption due to unused variables in the solver.
 
 In a complex hierarchy, the top parent will request the sizes of the nested
 containers which will trigger the solving of their constraints. At some point
