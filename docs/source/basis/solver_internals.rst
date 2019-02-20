@@ -3,6 +3,8 @@
 Solver internals and tips
 =========================
 
+.. include:: ../substitutions.sub
+
 Kiwi is not a simple re-writing of Cassowary and because of that Kiwi does not
 always perfectly reflects the original implementation. The following sections
 points out those "discrepancies" and give some tips on how to work with
@@ -165,6 +167,6 @@ If you browse through the API documentation you may notice a number of classes
 that do not appear anywhere in this documentation: Term and Expression.
 
 Those classes are used internally in constraints and are created automatically
-by the library. A Term represents a variable/symbol and the coefficient that
-multiplies it, Expression represents a sum of terms and a constant value and is
-used as the left hand side of a constraint.
+by the library. A |Term| represents a variable/symbol and the coefficient that
+multiplies it, |Expression| represents a sum of terms and a constant value and
+is used as the left hand side of a constraint.

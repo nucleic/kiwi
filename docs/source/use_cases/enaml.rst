@@ -3,6 +3,8 @@
 Enaml
 =====
 
+.. include:: ../substitutions.sub
+
 Enaml is a programming language and framework for creating professional-quality
 user interfaces with minimal effort. It relies on Kiwi to layout widgets.
 

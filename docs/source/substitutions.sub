@@ -1,0 +1,16 @@
+..
+   This file holds some common substitutions (mainly for referencing code).
+   To use it add the directive include:: substitutions.rst at the beginning of
+   the file.
+
+.. ============================================================================
+.. Kiwi substitutions
+.. ============================================================================
+
+.. |Variable| replace:: :py:class:`~kiwisolver.Variable`
+
+.. |Solver| replace:: :py:class:`~kiwisolver.Solver`
+
+.. |Term| replace:: :py:class:`~kiwisolver.Term`
+
+.. |Expression| replace:: :py:class:`~kiwisolver.Expression`

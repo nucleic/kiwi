@@ -6,7 +6,7 @@ Constraints definition and system solving
 .. include:: ../substitutions.sub
 
 A system in Kiwi is defined by a set of contraints that can be either
-equalities or inequalities (>= and <= only strict inequalities are not
+equalities or inequalities (>= and <= only, strict inequalities are not
 accepted), each of which can have an associated strength making more or less
 important to respect when solving the problem. The next sections will cover how
 to define those constraints and extract the result from the solver.
@@ -57,10 +57,9 @@ Now that we have some variables we can define our constraints.
                                      Constraint {x2 <= 100},
                                      Constraint {x2 >= x1 + 20},
                                      Constraint {xm == (x1 + x2) / 2}
-
                                     };
 
-The next step is to add them to our solver:
+The next step is to add them to our solver, which is an instance of |Solver|:
 
 .. tabs::
 
@@ -161,7 +160,7 @@ it and the solver will try to solve the system with it.
 
         solver.suggestValue(xm, 60)
 
-    .. code-tabs:: c++
+    .. code-tab:: c++
 
         solver.suggestValue(xm, 60);
 
@@ -190,7 +189,7 @@ below:
 
         solver.suggestValue(xm, 90);
         solver.updateVariables();
-        cout << xm.value() << ', ' << xl.value() << ', ' << xr.value();
+        std::cout << xm.value() << ", " << xl.value() << ", " << xr.value();
 
 This last update creates an infeasible situation by pushing xr further than
 100 if we keep xl where it would like to be and as a consequence we get the
@@ -201,4 +200,4 @@ Footnotes
 ---------
 
 .. [#f1] Actually there are some corner cases in which this can be violated.
-         See :ref:`basics-internal`
+         See :ref:`basics-internals`
