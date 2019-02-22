@@ -34,7 +34,7 @@ Wheels
 If you don't use Anaconda, you can install Kiwisolver pre-compiled,
 through PIP, for most common platforms::
 
-    $ pip install atom
+    $ pip install kiwisolver
 
 Compiling it yourself: The Hard Way
 -----------------------------------
