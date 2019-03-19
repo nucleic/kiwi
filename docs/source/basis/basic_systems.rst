@@ -24,9 +24,9 @@ represented by |Variable| objects which can be created as follow:
 
         from kiwisolver import Variable
 
-        x1 = kiwi.Variable('x1')
-        x2 = kiwi.Variable('x2')
-        xm = kiwi.Variable('xm')
+        x1 = Variable('x1')
+        x2 = Variable('x2')
+        xm = Variable('xm')
 
     .. code-tab:: c++
 
@@ -118,7 +118,7 @@ to. This is translated as follow:
 
     .. code-tab:: python
 
-        solver.addConstraint(x1 == 40 | "weak")
+        solver.addConstraint((x1 == 40) | "weak")
 
     .. code-tab:: c++
 
@@ -164,7 +164,7 @@ it and the solver will try to solve the system with it.
 
         solver.suggestValue(xm, 60);
 
-This gives the following solution: ``xm == 60, xl == 40, xr == 80``.
+This gives the following solution: ``xm == 60, x1 == 40, x2 == 80``.
 
 
 Solving and updating variables
@@ -183,17 +183,17 @@ below:
 
         solver.suggestValue(xm, 90)
         solver.updateVariables()
-        print(xm.value(), xl.value(), xr.value())
+        print(xm.value(), x1.value(), x2.value())
 
     .. code-tab:: c++
 
         solver.suggestValue(xm, 90);
         solver.updateVariables();
-        std::cout << xm.value() << ", " << xl.value() << ", " << xr.value();
+        std::cout << xm.value() << ", " << x1.value() << ", " << x2.value();
 
-This last update creates an infeasible situation by pushing xr further than
-100 if we keep xl where it would like to be and as a consequence we get the
-following solution: ``xm == 90, xl == 80, xr == 100``
+This last update creates an infeasible situation by pushing x2 further than
+100 if we keep x1 where it would like to be and as a consequence we get the
+following solution: ``xm == 90, x1 == 80, x2 == 100``
 
 
 Footnotes
