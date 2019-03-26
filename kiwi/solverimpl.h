@@ -44,13 +44,13 @@ class SolverImpl
 		double constant;
 	};
 
-	typedef MapType<Variable, Symbol>::Type VarMap;
+	typedef MapType<Variable, Symbol> VarMap;
 
-	typedef MapType<Symbol, Row*>::Type RowMap;
+	typedef MapType<Symbol, Row*> RowMap;
 
-	typedef MapType<Constraint, Tag>::Type CnMap;
+	typedef MapType<Constraint, Tag> CnMap;
 
-	typedef MapType<Variable, EditInfo>::Type EditMap;
+	typedef MapType<Variable, EditInfo> EditMap;
 
 	struct DualOptimizeGuard
 	{

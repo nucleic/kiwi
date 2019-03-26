@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -24,14 +24,14 @@ template<
 	typename V,
 	typename C = std::less<K>,
 	typename A = std::allocator< std::pair<K, V> > >
-class MapType
-{
-public:
-	typedef AssocVector<K, V, C, A> Type;
-	//typedef std::map<K, V, C, A> Type;
-private:
-	MapType();
-};
+using MapType = Loki::AssocVector<K, V, C, A>;
+
+// template<
+// 	typename K,
+// 	typename V,
+// 	typename C = std::less<K>,
+// 	typename A = std::allocator< std::pair<const K, V> > >
+// using MapType = std::map<K, V, C, A>;
 
 } // namespace impl
 

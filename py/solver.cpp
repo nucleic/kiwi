@@ -192,7 +192,7 @@ Solver_reset( Solver* self )
 static PyObject*
 Solver_dump( Solver* self )
 {
-	PyObjectPtr dump_str( PyUnicode_FromString( self->solver.dumps().c_str() ) );
+	cppy::ptr dump_str( PyUnicode_FromString( self->solver.dumps().c_str() ) );
 	PyObject_Print( dump_str.get(), stdout, 0 );
 	Py_RETURN_NONE;
 }

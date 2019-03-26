@@ -22,7 +22,7 @@ class Row
 
 public:
 
-	typedef MapType<Symbol, double>::Type CellMap;
+	typedef MapType<Symbol, double> CellMap;
 
 	Row() : m_constant( 0.0 ) {}
 

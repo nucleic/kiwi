@@ -82,7 +82,9 @@ widgets should be in contact.
 When generating the constraints, `hbox` will be passed the container and use
 the spacers to generate the constraints by simply glueing the anchors of
 surrounding widgets. Each spacer can generate multiple constraints which gives
-this process a lot of flexibility.
+this process a lot of flexibility. Furthermore, those helpers define the same
+variable as the widgets allowing for to position groups with respect to one
+another.
 
 .. note::
 
