@@ -170,3 +170,27 @@ Those classes are used internally in constraints and are created automatically
 by the library. A |Term| represents a variable/symbol and the coefficient that
 multiplies it, |Expression| represents a sum of terms and a constant value and
 is used as the left hand side of a constraint.
+
+
+Performance implementation tricks
+---------------------------------
+
+Map type
+^^^^^^^^
+
+Kiwi uses maps to represent the state of the solver and to manipulate it. As a
+consequence the map type should be fast, with a particular emphasis on
+iteration. The C++ standard library provides unordered_map and map that could
+be used in kiwi, but none of those are very friendly to the CPU cache. For
+this reason, Kiwi uses the AssocVector class implemented in Loki (slightly
+updated to respect c++11 standards). The use of this class provides a 2x
+speedups over std::map.
+
+
+Symbol representation
+^^^^^^^^^^^^^^^^^^^^^
+
+Symbol are used in Kiwi to represent the state of the solver. Since solving the
+system requires a large number of manipulation of the symbols the operations
+have to compile down to an efficient representation. In Kiwi, symbols compile
+down to long long meaning that a vector of them fits in a CPU cache line.
