@@ -185,6 +185,12 @@ void dump( const T& value )
 }
 
 template<typename T>
+void dump( const T& value, std::ostream& out )
+{
+	impl::DebugHelper::dump( value, out );
+}
+
+template<typename T>
 std::string dumps( const T& value )
 {
 	std::stringstream stream;
