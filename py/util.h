@@ -51,7 +51,7 @@ convert_pystr_to_str( PyObject* value, std::string& out )
     {
         PythonHelpers::PyObjectPtr py_str( PyUnicode_AsUTF8String( value ) );
         if( !py_str )
-             return false;  //LCOV_EXCL_LINE
+             return false;  // LCOV_EXCL_LINE
         out = PyString_AS_STRING( py_str.get() );
     }
     else

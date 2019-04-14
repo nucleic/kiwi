@@ -5,3 +5,5 @@
 build/
 dist/
 kiwisolver.egg-info/
+
+.vscode

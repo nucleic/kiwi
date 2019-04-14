@@ -195,8 +195,15 @@ Solver_reset( Solver* self )
 static PyObject*
 Solver_dump( Solver* self )
 {
-	self->solver.dump();
+	PyObjectPtr dump_str( PyUnicode_FromString( self->solver.dumps().c_str() ) );
+	PyObject_Print( dump_str.get(), stdout, 0 );
 	Py_RETURN_NONE;
+}
+
+static PyObject*
+Solver_dumps( Solver* self )
+{
+	return PyUnicode_FromString( self->solver.dumps().c_str() );
 }
 
 static PyMethodDef
@@ -221,6 +228,8 @@ Solver_methods[] = {
 	  "Reset the solver to the initial empty starting condition." },
 	{ "dump", ( PyCFunction )Solver_dump, METH_NOARGS,
 	  "Dump a representation of the solver internals to stdout." },
+	{ "dumps", ( PyCFunction )Solver_dumps, METH_NOARGS,
+	  "Dump a representation of the solver internals to a string." },
 	{ 0 } // sentinel
 };
 

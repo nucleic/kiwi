@@ -48,7 +48,7 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 #endif
 		std::string c_name;
 		if( !convert_pystr_to_str(name, c_name) )
-			return 0;  //LCOV_EXCL_LINE
+			return 0;  // LCOV_EXCL_LINE
 		new( &self->variable ) kiwi::Variable( c_name );
 	}
 	else

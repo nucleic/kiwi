@@ -150,6 +150,22 @@ public:
 		debug::dump( m_impl );
 	}
 
+	/* Dump a representation of the solver internals to a stream.
+
+	*/
+	void dump( std::ostream& out )
+	{
+		debug::dump( m_impl, out );
+	}
+
+	/* Dump a representation of the solver internals to a string.
+
+	*/
+	std::string dumps()
+	{
+		return debug::dumps( m_impl );
+	}
+
 private:
 
 	Solver( const Solver& );
