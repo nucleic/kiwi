@@ -50,7 +50,7 @@ as simple as::
 .. note::
 
     For MacOSX users on OSX Mojave, one needs to set MACOSX_DEPLOYMENT_TARGET
-    to higher than 10.9 to force teh compiler to use the new C++ stdlib::
+    to higher than 10.9 to force the compiler to use the new C++ stdlib::
 
         $ export MACOSX_DEPLOYMENT_TARGET=10.10
 

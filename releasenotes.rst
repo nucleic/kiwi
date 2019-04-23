@@ -1,7 +1,7 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.0.2 | Solver 1.0.1 | unreleased
+Wrappers 1.1.0 | Solver 1.1.0 | unreleased
 ------------------------------------------
 - prevent attempting a dual optimize on a dummy row PR #56 closes #15
 - add ``dump`` and ``dumps`` methods to inspect the internal state of the
