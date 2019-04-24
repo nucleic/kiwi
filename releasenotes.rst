@@ -1,7 +1,7 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.1.0 | Solver 1.1.0 | unreleased
+Wrappers 1.1.0 | Solver 1.1.0 | 04/24/2019
 ------------------------------------------
 - prevent attempting a dual optimize on a dummy row PR #56 closes #15
 - add ``dump`` and ``dumps`` methods to inspect the internal state of the
@@ -9,7 +9,7 @@ Wrappers 1.1.0 | Solver 1.1.0 | unreleased
 - test on Python 3.7 PR #51
 - improvemnts to setup.py and tests PR #46 #50
 
-Wrappers 1.0.1 | Solver 1.0.0 | 24/10/2017
+Wrappers 1.0.1 | Solver 1.0.0 | 10/24/2017
 ------------------------------------------
 - allow unicode strings for variable name in Python 2
 - allow unicode strings as strength specifiers in Python 2
