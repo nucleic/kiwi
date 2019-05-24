@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,14 +7,18 @@
 |----------------------------------------------------------------------------*/
 #include <algorithm>
 #include <sstream>
-#include <Python.h>
 #include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"
 #include "util.h"
 
+namespace kiwisolver
+{
 
-static PyObject*
+namespace
+{
+
+PyObject*
 Constraint_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     static const char *kwlist[] = { "expression", "op", "strength", 0 };
@@ -46,14 +50,14 @@ Constraint_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 Constraint_clear( Constraint* self )
 {
     Py_CLEAR( self->expression );
 }
 
 
-static int
+int
 Constraint_traverse( Constraint* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->expression );
@@ -61,7 +65,7 @@ Constraint_traverse( Constraint* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 Constraint_dealloc( Constraint* self )
 {
     PyObject_GC_UnTrack( self );
@@ -71,7 +75,7 @@ Constraint_dealloc( Constraint* self )
 }
 
 
-static PyObject*
+PyObject*
 Constraint_repr( Constraint* self )
 {
     std::stringstream stream;
@@ -103,14 +107,14 @@ Constraint_repr( Constraint* self )
 }
 
 
-static PyObject*
+PyObject*
 Constraint_expression( Constraint* self )
 {
     return cppy::incref( self->expression );
 }
 
 
-static PyObject*
+PyObject*
 Constraint_op( Constraint* self )
 {
     PyObject* res = 0;
@@ -130,14 +134,14 @@ Constraint_op( Constraint* self )
 }
 
 
-static PyObject*
+PyObject*
 Constraint_strength( Constraint* self )
 {
     return PyFloat_FromDouble( self->constraint.strength() );
 }
 
 
-static PyObject*
+PyObject*
 Constraint_or( PyObject* pyoldcn, PyObject* value )
 {
     if( !Constraint::TypeCheck( pyoldcn ) )
@@ -145,7 +149,7 @@ Constraint_or( PyObject* pyoldcn, PyObject* value )
     double strength;
     if( !convert_to_strength( value, strength ) )
         return 0;
-    PyObject* pynewcn = PyType_GenericNew( &Constraint_Type, 0, 0 );
+    PyObject* pynewcn = PyType_GenericNew( Constraint::TypeObject, 0, 0 );
     if( !pynewcn )
         return 0;
     Constraint* oldcn = reinterpret_cast<Constraint*>( pyoldcn );
@@ -168,98 +172,47 @@ Constraint_methods[] = {
 };
 
 
-static PyNumberMethods
-Constraint_as_number = {
-    0,                          /* nb_add */
-    0,                          /* nb_subtract */
-    0,                          /* nb_multiply */
-    0,                          /* nb_remainder */
-    0,                          /* nb_divmod */
-    0,                          /* nb_power */
-    0,                          /* nb_negative */
-    0,                          /* nb_positive */
-    0,                          /* nb_absolute */
-    0,                          /* nb_bool */
-    0,                          /* nb_invert */
-    0,                          /* nb_lshift */
-    0,                          /* nb_rshift */
-    0,                          /* nb_and */
-    0,                          /* nb_xor */
-    (binaryfunc)Constraint_or,  /* nb_or */
-    0,                          /* nb_int */
-    0,                          /* nb_long */
-    0,                          /* nb_float */
-    0,                          /* nb_inplace_add */
-    0,                          /* nb_inplace_subtract */
-    0,                          /* nb_inplace_multiply */
-    0,                          /* nb_inplace_remainder */
-    0,                          /* nb_inplace_power */
-    0,                          /* nb_inplace_lshift */
-    0,                          /* nb_inplace_rshift */
-    0,                          /* nb_inplace_and */
-    0,                          /* nb_inplace_xor */
-    0,                          /* nb_inplace_or */
-    (binaryfunc)0,              /* nb_floor_divide */
-    (binaryfunc)0,              /* nb_true_divide */
-    0,                          /* nb_inplace_floor_divide */
-    0,                          /* nb_inplace_true_divide */
-    (unaryfunc)0,               /* nb_index */
-	(binaryfunc)0,              /* nb_matrix_multiply */
-	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
+PyType_Slot Constraint_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( Constraint_dealloc ) },      /* tp_dealloc */
+    { Py_tp_traverse, void_cast( Constraint_traverse ) },    /* tp_traverse */
+    { Py_tp_clear, void_cast( Constraint_clear ) },          /* tp_clear */
+    { Py_tp_repr, void_cast( Constraint_repr ) },            /* tp_repr */
+    { Py_tp_methods, void_cast( Constraint_methods ) },      /* tp_methods */
+    { Py_tp_new, void_cast( Constraint_new ) },              /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },       /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },            /* tp_free */
+    { Py_nb_or, void_cast( Constraint_or ) },                /* nb_or */
+    { 0, 0 },
 };
 
 
-PyTypeObject Constraint_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    "kiwisolver.Constraint",                /* tp_name */
-    sizeof( Constraint ),                   /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)Constraint_dealloc,         /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-    ( PyAsyncMethods* )0,                   /* tp_as_async */
-    (reprfunc)Constraint_repr,              /* tp_repr */
-    (PyNumberMethods*)&Constraint_as_number,/* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)0,                         /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE, /* tp_flags */
-    0,                                      /* Documentation string */
-    (traverseproc)Constraint_traverse,      /* tp_traverse */
-    (inquiry)Constraint_clear,              /* tp_clear */
-    (richcmpfunc)0,                         /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)Constraint_methods,/* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)0,                        /* tp_descr_get */
-    (descrsetfunc)0,                        /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)Constraint_new,                /* tp_new */
-    (freefunc)PyObject_GC_Del,              /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
+} // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* Constraint::TypeObject = NULL;
+
+
+PyType_Spec Constraint::TypeObject_Spec = {
+	"kiwisolver.Constraint",             /* tp_name */
+	sizeof( Constraint ),                /* tp_basicsize */
+	0,                                   /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT|
+    Py_TPFLAGS_HAVE_GC|
+    Py_TPFLAGS_BASETYPE,                 /* tp_flags */
+    Constraint_Type_slots                /* slots */
 };
 
 
-int import_constraint()
+bool Constraint::Ready()
 {
-    return PyType_Ready( &Constraint_Type );
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
 }
+
+}  // namespace kiwisolver

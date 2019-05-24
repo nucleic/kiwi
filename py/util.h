@@ -8,11 +8,13 @@
 #pragma once
 #include <map>
 #include <string>
-#include <Python.h>
 #include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"
 
+
+namespace kiwisolver
+{
 
 inline bool
 convert_to_double( PyObject* obj, double& out )
@@ -68,7 +70,7 @@ convert_to_strength( PyObject* value, double& out )
             );
             return false;
         }
-        return true; 
+        return true;
     }
     if( !convert_to_double( value, out ) )
         return false;
@@ -121,7 +123,7 @@ make_terms( const std::map<PyObject*, double>& coeffs )
     iter_t end = coeffs.end();
     for( ; it != end; ++it, ++i )
     {
-        PyObject* pyterm = PyType_GenericNew( &Term_Type, 0, 0 );
+        PyObject* pyterm = PyType_GenericNew( Term::TypeObject, 0, 0 );
         if( !pyterm )
             return 0;
         Term* term = reinterpret_cast<Term*>( pyterm );
@@ -148,7 +150,7 @@ reduce_expression( PyObject* pyexpr )  // pyexpr must be an Expression
     cppy::ptr terms( make_terms( coeffs ) );
     if( !terms )
         return 0;
-    PyObject* pynewexpr = PyType_GenericNew( &Expression_Type, 0, 0 );
+    PyObject* pynewexpr = PyType_GenericNew( Expression::TypeObject, 0, 0 );
     if( !pynewexpr )
         return 0;
     Expression* newexpr = reinterpret_cast<Expression*>( pynewexpr );
@@ -196,3 +198,6 @@ pyop_str( int op )
             return "";
     }
 }
+
+
+}  // namespace kiwisolver

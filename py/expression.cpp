@@ -1,19 +1,24 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <sstream>
-#include <Python.h>
 #include <cppy/cppy.h>
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
 
 
-static PyObject*
+namespace kiwisolver
+{
+
+namespace
+{
+
+PyObject*
 Expression_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     static const char *kwlist[] = { "terms", "constant", 0 };
@@ -46,14 +51,14 @@ Expression_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 Expression_clear( Expression* self )
 {
     Py_CLEAR( self->terms );
 }
 
 
-static int
+int
 Expression_traverse( Expression* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->terms );
@@ -61,7 +66,7 @@ Expression_traverse( Expression* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 Expression_dealloc( Expression* self )
 {
     PyObject_GC_UnTrack( self );
@@ -70,7 +75,7 @@ Expression_dealloc( Expression* self )
 }
 
 
-static PyObject*
+PyObject*
 Expression_repr( Expression* self )
 {
     std::stringstream stream;
@@ -88,21 +93,21 @@ Expression_repr( Expression* self )
 }
 
 
-static PyObject*
+PyObject*
 Expression_terms( Expression* self )
 {
     return cppy::incref( self->terms );
 }
 
 
-static PyObject*
+PyObject*
 Expression_constant( Expression* self )
 {
     return PyFloat_FromDouble( self->constant );
 }
 
 
-static PyObject*
+PyObject*
 Expression_value( Expression* self )
 {
     double result = self->constant;
@@ -118,42 +123,42 @@ Expression_value( Expression* self )
 }
 
 
-static PyObject*
+PyObject*
 Expression_add( PyObject* first, PyObject* second )
 {
     return BinaryInvoke<BinaryAdd, Expression>()( first, second );
 }
 
 
-static PyObject*
+PyObject*
 Expression_sub( PyObject* first, PyObject* second )
 {
     return BinaryInvoke<BinarySub, Expression>()( first, second );
 }
 
 
-static PyObject*
+PyObject*
 Expression_mul( PyObject* first, PyObject* second )
 {
     return BinaryInvoke<BinaryMul, Expression>()( first, second );
 }
 
 
-static PyObject*
+PyObject*
 Expression_div( PyObject* first, PyObject* second )
 {
     return BinaryInvoke<BinaryDiv, Expression>()( first, second );
 }
 
 
-static PyObject*
+PyObject*
 Expression_neg( PyObject* value )
 {
     return UnaryInvoke<UnaryNeg, Expression>()( value );
 }
 
 
-static PyObject*
+PyObject*
 Expression_richcmp( PyObject* first, PyObject* second, int op )
 {
     switch( op )
@@ -191,98 +196,52 @@ Expression_methods[] = {
 };
 
 
-static PyNumberMethods
-Expression_as_number = {
-    (binaryfunc)Expression_add, /* nb_add */
-    (binaryfunc)Expression_sub, /* nb_subtract */
-    (binaryfunc)Expression_mul, /* nb_multiply */
-    0,                          /* nb_remainder */
-    0,                          /* nb_divmod */
-    0,                          /* nb_power */
-    (unaryfunc)Expression_neg,  /* nb_negative */
-    0,                          /* nb_positive */
-    0,                          /* nb_absolute */
-    0,                          /* nb_bool */
-    0,                          /* nb_invert */
-    0,                          /* nb_lshift */
-    0,                          /* nb_rshift */
-    0,                          /* nb_and */
-    0,                          /* nb_xor */
-    (binaryfunc)0,              /* nb_or */
-    0,                          /* nb_int */
-    (void *)0,                  /* nb_reserved */
-    0,                          /* nb_float */
-    0,                          /* nb_inplace_add */
-    0,                          /* nb_inplace_subtract */
-    0,                          /* nb_inplace_multiply */
-    0,                          /* nb_inplace_remainder */
-    0,                          /* nb_inplace_power */
-    0,                          /* nb_inplace_lshift */
-    0,                          /* nb_inplace_rshift */
-    0,                          /* nb_inplace_and */
-    0,                          /* nb_inplace_xor */
-    0,                          /* nb_inplace_or */
-    (binaryfunc)0,              /* nb_floor_divide */
-    (binaryfunc)Expression_div, /* nb_true_divide */
-    0,                          /* nb_inplace_floor_divide */
-    0,                          /* nb_inplace_true_divide */
-    (unaryfunc)0,               /* nb_index */
-	(binaryfunc)0,              /* nb_matrix_multiply */
-	(binaryfunc)0,              /* nb_inplace_matrix_multiply */
+PyType_Slot Expression_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( Expression_dealloc ) },      /* tp_dealloc */
+    { Py_tp_traverse, void_cast( Expression_traverse ) },    /* tp_traverse */
+    { Py_tp_clear, void_cast( Expression_clear ) },          /* tp_clear */
+    { Py_tp_repr, void_cast( Expression_repr ) },            /* tp_repr */
+    { Py_tp_richcompare, void_cast( Expression_richcmp ) },  /* tp_richcompare */
+    { Py_tp_methods, void_cast( Expression_methods ) },      /* tp_methods */
+    { Py_tp_new, void_cast( Expression_new ) },              /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },       /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },            /* tp_free */
+    { Py_nb_add, void_cast( Expression_add ) },              /* nb_add */
+    { Py_nb_subtract, void_cast( Expression_sub ) },         /* nb_sub */
+    { Py_nb_multiply, void_cast( Expression_mul ) },         /* nb_mul */
+    { Py_nb_negative, void_cast( Expression_neg ) },         /* nb_neg */
+    { Py_nb_true_divide, void_cast( Expression_div ) },      /* nb_div */
+    { 0, 0 },
 };
 
 
-PyTypeObject Expression_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    "kiwisolver.Expression",                /* tp_name */
-    sizeof( Expression ),                   /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)Expression_dealloc,         /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-    ( PyAsyncMethods* )0,                   /* tp_as_async */
-    (reprfunc)Expression_repr,              /* tp_repr */
-    (PyNumberMethods*)&Expression_as_number,/* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)0,                         /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE,
-    0,                                      /* Documentation string */
-    (traverseproc)Expression_traverse,      /* tp_traverse */
-    (inquiry)Expression_clear,              /* tp_clear */
-    (richcmpfunc)Expression_richcmp,        /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)Expression_methods,/* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)0,                        /* tp_descr_get */
-    (descrsetfunc)0,                        /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)Expression_new,                /* tp_new */
-    (freefunc)PyObject_GC_Del,              /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
+} // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* Expression::TypeObject = NULL;
+
+
+PyType_Spec Expression::TypeObject_Spec = {
+	"kiwisolver.Expression",             /* tp_name */
+	sizeof( Expression ),                /* tp_basicsize */
+	0,                                   /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT|
+    Py_TPFLAGS_HAVE_GC|
+    Py_TPFLAGS_BASETYPE,                 /* tp_flags */
+    Expression_Type_slots                /* slots */
 };
 
 
-int import_expression()
+bool Expression::Ready()
 {
-    return PyType_Ready( &Expression_Type );
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
 }
+
+}  // namesapce kiwisolver

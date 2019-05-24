@@ -1,16 +1,18 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
-#include <Python.h>
 #include <cppy/cppy.h>
 #include "types.h"
 #include "util.h"
 
+
+namespace kiwisolver
+{
 
 template<typename Op, typename T>
 struct UnaryInvoke
@@ -86,7 +88,7 @@ struct BinaryMul
 template<> inline
 PyObject* BinaryMul::operator()( Variable* first, double second )
 {
-	PyObject* pyterm = PyType_GenericNew( &Term_Type, 0, 0 );
+	PyObject* pyterm = PyType_GenericNew( Term::TypeObject, 0, 0 );
 	if( !pyterm )
 		return 0;
 	Term* term = reinterpret_cast<Term*>( pyterm );
@@ -99,7 +101,7 @@ PyObject* BinaryMul::operator()( Variable* first, double second )
 template<> inline
 PyObject* BinaryMul::operator()( Term* first, double second )
 {
-	PyObject* pyterm = PyType_GenericNew( &Term_Type, 0, 0 );
+	PyObject* pyterm = PyType_GenericNew( Term::TypeObject, 0, 0 );
 	if( !pyterm )
 		return 0;
 	Term* term = reinterpret_cast<Term*>( pyterm );
@@ -112,7 +114,7 @@ PyObject* BinaryMul::operator()( Term* first, double second )
 template<> inline
 PyObject* BinaryMul::operator()( Expression* first, double second )
 {
-	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( Expression::TypeObject, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -247,7 +249,7 @@ struct BinaryAdd
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Expression* second )
 {
-	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( Expression::TypeObject, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -262,7 +264,7 @@ PyObject* BinaryAdd::operator()( Expression* first, Expression* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, Term* second )
 {
-	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( Expression::TypeObject, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	PyObject* terms = PyTuple_New( PyTuple_GET_SIZE( first->terms ) + 1 );
@@ -295,7 +297,7 @@ PyObject* BinaryAdd::operator()( Expression* first, Variable* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Expression* first, double second )
 {
-	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( Expression::TypeObject, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -308,7 +310,7 @@ PyObject* BinaryAdd::operator()( Expression* first, double second )
 template<> inline
 PyObject* BinaryAdd::operator()( Term* first, double second )
 {
-	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( Expression::TypeObject, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -330,7 +332,7 @@ PyObject* BinaryAdd::operator()( Term* first, Expression* second )
 template<> inline
 PyObject* BinaryAdd::operator()( Term* first, Term* second )
 {
-	cppy::ptr pyexpr( PyType_GenericNew( &Expression_Type, 0, 0 ) );
+	cppy::ptr pyexpr( PyType_GenericNew( Expression::TypeObject, 0, 0 ) );
 	if( !pyexpr )
 		return 0;
 	Expression* expr = reinterpret_cast<Expression*>( pyexpr.get() );
@@ -570,7 +572,7 @@ PyObject* makecn( T first, U second, kiwi::RelationalOperator op )
 	cppy::ptr pyexpr( BinarySub()( first, second ) );
 	if( !pyexpr )
 		return 0;
-	cppy::ptr pycn( PyType_GenericNew( &Constraint_Type, 0, 0 ) );
+	cppy::ptr pycn( PyType_GenericNew( Constraint::TypeObject, 0, 0 ) );
 	if( !pycn )
 		return 0;
 	Constraint* cn = reinterpret_cast<Constraint*>( pycn.get() );
@@ -611,3 +613,6 @@ struct CmpGE
 		return makecn( first, second, kiwi::OP_GE );
 	}
 };
+
+
+}  // namespace kiwisolver
