@@ -68,7 +68,7 @@ it on the `Issue Tracker`_.
 Checking your install
 ---------------------
 
-Once you installed kiwisolver you should be able to import as follows:
+Once you installed kiwisolver you should be able to import it as follows:
 
 .. code:: python
 
