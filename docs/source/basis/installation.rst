@@ -63,3 +63,25 @@ with MSVC, Clang, GCC, and MinGW. If you encounter a bug, please report
 it on the `Issue Tracker`_.
 
 .. _Issue Tracker: http://github.com/nucleic/enaml/issues
+
+
+Checking your install
+---------------------
+
+Once you installed kiwisolver you should be able to import it as follows:
+
+.. code:: python
+
+    import kiwisolver
+
+.. note::
+
+    On Windows, the import may fail with `ImportError: DLL load failed`. If it
+    does, it means your system is missing the Microsoft Visual C++
+    redistributable matching your Python version. To fix the issue download
+    and install the package corresponding to your Python version
+    (https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads):
+
+    - Python 2.7: Visual C++ Redistributable 2008
+    - Python 3.4: Visual C++ Redistributable 2010
+    - Python 3.5+: Visual C++ Redistributable 2015 or more recent
