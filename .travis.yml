@@ -28,7 +28,6 @@ env:
   - CPPFLAGS=--coverage
 before_install:
   - pip install --upgrade pip
-  - pip install pytest-cov
   - pip install https://github.com/nucleic/cppy/tarball/nucleic-migration
 install:
   - python setup.py develop
