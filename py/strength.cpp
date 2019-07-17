@@ -108,7 +108,7 @@ strength_methods[] = {
 
 
 
-PyType_Slot strength_Type_slots[] = {
+static PyType_Slot strength_Type_slots[] = {
     { Py_tp_dealloc, void_cast( strength_dealloc ) },      /* tp_dealloc */
     { Py_tp_getset, void_cast( strength_getset ) },        /* tp_getset */
     { Py_tp_methods, void_cast( strength_methods ) },      /* tp_methods */

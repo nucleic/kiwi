@@ -172,7 +172,7 @@ Constraint_methods[] = {
 };
 
 
-PyType_Slot Constraint_Type_slots[] = {
+static PyType_Slot Constraint_Type_slots[] = {
     { Py_tp_dealloc, void_cast( Constraint_dealloc ) },      /* tp_dealloc */
     { Py_tp_traverse, void_cast( Constraint_traverse ) },    /* tp_traverse */
     { Py_tp_clear, void_cast( Constraint_clear ) },          /* tp_clear */

@@ -236,7 +236,7 @@ Solver_methods[] = {
 };
 
 
-PyType_Slot Solver_Type_slots[] = {
+static PyType_Slot Solver_Type_slots[] = {
     { Py_tp_dealloc, void_cast( Solver_dealloc ) },      /* tp_dealloc */
     { Py_tp_methods, void_cast( Solver_methods ) },      /* tp_methods */
     { Py_tp_new, void_cast( Solver_new ) },              /* tp_new */

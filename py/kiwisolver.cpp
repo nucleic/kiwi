@@ -154,7 +154,7 @@ catom_modexec( PyObject *mod )
 }
 
 
-PyMethodDef
+static PyMethodDef
 kiwisolver_methods[] = {
     { 0 } // Sentinel
 };
