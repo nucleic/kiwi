@@ -75,7 +75,6 @@ setup(
           'Programming Language :: Python :: Implementation :: CPython',
       ],
     python_requires='>=3.5',
-    install_requires=['setuptools'],
     setup_requires=['cppy'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
