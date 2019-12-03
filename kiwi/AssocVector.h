@@ -12,7 +12,7 @@
 //     suitability of this software for any purpose. It is provided "as is"
 //     without express or implied warranty.
 ////////////////////////////////////////////////////////////////////////////////
-// Updated 2019 by Matthieu Dartiialh for C++11 compliancy
+// Updated 2019 by Matthieu Dartiailh for C++11 compliancy
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
