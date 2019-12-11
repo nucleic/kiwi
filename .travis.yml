@@ -16,15 +16,6 @@ branches:
 
 jobs:
   include:
-  - name: "run test suite with python 2.7"
-    python: 2.7
-    dist: trusty
-  - name: "run test suite with python 3.4"
-    python: 3.4
-    dist: trusty
-  - name: "run test suite with python 3.5"
-    python: 3.5
-    dist: trusty
   - name: "run test suite with python 3.6"
     python: 3.6
   - name: "run test suite with python 3.7"
@@ -36,6 +27,7 @@ env:
   - CPPFLAGS=--coverage
 before_install:
   - pip install --upgrade pip
+  - pip install https://github.com/nucleic/cppy/tarball/master
 install:
   - python setup.py develop
 script:

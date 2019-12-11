@@ -52,7 +52,7 @@ def test_constraint_creation2():
 
     with pytest.raises(TypeError) as excinfo:
         Constraint(v + 1, 1)
-    assert "unicode" in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
     with pytest.raises(ValueError) as excinfo:
         Constraint(v + 1, '!=')

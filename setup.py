@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import sys
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
@@ -35,20 +36,29 @@ class BuildExt(build_ext):
 
     """
     c_opts = {
-        'msvc': ['/EHsc']
+        'msvc': ['/EHsc', '/std:c++11'],
+        'unix': ['-std=c++11']
     }
 
     def build_extensions(self):
+
+        # Delayed import of cppy to let setup_requires install it if necessary
+        import cppy
+
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
         for ext in self.extensions:
+            ext.include_dirs.insert(0, cppy.get_include())
             ext.extra_compile_args = opts
+            if sys.platform == 'darwin':
+                ext.extra_compile_args += ['-stdlib=libc++']
+                ext.extra_link_args += ['-stdlib=libc++']
         build_ext.build_extensions(self)
 
 
 setup(
     name='kiwisolver',
-    version='1.1.0',
+    version='1.2.0.dev',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
@@ -58,17 +68,14 @@ setup(
     classifiers=[
           # https://pypi.org/pypi?%3Aaction=list_classifiers
           'Programming Language :: Python',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: Implementation :: CPython',
       ],
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
-    install_requires=[],
+    python_requires='>=3.5',
+    setup_requires=['cppy'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
 )
