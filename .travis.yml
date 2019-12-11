@@ -27,7 +27,7 @@ env:
   - CPPFLAGS=--coverage
 before_install:
   - pip install --upgrade pip
-  - pip install https://github.com/nucleic/cppy/tarball/nucleic-migration
+  - pip install https://github.com/nucleic/cppy/tarball/master
 install:
   - python setup.py develop
 script:

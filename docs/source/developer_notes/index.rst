@@ -21,10 +21,9 @@ relies on cppy (https://github.com/nucleic/cppy). Kiwisolver tries to use a
 reasonably modern C API and to support sub-interpreter, this has a couple of
 consequences:
 
-- static variables use is limited to cases that cannot lead to state leakage
-  between multiple sub-interpreters
 - all the non exported symbol are enclosed in anonymous namespaces
 - kiwisolver does not use static types and only dynamical types (note that the
   type slots and related structures are stored in a static variable)
 - modules use the multi-phases initialization mechanism as defined in
   PEP 489 -- Multi-phase extension module initialization
+- static variables use is limited to type slots, method def
