@@ -3,14 +3,13 @@ include LICENSE
 include README.rst
 include releasenotes.rst
 recursive-include kiwi *.h
-recursive-include py *.cpp *.h
+recursive-include py *.cpp *.h *.py
 recursive-include docs/source *.rst
 recursive-include docs/source *.png
 recursive-include docs/source *.py
 recursive-include docs/source *.svg
 recursive docs/make.bat
 recursive docs/Makefile
-recursive-include tests *.py
 prune .git
 prune dist
 prune build
