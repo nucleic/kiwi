@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2020, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -58,7 +58,7 @@ class BuildExt(build_ext):
 
 setup(
     name='kiwisolver',
-    version='1.2.0.dev',
+    version='1.2.0',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
@@ -72,10 +72,11 @@ setup(
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: Implementation :: CPython',
       ],
     python_requires='>=3.5',
-    setup_requires=['cppy'],
+    setup_requires=['cppy>=1.2.0'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
 )

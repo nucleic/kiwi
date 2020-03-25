@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'kiwisolver'
-copyright = '2018, Nucleic team'
+copyright = '2018-2020, Nucleic team'
 author = 'Nucleic team'
 
 # The short X.Y version
-version = ''
+version = '1.2'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '1.2.0'
 
 
 # -- General configuration ---------------------------------------------------
