@@ -94,7 +94,7 @@ of cassowary they are "required" constraints.
 .. note::
 
     Cassowary (and Kiwi) supports to have redundant constraints, meaning that
-    even if having two constraints (x == 10, x+y == 30) is equivalent to a
+    even if having two constraints (x == 10, x + y == 30) is equivalent to a
     third one (y == 20), all three can be added to the solver without issue.
 
     However, one should not add multiple times the same constraint (in the same
@@ -122,7 +122,7 @@ to. This is translated as follow:
 
     .. code-tab:: c++
 
-        solver.addConstraint(x1 == 40, strength::weak);
+        solver.addConstraint(x1 == 40 | strength::weak);
 
 
 Adding edit variables
