@@ -7,3 +7,4 @@ dist/
 kiwisolver.egg-info/
 .eggs
 .vscode
+.mypy_cache

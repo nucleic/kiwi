@@ -16,12 +16,6 @@ branches:
 
 jobs:
   include:
-  - name: "run test suite with python 3.6"
-    python: 3.6
-  - name: "run test suite with python 3.7"
-    python: 3.7
-  - name: "run test suite with python 3.8"
-    python: 3.8
   - name: "run test suite with python 3.6 on ARM64"
     arch: arm64
     python: 3.6
@@ -40,7 +34,7 @@ before_install:
 install:
   - python setup.py develop
 script:
-  - py.test py/tests
+  - python -m pytest py/tests
 after_success:
   - lcov --capture --directory . --output-file coverage.info
   - lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter system-files
