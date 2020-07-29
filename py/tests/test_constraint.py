@@ -28,7 +28,7 @@ def test_constraint_creation(op):
     assert (e.constant() == 1 and
             len(t) == 1 and t[0].variable() is v and t[0].coefficient() == 1)
 
-    constraint_format = '1 \* foo \+ 1 %s 0 | strength = 1.001e\+[0]+9' % op
+    constraint_format = r'1 \* foo \+ 1 %s 0 | strength = 1.001e\+[0]+9' % op
     assert re.match(constraint_format, str(c))
 
     for s in ('weak', 'medium', 'strong', 'required'):
