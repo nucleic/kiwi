@@ -74,7 +74,7 @@ Expression operator*( const Expression& expression, double coefficient )
 	iter_t end = expression.terms().end();
 	for( iter_t it = begin; it != end; ++it )
 		terms.push_back( ( *it ) * coefficient );
-	return Expression( terms, expression.constant() * coefficient );
+	return Expression( std::move(terms), expression.constant() * coefficient );
 }
 
 
@@ -124,7 +124,7 @@ Expression operator+( const Expression& first, const Expression& second )
 	terms.reserve( first.terms().size() + second.terms().size() );
 	terms.insert( terms.begin(), first.terms().begin(), first.terms().end() );
 	terms.insert( terms.end(), second.terms().begin(), second.terms().end() );
-	return Expression( terms, first.constant() + second.constant() );
+	return Expression( std::move(terms), first.constant() + second.constant() );
 }
 
 
@@ -135,7 +135,7 @@ Expression operator+( const Expression& first, const Term& second )
 	terms.reserve( first.terms().size() + 1 );
 	terms.insert( terms.begin(), first.terms().begin(), first.terms().end() );
 	terms.push_back( second );
-	return Expression( terms, first.constant() );
+	return Expression( std::move(terms), first.constant() );
 }
 
 

@@ -20,9 +20,13 @@ public:
 
     Expression(const Term &term, double constant = 0.0) : m_terms(1, term), m_constant(constant) {}
 
-    Expression(const std::vector<Term> &terms, double constant = 0.0) : m_terms(terms), m_constant(constant) {}
+    Expression(std::vector<Term> terms, double constant = 0.0) : m_terms(std::move(terms)), m_constant(constant) {}
 
-    ~Expression() {}
+    Expression(const Expression&) = default;
+
+    Expression(Expression&&) = default;
+
+    ~Expression() = default;
 
     const std::vector<Term> &terms() const
     {
@@ -43,6 +47,10 @@ public:
             result += it->value();
         return result;
     }
+
+    Expression& operator=(const Expression&) = default;
+
+    Expression& operator=(Expression&&) = default;
 
 private:
     std::vector<Term> m_terms;

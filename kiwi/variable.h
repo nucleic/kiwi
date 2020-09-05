@@ -30,7 +30,11 @@ public:
 
     Variable(const char *name, Context *context = 0) : m_data(new VariableData(name, context)) {}
 
-    ~Variable() {}
+    Variable(const Variable&) = default;
+
+    Variable(Variable&&) = default;
+
+    ~Variable() = default;
 
     const std::string &name() const
     {
@@ -73,6 +77,10 @@ public:
         return m_data == other.m_data;
     }
 
+    Variable& operator=(const Variable&) = default;
+
+    Variable& operator=(Variable&&) = default;
+
 private:
     class VariableData : public SharedData
     {
@@ -88,7 +96,7 @@ private:
                                                            m_context(context),
                                                            m_value(0.0) {}
 
-        ~VariableData() {}
+        ~VariableData() = default;
 
         std::string m_name;
         std::unique_ptr<Context> m_context;

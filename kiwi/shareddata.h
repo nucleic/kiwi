@@ -108,6 +108,11 @@ public:
         incref(m_data);
     }
 
+    SharedDataPtr(SharedDataPtr&& other) : m_data(other.m_data)
+    {
+        other.m_data = nullptr;
+    }
+
     SharedDataPtr<T> &operator=(const SharedDataPtr<T> &other)
     {
         if (m_data != other.m_data)
@@ -116,6 +121,18 @@ public:
             m_data = other.m_data;
             incref(m_data);
             decref(temp);
+        }
+        return *this;
+    }
+
+    SharedDataPtr<T>& operator=(SharedDataPtr<T>&& other)
+    {
+        if (m_data != other.m_data)
+        {
+            decref(m_data);
+
+            m_data = other.m_data;
+            other.m_data = nullptr;
         }
         return *this;
     }
