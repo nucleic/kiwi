@@ -74,7 +74,7 @@ public:
     {
         m_constant += other.m_constant * coefficient;
 
-        for (const auto& cellPair : other.m_cells)
+        for (const auto & cellPair : other.m_cells)
         {
             double coeff = cellPair.second * coefficient;
             if (nearZero(m_cells[cellPair.first] += coeff))

@@ -54,7 +54,7 @@ public:
 
     static void dump(const SolverImpl::RowMap &rows, std::ostream &out)
     {
-        for (const auto& rowPair : rows)
+        for (const auto & rowPair : rows)
         {
             dump(rowPair.first, out);
             out << " | ";
@@ -64,7 +64,7 @@ public:
 
     static void dump(const std::vector<Symbol> &symbols, std::ostream &out)
     {
-        for (const auto& symbol : symbols)
+        for (const auto & symbol : symbols)
         {
             dump(symbol, out);
             out << std::endl;
@@ -73,7 +73,7 @@ public:
 
     static void dump(const SolverImpl::VarMap &vars, std::ostream &out)
     {
-        for (const auto& varPair : vars)
+        for (const auto & varPair : vars)
         {
             out << varPair.first.name() << " = ";
             dump(varPair.second, out);
@@ -83,19 +83,19 @@ public:
 
     static void dump(const SolverImpl::CnMap &cns, std::ostream &out)
     {
-        for (const auto& cnPair : cns)
+        for (const auto & cnPair : cns)
             dump(cnPair.first, out);
     }
 
     static void dump(const SolverImpl::EditMap &edits, std::ostream &out)
     {
-        for (const auto& editPair : edits)
+        for (const auto & editPair : edits)
             out << editPair.first.name() << std::endl;
     }
 
     static void dump(const Row &row, std::ostream &out)
     {
-        for (const auto& rowPair : row.cells())
+        for (const auto & rowPair : row.cells())
         {
             out << " + " << rowPair.second << " * ";
             dump(rowPair.first, out);
@@ -130,7 +130,7 @@ public:
 
     static void dump(const Constraint &cn, std::ostream &out)
     {
-        for (const auto& term : cn.expression().terms())
+        for (const auto & term : cn.expression().terms())
         {
             out << term.coefficient() << " * ";
             out << term.variable().name() << " + ";

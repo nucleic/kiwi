@@ -62,7 +62,7 @@ private:
     static Expression reduce(const Expression &expr)
     {
         std::map<Variable, double> vars;
-        for (const auto& term : expr.terms())
+        for (const auto & term : expr.terms())
             vars[term.variable()] += term.coefficient();
 
         std::vector<Term> terms(vars.begin(), vars.end());
