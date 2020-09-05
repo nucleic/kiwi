@@ -67,7 +67,7 @@ private:
         for (iter_t it = expr.terms().begin(); it != end; ++it)
             vars[it->variable()] += it->coefficient();
         std::vector<Term> terms(vars.begin(), vars.end());
-        return Expression(terms, expr.constant());
+        return Expression(std::move(terms), expr.constant());
     }
 
     class ConstraintData : public SharedData
