@@ -20,9 +20,9 @@ class UnsatisfiableConstraint : public std::exception
 public:
     UnsatisfiableConstraint(const Constraint &constraint) : m_constraint(constraint) {}
 
-    ~UnsatisfiableConstraint() throw() {}
+    ~UnsatisfiableConstraint() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return "The constraint can not be satisfied.";
     }
@@ -42,9 +42,9 @@ class UnknownConstraint : public std::exception
 public:
     UnknownConstraint(const Constraint &constraint) : m_constraint(constraint) {}
 
-    ~UnknownConstraint() throw() {}
+    ~UnknownConstraint() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return "The constraint has not been added to the solver.";
     }
@@ -64,9 +64,9 @@ class DuplicateConstraint : public std::exception
 public:
     DuplicateConstraint(const Constraint &constraint) : m_constraint(constraint) {}
 
-    ~DuplicateConstraint() throw() {}
+    ~DuplicateConstraint() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return "The constraint has already been added to the solver.";
     }
@@ -86,9 +86,9 @@ class UnknownEditVariable : public std::exception
 public:
     UnknownEditVariable(const Variable &variable) : m_variable(variable) {}
 
-    ~UnknownEditVariable() throw() {}
+    ~UnknownEditVariable() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return "The edit variable has not been added to the solver.";
     }
@@ -108,9 +108,9 @@ class DuplicateEditVariable : public std::exception
 public:
     DuplicateEditVariable(const Variable &variable) : m_variable(variable) {}
 
-    ~DuplicateEditVariable() throw() {}
+    ~DuplicateEditVariable() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return "The edit variable has already been added to the solver.";
     }
@@ -130,9 +130,9 @@ class BadRequiredStrength : public std::exception
 public:
     BadRequiredStrength() {}
 
-    ~BadRequiredStrength() throw() {}
+    ~BadRequiredStrength() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return "A required strength cannot be used in this context.";
     }
@@ -148,9 +148,9 @@ public:
 
     InternalSolverError(const std::string &msg) : m_msg(msg) {}
 
-    ~InternalSolverError() throw() {}
+    ~InternalSolverError() noexcept {}
 
-    const char *what() const throw()
+    const char *what() const noexcept
     {
         return m_msg.c_str();
     }

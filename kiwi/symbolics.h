@@ -69,12 +69,11 @@ Expression operator*( const Expression& expression, double coefficient )
 {
 	std::vector<Term> terms;
 	terms.reserve( expression.terms().size() );
-	typedef std::vector<Term>::const_iterator iter_t;
-	iter_t begin = expression.terms().begin();
-	iter_t end = expression.terms().end();
-	for( iter_t it = begin; it != end; ++it )
-		terms.push_back( ( *it ) * coefficient );
-	return Expression( terms, expression.constant() * coefficient );
+
+	for (const Term& term : expression.terms())
+		terms.push_back(term * coefficient);
+
+	return Expression( std::move(terms), expression.constant() * coefficient );
 }
 
 
@@ -193,11 +192,7 @@ Expression operator+( const Term& term, const Expression& expression )
 inline
 Expression operator+( const Term& first, const Term& second )
 {
-	std::vector<Term> terms;
-	terms.reserve( 2 );
-	terms.push_back( first );
-	terms.push_back( second );
-	return Expression( terms );
+	return Expression( { first, second } );
 }
 
 

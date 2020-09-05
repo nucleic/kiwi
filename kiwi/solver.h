@@ -23,7 +23,7 @@ public:
 
 	Solver() {}
 
-	~Solver() {}
+	~Solver() = default;
 
 	/* Add a constraint to the solver.
 
