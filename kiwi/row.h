@@ -87,7 +87,7 @@ public:
 	*/
     void remove(const Symbol &symbol)
     {
-        auto it = m_cells.find(symbol);
+        CellMap::iterator it = m_cells.find(symbol);
         if (it != m_cells.end())
             m_cells.erase(it);
     }
@@ -163,7 +163,7 @@ public:
 	*/
     void substitute(const Symbol &symbol, const Row &row)
     {
-        auto it = m_cells.find(symbol);
+        CellMap::iterator it = m_cells.find(symbol);
         if (it != m_cells.end())
         {
             double coefficient = it->second;
