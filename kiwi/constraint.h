@@ -62,6 +62,10 @@ public:
         return !m_data;
     }
 
+    Constraint& operator=(const Constraint &) = default;
+
+    Constraint& operator=(Constraint &&) = default;
+
 private:
     static Expression reduce(const Expression &expr)
     {
