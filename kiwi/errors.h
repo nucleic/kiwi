@@ -18,7 +18,7 @@ class UnsatisfiableConstraint : public std::exception
 {
 
 public:
-    UnsatisfiableConstraint(const Constraint &constraint) : m_constraint(constraint) {}
+    UnsatisfiableConstraint(Constraint constraint) : m_constraint(std::move(constraint)) {}
 
     ~UnsatisfiableConstraint() throw() {}
 
@@ -40,7 +40,7 @@ class UnknownConstraint : public std::exception
 {
 
 public:
-    UnknownConstraint(const Constraint &constraint) : m_constraint(constraint) {}
+    UnknownConstraint(Constraint constraint) : m_constraint(std::move(constraint)) {}
 
     ~UnknownConstraint() throw() {}
 
@@ -62,7 +62,7 @@ class DuplicateConstraint : public std::exception
 {
 
 public:
-    DuplicateConstraint(const Constraint &constraint) : m_constraint(constraint) {}
+    DuplicateConstraint(Constraint constraint) : m_constraint(std::move(constraint)) {}
 
     ~DuplicateConstraint() throw() {}
 
@@ -84,7 +84,7 @@ class UnknownEditVariable : public std::exception
 {
 
 public:
-    UnknownEditVariable(const Variable &variable) : m_variable(variable) {}
+    UnknownEditVariable(Variable variable) : m_variable(std::move(variable)) {}
 
     ~UnknownEditVariable() throw() {}
 
@@ -106,7 +106,7 @@ class DuplicateEditVariable : public std::exception
 {
 
 public:
-    DuplicateEditVariable(const Variable &variable) : m_variable(variable) {}
+    DuplicateEditVariable(Variable variable) : m_variable(std::move(variable)) {}
 
     ~DuplicateEditVariable() throw() {}
 
@@ -146,7 +146,7 @@ public:
 
     InternalSolverError(const char *msg) : m_msg(msg) {}
 
-    InternalSolverError(const std::string &msg) : m_msg(msg) {}
+    InternalSolverError(std::string msg) : m_msg(std::move(msg)) {}
 
     ~InternalSolverError() throw() {}
 
