@@ -36,6 +36,8 @@ public:
 
     Constraint(const Constraint &other, double strength) : m_data(new ConstraintData(other, strength)) {}
 
+    Constraint(const Constraint &) = default;
+
     Constraint(Constraint &&) = default;
 
     ~Constraint() {}
