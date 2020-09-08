@@ -20,7 +20,7 @@ public:
     class Context
     {
     public:
-        Context() {}
+        Context() = default;
         virtual ~Context() {} // LCOV_EXCL_LINE
     };
 

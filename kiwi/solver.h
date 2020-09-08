@@ -21,7 +21,7 @@ class Solver
 
 public:
 
-	Solver() {}
+	Solver() = default;
 
 	~Solver() = default;
 

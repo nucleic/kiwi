@@ -22,11 +22,11 @@ class Row
 public:
     using CellMap = MapType<Symbol, double>;
 
-    Row() : m_constant(0.0) {}
+    Row() : Row(0.0) {}
 
     Row(double constant) : m_constant(constant) {}
 
-    Row(const Row &other) : m_cells(other.m_cells), m_constant(other.m_constant) {}
+    Row(const Row &other) = default;
 
     ~Row() = default;
 
