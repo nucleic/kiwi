@@ -70,7 +70,7 @@ Expression operator*( const Expression& expression, double coefficient )
 	std::vector<Term> terms;
 	terms.reserve( expression.terms().size() );
 
-	for (const Term& term : expression.terms())
+	for (const Term &term : expression.terms())
 		terms.push_back(term * coefficient);
 
 	return Expression( std::move(terms), expression.constant() * coefficient );

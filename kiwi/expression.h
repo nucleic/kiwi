@@ -38,7 +38,7 @@ public:
     {
         double result = m_constant;
 
-        for (const Term& term : m_terms)
+        for (const Term &term : m_terms)
             result += term.value();
 
         return result;

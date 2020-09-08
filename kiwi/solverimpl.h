@@ -301,7 +301,7 @@ public:
 	{
 		RowMap::iterator row_end = m_rows.end();
 
-		for (auto& varPair : m_vars)
+		for (auto &varPair : m_vars)
 		{
 			Variable& var = varPair.first;
 			RowMap::iterator row_it = m_rows.find( varPair.second );
@@ -389,7 +389,7 @@ private:
 		std::unique_ptr<Row> row( new Row( expr.constant() ) );
 
 		// Substitute the current basic variables into the row.
-		for (const auto & term : expr.terms())
+		for (const auto &term : expr.terms())
 		{
 			if( !nearZero( term.coefficient() ) )
 			{
@@ -467,7 +467,7 @@ private:
 	*/
 	Symbol chooseSubject( const Row& row, const Tag& tag ) const
 	{
-		for (const auto & cellPair : row.cells())
+		for (const auto &cellPair : row.cells())
 		{
 			if( cellPair.first.type() == Symbol::External )
 				return cellPair.first;
@@ -521,7 +521,7 @@ private:
 		}
 
 		// Remove the artificial variable from the tableau.
-		for (auto& rowPair : m_rows)
+		for (auto &rowPair : m_rows)
 			rowPair.second->remove(art);
 
 		m_objective->remove( art );
@@ -626,7 +626,7 @@ private:
 	*/
 	Symbol getEnteringSymbol( const Row& objective ) const
 	{
-		for (const auto & cellPair : objective.cells())
+		for (const auto &cellPair : objective.cells())
 		{
 			if( cellPair.first.type() != Symbol::Dummy && cellPair.second < 0.0 )
 				return cellPair.first;
@@ -647,7 +647,7 @@ private:
 	{
 		Symbol entering;
 		double ratio = std::numeric_limits<double>::max();
-		for (const auto & cellPair : row.cells())
+		for (const auto &cellPair : row.cells())
 		{
 			if( cellPair.second > 0.0 && cellPair.first.type() != Symbol::Dummy )
 			{
@@ -670,7 +670,7 @@ private:
 	*/
 	Symbol anyPivotableSymbol( const Row& row ) const
 	{
-		for (const auto & cellPair : row.cells())
+		for (const auto &cellPair : row.cells())
 		{
 			const Symbol& sym( cellPair.first );
 			if( sym.type() == Symbol::Slack || sym.type() == Symbol::Error )
@@ -802,7 +802,7 @@ private:
 	*/
 	bool allDummies( const Row& row ) const
 	{
-		for (const auto & rowPair : row.cells())
+		for (const auto &rowPair : row.cells())
 		{
 			if( rowPair.first.type() != Symbol::Dummy )
 				return false;

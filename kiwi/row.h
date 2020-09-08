@@ -98,7 +98,7 @@ public:
     void reverseSign()
     {
         m_constant = -m_constant;
-        for (auto& cellPair : m_cells)
+        for (auto &cellPair : m_cells)
             cellPair.second = -cellPair.second;
     }
 
@@ -118,7 +118,7 @@ public:
         double coeff = -1.0 / m_cells[symbol];
         m_cells.erase(symbol);
         m_constant *= coeff;
-        for (auto& cellPair : m_cells)
+        for (auto &cellPair : m_cells)
             cellPair.second *= coeff;
     }
 
