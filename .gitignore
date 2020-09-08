@@ -2,6 +2,7 @@
 *.pyd
 *.so
 
+benchmarks/run_bench
 build/
 dist/
 kiwisolver.egg-info/
