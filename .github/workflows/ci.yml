@@ -10,6 +10,7 @@ on:
       - master
     paths:
       - .github/workflows/ci.yml
+      - benchmarks/*
       - kiwi/*
       - py/*
       - setup.py
