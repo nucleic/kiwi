@@ -142,7 +142,7 @@ public:
 	*/
 	void removeConstraint( const Constraint& constraint )
 	{
-		CnMap::iterator cn_it = m_cns.find( constraint );
+		auto cn_it = m_cns.find( constraint );
 		if( cn_it == m_cns.end() )
 			throw UnknownConstraint( constraint );
 
@@ -156,7 +156,7 @@ public:
 
 		// If the marker is basic, simply drop the row. Otherwise,
 		// pivot the marker into the basis and then drop the row.
-		RowMap::iterator row_it = m_rows.find( tag.marker );
+		auto row_it = m_rows.find( tag.marker );
 		if( row_it != m_rows.end() )
 		{
 			std::unique_ptr<Row> rowptr( row_it->second );
@@ -228,7 +228,7 @@ public:
 	*/
 	void removeEditVariable( const Variable& variable )
 	{
-		EditMap::iterator it = m_edits.find( variable );
+		auto it = m_edits.find( variable );
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 		removeConstraint( it->second.constraint );
@@ -256,7 +256,7 @@ public:
 	*/
 	void suggestValue( const Variable& variable, double value )
 	{
-		EditMap::iterator it = m_edits.find( variable );
+		auto it = m_edits.find( variable );
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
@@ -266,7 +266,7 @@ public:
 		info.constant = value;
 
 		// Check first if the positive error variable is basic.
-		RowMap::iterator row_it = m_rows.find( info.tag.marker );
+		auto row_it = m_rows.find( info.tag.marker );
 		if( row_it != m_rows.end() )
 		{
 			if( row_it->second->add( -delta ) < 0.0 )
@@ -299,12 +299,12 @@ public:
 	*/
 	void updateVariables()
 	{
-		RowMap::iterator row_end = m_rows.end();
+		auto row_end = m_rows.end();
 
 		for (auto &varPair : m_vars)
 		{
 			Variable& var = varPair.first;
-			RowMap::iterator row_it = m_rows.find( varPair.second );
+			auto row_it = m_rows.find( varPair.second );
 			if( row_it == row_end )
 				var.setValue( 0.0 );
 			else
@@ -358,7 +358,7 @@ private:
 	*/
 	Symbol getVarSymbol( const Variable& variable )
 	{
-		VarMap::iterator it = m_vars.find( variable );
+		auto it = m_vars.find( variable );
 		if( it != m_vars.end() )
 			return it->second;
 		Symbol symbol( Symbol::External, m_id_tick++ );
@@ -394,7 +394,7 @@ private:
 			if( !nearZero( term.coefficient() ) )
 			{
 				Symbol symbol( getVarSymbol( term.variable() ) );
-				RowMap::iterator row_it = m_rows.find( symbol );
+				auto row_it = m_rows.find( symbol );
 				if( row_it != m_rows.end() )
 					row->insert( *row_it->second, term.coefficient() );
 				else
@@ -505,7 +505,7 @@ private:
 
 		// If the artificial variable is not basic, pivot the row so that
 		// it becomes basic. If the row is constant, exit early.
-		RowMap::iterator it = m_rows.find( art );
+		auto it = m_rows.find( art );
 		if( it != m_rows.end() )
 		{
 			std::unique_ptr<Row> rowptr( it->second );
@@ -566,7 +566,7 @@ private:
 			Symbol entering( getEnteringSymbol( objective ) );
 			if( entering.type() == Symbol::Invalid )
 				return;
-			RowMap::iterator it = getLeavingRow( entering );
+			auto it = getLeavingRow( entering );
 			if( it == m_rows.end() )
 				throw InternalSolverError( "The objective is unbounded." );
 			// pivot the entering symbol into the basis
@@ -599,7 +599,7 @@ private:
 
 			Symbol leaving( m_infeasible_rows.back() );
 			m_infeasible_rows.pop_back();
-			RowMap::iterator it = m_rows.find( leaving );
+			auto it = m_rows.find( leaving );
 			if( it != m_rows.end() && !nearZero( it->second->constant() ) &&
 				it->second->constant() < 0.0 )
 			{
@@ -690,9 +690,9 @@ private:
 	RowMap::iterator getLeavingRow( const Symbol& entering )
 	{
 		double ratio = std::numeric_limits<double>::max();
-		RowMap::iterator end = m_rows.end();
-		RowMap::iterator found = m_rows.end();
-		for( RowMap::iterator it = m_rows.begin(); it != end; ++it )
+		auto end = m_rows.end();
+		auto found = m_rows.end();
+		for( auto it = m_rows.begin(); it != end; ++it )
 		{
 			if( it->first.type() != Symbol::External )
 			{
@@ -735,11 +735,11 @@ private:
 		const double dmax = std::numeric_limits<double>::max();
 		double r1 = dmax;
 		double r2 = dmax;
-		RowMap::iterator end = m_rows.end();
-		RowMap::iterator first = end;
-		RowMap::iterator second = end;
-		RowMap::iterator third = end;
-		for( RowMap::iterator it = m_rows.begin(); it != end; ++it )
+		auto end = m_rows.end();
+		auto first = end;
+		auto second = end;
+		auto third = end;
+		for( auto it = m_rows.begin(); it != end; ++it )
 		{
 			double c = it->second->coefficientFor( marker );
 			if( c == 0.0 )
@@ -790,7 +790,7 @@ private:
 	*/
 	void removeMarkerEffects( const Symbol& marker, double strength )
 	{
-		RowMap::iterator row_it = m_rows.find( marker );
+		auto row_it = m_rows.find( marker );
 		if( row_it != m_rows.end() )
 			m_objective->insert( *row_it->second, -strength );
 		else
