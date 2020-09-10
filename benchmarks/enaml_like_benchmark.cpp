@@ -9,8 +9,7 @@
 // Time updating an EditVariable in a set of constraints typical of enaml use.
 
 #include <kiwi/kiwi.h>
-#define BENCHPRESS_CONFIG_MAIN
-#include "benchpress/benchpress.hpp"
+#include <benchmark/benchmark.h>
 
 using namespace kiwi;
 
@@ -180,20 +179,20 @@ void build_solver(Solver& solver, Variable& width, Variable& height)
         solver.addConstraint(constraint);
 }
 
-static void building_solver(benchpress::context* ctx)
+static void building_solver(benchmark::State& state)
 {
-    for (size_t i = 0; i < ctx->num_iterations(); ++i)
+    for (auto _ : state)
     {
         Solver solver;
         Variable width("width");
         Variable height("height");
         build_solver(solver, width, height);
-        benchpress::escape(&solver); //< prevent the compiler to optimize away the solver
+        benchmark::DoNotOptimize(solver); //< prevent the compiler to optimize away the solver
     }
 }
-BENCHMARK("building solver", building_solver)
+BENCHMARK(building_solver);
 
-void suggest_value(benchpress::context* ctx, double widthValue, double heightValue)
+void suggest_value(benchmark::State& state)
 {
     Solver solver;
     Variable widthVar("width");
@@ -201,20 +200,20 @@ void suggest_value(benchpress::context* ctx, double widthValue, double heightVal
     build_solver(solver, widthVar, heightVar);
 
     // code before this line will not be measured
-    ctx->reset_timer();
-    for (std::size_t i = 0; i < ctx->num_iterations(); ++i)
+    for (auto _ : state)
     {
-        solver.suggestValue(widthVar, widthValue);
-        solver.suggestValue(heightVar, heightValue);
+        solver.suggestValue(widthVar, state.range(0));
+        solver.suggestValue(heightVar, state.range(1));
         solver.updateVariables();
     }
 }
 
-#define BENCH(width, height) BENCHMARK("suggest " #width "x" #height, [](benchpress::context* ctx) {  suggest_value(ctx, width, height); })
+BENCHMARK(suggest_value)
+    ->Args({ 400, 600 })
+    ->Args({ 600, 400 })
+    ->Args({ 800, 1200 })
+    ->Args({ 1200, 800 })
+    ->Args({ 400, 800 })
+    ->Args({ 800, 400 });
 
-BENCH(400, 600)
-BENCH(600, 400)
-BENCH(800, 1200)
-BENCH(1200, 800)
-BENCH(400, 800)
-BENCH(800, 400)
+BENCHMARK_MAIN();
