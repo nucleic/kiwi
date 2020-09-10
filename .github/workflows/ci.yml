@@ -15,6 +15,17 @@ on:
       - setup.py
 
 jobs:
+  benchmark:
+    name: C++ Benchmark
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - name: Install build-essential and libbenchmark-dev
+        run: sudo apt-get install build-essential libbenchmark-dev
+      - name: Build and run benhcmark
+        run: cd benchmarks && ./build_and_run_bench.sh
   tests:
     name: Unit tests
     runs-on: ${{ matrix.os }}
