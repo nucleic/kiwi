@@ -24,8 +24,6 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Install build-essential and libbenchmark-dev
-        run: sudo apt-get install build-essential libbenchmark-dev
       - name: Build and run benchmark
         run: cd benchmarks && ./build_and_run_bench.sh
   tests:
