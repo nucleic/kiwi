@@ -9,7 +9,8 @@
 // Time updating an EditVariable in a set of constraints typical of enaml use.
 
 #include <kiwi/kiwi.h>
-#include <benchmark/benchmark.h>
+#define ANKERL_NANOBENCH_IMPLEMENT
+#include "nanobench.h"
 
 using namespace kiwi;
 
@@ -179,41 +180,45 @@ void build_solver(Solver& solver, Variable& width, Variable& height)
         solver.addConstraint(constraint);
 }
 
-static void building_solver(benchmark::State& state)
+int main()
 {
-    for (auto _ : state)
-    {
+    ankerl::nanobench::Bench().run("building solver", [&] {
         Solver solver;
         Variable width("width");
         Variable height("height");
         build_solver(solver, width, height);
-        benchmark::DoNotOptimize(solver); //< prevent the compiler to optimize away the solver
-    }
-}
-BENCHMARK(building_solver);
+        ankerl::nanobench::doNotOptimizeAway(solver); //< prevent the compiler to optimize away the solver
+    });
 
-void suggest_value(benchmark::State& state)
-{
+    struct Size
+    {
+        int width;
+        int height;
+    };
+
+    Size sizes[] = {
+        { 400, 600 },
+        { 600, 400 },
+        { 800, 1200 },
+        { 1200, 800 },
+        { 400, 800 },
+        { 800, 400 }
+    };
+
     Solver solver;
     Variable widthVar("width");
     Variable heightVar("height");
     build_solver(solver, widthVar, heightVar);
 
-    // code before this line will not be measured
-    for (auto _ : state)
+    for (const Size& size : sizes)
     {
-        solver.suggestValue(widthVar, state.range(0));
-        solver.suggestValue(heightVar, state.range(1));
-        solver.updateVariables();
+        double width = size.width;
+        double height = size.height;
+
+        ankerl::nanobench::Bench().run("suggest value " + std::to_string(size.width) + "x" + std::to_string(size.height), [&] {
+            solver.suggestValue(widthVar, width);
+            solver.suggestValue(heightVar, height);
+            solver.updateVariables();
+        });
     }
 }
-
-BENCHMARK(suggest_value)
-    ->Args({ 400, 600 })
-    ->Args({ 600, 400 })
-    ->Args({ 800, 1200 })
-    ->Args({ 1200, 800 })
-    ->Args({ 400, 800 })
-    ->Args({ 800, 400 });
-
-BENCHMARK_MAIN();

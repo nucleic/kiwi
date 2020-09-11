@@ -6,7 +6,7 @@ different c++ data structure.
 
 # C++
 
-GCC and libbenchmark must be installed first on your system (`build-essential` and `libbenchmark-dev` packages with apt)
+GCC must be installed first on your system (`build-essential` package with apt)
 
     >>> ./build_and_run_bench.sh
 
