@@ -40,11 +40,11 @@ public:
 
     double value() const
     {
-        typedef std::vector<Term>::const_iterator iter_t;
         double result = m_constant;
-        iter_t end = m_terms.end();
-        for (iter_t it = m_terms.begin(); it != end; ++it)
-            result += it->value();
+
+        for (const Term &term : m_terms)
+            result += term.value();
+
         return result;
     }
 

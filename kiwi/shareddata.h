@@ -16,12 +16,15 @@ class SharedData
 public:
     SharedData() : m_refcount(0) {}
 
-    SharedData(const SharedData &other) : m_refcount(0) {}
+    SharedData(const SharedData &other) = delete;
+
+    SharedData(SharedData&& other) = delete;
 
     int m_refcount;
 
-private:
-    SharedData &operator=(const SharedData &other);
+    SharedData &operator=(const SharedData &other) = delete;
+    
+    SharedData &operator=(SharedData&& other) = delete;
 };
 
 template <typename T>
@@ -29,9 +32,9 @@ class SharedDataPtr
 {
 
 public:
-    typedef T Type;
+    using Type = T;
 
-    SharedDataPtr() : m_data(0) {}
+    SharedDataPtr() : m_data(nullptr) {}
 
     explicit SharedDataPtr(T *data) : m_data(data)
     {
