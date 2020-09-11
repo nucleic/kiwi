@@ -215,7 +215,7 @@ int main()
         double width = size.width;
         double height = size.height;
 
-        ankerl::nanobench::Bench().run("suggest value " + std::to_string(size.width) + "x" + std::to_string(size.height), [&] {
+        ankerl::nanobench::Bench().minEpochIterations(10).run("suggest value " + std::to_string(size.width) + "x" + std::to_string(size.height), [&] {
             solver.suggestValue(widthVar, width);
             solver.suggestValue(heightVar, height);
             solver.updateVariables();
