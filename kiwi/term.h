@@ -27,7 +27,7 @@ public:
 
 	Term(const Term&) = default;
 
-	Term(Term&&) = default;
+	Term(Term&&) noexcept = default;
 
 	~Term() = default;
 
@@ -48,7 +48,7 @@ public:
 
 	Term& operator=(const Term&) = default;
 
-	Term& operator=(Term&&) = default;
+	Term& operator=(Term&&) noexcept = default;
 
 private:
 

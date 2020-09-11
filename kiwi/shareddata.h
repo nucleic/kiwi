@@ -111,7 +111,7 @@ public:
         incref(m_data);
     }
 
-    SharedDataPtr(SharedDataPtr&& other) : m_data(other.m_data)
+    SharedDataPtr(SharedDataPtr&& other) noexcept : m_data(other.m_data)
     {
         other.m_data = nullptr;
     }
@@ -128,7 +128,7 @@ public:
         return *this;
     }
 
-    SharedDataPtr<T>& operator=(SharedDataPtr<T>&& other)
+    SharedDataPtr<T>& operator=(SharedDataPtr<T>&& other) noexcept
     {
         if (m_data != other.m_data)
         {

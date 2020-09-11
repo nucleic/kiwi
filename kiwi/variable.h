@@ -32,7 +32,7 @@ public:
 
     Variable(const Variable&) = default;
 
-    Variable(Variable&&) = default;
+    Variable(Variable&&) noexcept = default;
 
     ~Variable() = default;
 
@@ -79,7 +79,7 @@ public:
 
     Variable& operator=(const Variable&) = default;
 
-    Variable& operator=(Variable&&) = default;
+    Variable& operator=(Variable&&) noexcept = default;
 
 private:
     class VariableData : public SharedData
