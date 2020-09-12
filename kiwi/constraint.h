@@ -36,6 +36,10 @@ public:
 
     Constraint(const Constraint &other, double strength) : m_data(new ConstraintData(other, strength)) {}
 
+    Constraint(const Constraint &) = default;
+
+    Constraint(Constraint &&) noexcept = default;
+
     ~Constraint() = default;
 
     const Expression &expression() const
@@ -58,6 +62,10 @@ public:
         return !m_data;
     }
 
+    Constraint& operator=(const Constraint &) = default;
+
+    Constraint& operator=(Constraint &&) noexcept = default;
+
 private:
     static Expression reduce(const Expression &expr)
     {
@@ -66,7 +74,7 @@ private:
             vars[term.variable()] += term.coefficient();
 
         std::vector<Term> terms(vars.begin(), vars.end());
-        return Expression(terms, expr.constant());
+        return Expression(std::move(terms), expr.constant());
     }
 
     class ConstraintData : public SharedData

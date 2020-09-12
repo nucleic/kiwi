@@ -123,7 +123,7 @@ Expression operator+( const Expression& first, const Expression& second )
 	terms.reserve( first.terms().size() + second.terms().size() );
 	terms.insert( terms.begin(), first.terms().begin(), first.terms().end() );
 	terms.insert( terms.end(), second.terms().begin(), second.terms().end() );
-	return Expression( terms, first.constant() + second.constant() );
+	return Expression( std::move(terms), first.constant() + second.constant() );
 }
 
 
@@ -134,7 +134,7 @@ Expression operator+( const Expression& first, const Term& second )
 	terms.reserve( first.terms().size() + 1 );
 	terms.insert( terms.begin(), first.terms().begin(), first.terms().end() );
 	terms.push_back( second );
-	return Expression( terms, first.constant() );
+	return Expression( std::move(terms), first.constant() );
 }
 
 
