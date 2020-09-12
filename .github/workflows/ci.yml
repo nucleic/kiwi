@@ -10,11 +10,22 @@ on:
       - master
     paths:
       - .github/workflows/ci.yml
+      - benchmarks/*
       - kiwi/*
       - py/*
       - setup.py
 
 jobs:
+  benchmark:
+    name: C++ Benchmark
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and run benchmark
+        run: cd benchmarks && ./build_and_run_bench.sh
   tests:
     name: Unit tests
     runs-on: ${{ matrix.os }}
