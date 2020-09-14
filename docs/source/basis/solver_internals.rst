@@ -70,7 +70,7 @@ In the dump, the letters have the following meaning:
 Stay contraints emulation
 -------------------------
 
-One feature of Cassowary that Kiwi abandonned is the notion of stay
+One feature of Cassowary that Kiwi abandoned is the notion of stay
 constraints. Stay constraints are typically used in under-constrained
 situations (drag and drop) to allow the solver to find a solution by keeping
 non-modified variable close to their original position. A typical example is
@@ -78,7 +78,7 @@ a rectangle whose one corner is being dragged in a drawing application.
 
 Kiwi does not have stay constraints mostly because in the context of widget
 placement the system is usually well constrained and stay constraints are hence
-unecessary.
+unnecessary.
 
 If your application requires them, several workarounds can be considered:
 

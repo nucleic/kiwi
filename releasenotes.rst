@@ -1,7 +1,12 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.2.0 | Solver 1.2.0 | unreleased
+Wrappers 1.3.0 | Solver 1.3.0 | unreleased
+------------------------------------------
+- modernize the c++ code by using more c++11 features  PR #90
+- introduce move semantic in some c++ construstors to improve perfomances  PR #89
+
+Wrappers 1.2.0 | Solver 1.2.0 | 03/26/2020
 ------------------------------------------
 - make the the c++ part of the code c++11 compliant  PR #55
 - use cppy for Python/C bindings  PR #55
