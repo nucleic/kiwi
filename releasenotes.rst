@@ -3,6 +3,7 @@ Kiwi Release Notes
 
 Wrappers 1.3.0 | Solver 1.3.0 | unreleased
 ------------------------------------------
+- add c++ benchmarks and run them on CIs PR #91
 - modernize the c++ code by using more c++11 features  PR #90
 - introduce move semantic in some c++ construstors to improve perfomances  PR #89
 
