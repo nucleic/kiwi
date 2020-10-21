@@ -1,11 +1,11 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.3.0 | Solver 1.3.0 | unreleased
+Wrappers 1.3.0 | Solver 1.3.0 | 10/21/2020
 ------------------------------------------
 - add c++ benchmarks and run them on CIs PR #91
-- modernize the c++ code by using more c++11 features  PR #90
-- introduce move semantic in some c++ construstors to improve perfomances  PR #89
+- modernize the c++ code by using more c++11 features PR #90
+- introduce move semantic in some c++ constructors to improve performances PR #89
 - add support for Python 3.9 PR #88
 
 Wrappers 1.2.0 | Solver 1.2.0 | 03/26/2020
