@@ -58,7 +58,7 @@ class BuildExt(build_ext):
 
 setup(
     name='kiwisolver',
-    version='1.2.0',
+    version='1.3.0',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
