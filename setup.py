@@ -5,6 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
+import os
 import sys
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
