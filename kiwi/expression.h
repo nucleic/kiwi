@@ -24,6 +24,7 @@ public:
 
     Expression(const Expression&) = default;
 
+    // Could be marked noexcept but for a bug in the GCC of the manylinux1 image
     Expression(Expression&&) = default;
 
     ~Expression() = default;
@@ -50,6 +51,7 @@ public:
 
     Expression& operator=(const Expression&) = default;
 
+    // Could be marked noexcept but for a bug in the GCC of the manylinux1 image
     Expression& operator=(Expression&&) = default;
 
 private:
