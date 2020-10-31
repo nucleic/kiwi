@@ -39,11 +39,9 @@ jobs:
   - name: "run test suite with python 3.8 on PPC64le"
     arch: ppc64le
     python: 3.8
-    arch: ppc64le
   - name: "run test suite with python 3.9 on PPC64le"
     arch: ppc64le
     python: 3.9
-    arch: ppc64le
 
 env:
   - CPPFLAGS=--coverage
