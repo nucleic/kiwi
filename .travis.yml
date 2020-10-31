@@ -25,9 +25,7 @@ jobs:
   - name: "run test suite with python 3.8 on ARM64"
     arch: arm64
     python: 3.8
-  - name: "run test suite with python 3.9 on ARM64"
-    arch: arm64
-    python: 3.9
+  # ARM currently does not have 3.9, should add it later
 
   # added power support ppc64le arch
   - name: "run test suite with python 3.6 on PPC64le"
