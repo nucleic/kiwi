@@ -24,7 +24,7 @@ public:
 
     Expression(const Expression&) = default;
 
-    Expression(Expression&&) noexcept = default;
+    Expression(Expression&&) = default;
 
     ~Expression() = default;
 
@@ -50,7 +50,7 @@ public:
 
     Expression& operator=(const Expression&) = default;
 
-    Expression& operator=(Expression&&) noexcept = default;
+    Expression& operator=(Expression&&) = default;
 
 private:
     std::vector<Term> m_terms;
