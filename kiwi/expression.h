@@ -24,7 +24,8 @@ public:
 
     Expression(const Expression&) = default;
 
-    Expression(Expression&&) noexcept = default;
+    // Could be marked noexcept but for a bug in the GCC of the manylinux1 image
+    Expression(Expression&&) = default;
 
     ~Expression() = default;
 
@@ -50,7 +51,8 @@ public:
 
     Expression& operator=(const Expression&) = default;
 
-    Expression& operator=(Expression&&) noexcept = default;
+    // Could be marked noexcept but for a bug in the GCC of the manylinux1 image
+    Expression& operator=(Expression&&) = default;
 
 private:
     std::vector<Term> m_terms;

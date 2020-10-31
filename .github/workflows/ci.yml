@@ -50,6 +50,8 @@ jobs:
           python setup.py develop
       - name: Test with pytest
         if: matrix.python-version == '3.6'
+        env:
+          KIWI_DISBALE_FH4: 1
         run: |
           pip install pytest
           python -m pytest py/tests

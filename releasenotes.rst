@@ -1,6 +1,13 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.3.1 | Solver 1.3.1 | unreleased
+------------------------------------------
+- allow to avoid linking against VC2014_1 on windows PR #97
+- do not mark move constructor / assignment operator of expression as noexcept PR #97
+  This is to circumvent a suspected bug in the GCC compiler in the manylinux1
+  image.
+
 Wrappers 1.3.0 | Solver 1.3.0 | 10/21/2020
 ------------------------------------------
 - add c++ benchmarks and run them on CIs PR #91
