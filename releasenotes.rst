@@ -1,7 +1,7 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.3.1 | Solver 1.3.1 | unreleased
+Wrappers 1.3.1 | Solver 1.3.1 | 11/01/2020
 ------------------------------------------
 - allow to avoid linking against VC2014_1 on windows PR #97
 - do not mark move constructor / assignment operator of expression as noexcept PR #97
