@@ -136,7 +136,7 @@ adding and removing constraints all the time wouldn't be optimal. And there is
 a better way: edit variables.
 
 Edit variables are variables for which you can suggest values. Edit variable
-have a strength whcih can be at most strong (the value of a edit variable can
+have a strength which can be at most strong (the value of a edit variable can
 never be required).
 
 For the sake of our example we will make "xm" editable:
