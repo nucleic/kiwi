@@ -4,10 +4,10 @@ on:
     - cron: '0 0 * * 2'
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
     paths:
       - .github/workflows/docs.yml
       - kiwi/*
@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install https://github.com/nucleic/cppy/tarball/master
+          pip install https://github.com/nucleic/cppy/tarball/main
       - name: Install project
         run: |
           python setup.py develop

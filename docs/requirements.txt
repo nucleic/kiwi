@@ -1,2 +1,2 @@
 sphinx-tabs
-https://github.com/nucleic/cppy/tarball/master
+https://github.com/nucleic/cppy/tarball/main

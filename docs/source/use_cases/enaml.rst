@@ -47,7 +47,7 @@ to the non-prefixed variables (even-though they are related) because of the
 container margins.
 
 The base classes used a mixin to implement those behaviors are defined in:
-https://github.com/nucleic/enaml/blob/master/enaml/layout/constrainable.py
+https://github.com/nucleic/enaml/blob/main/enaml/layout/constrainable.py
 
 Constraints definition
 ----------------------
@@ -94,12 +94,12 @@ another.
 For further details you can have a look at the source of the helpers described
 in this section which can be found in the Enaml source:
 
-- spacers: https://github.com/nucleic/enaml/blob/master/enaml/layout/spacers.py
+- spacers: https://github.com/nucleic/enaml/blob/main/enaml/layout/spacers.py
 - helpers:
 
-    - https://github.com/nucleic/enaml/blob/master/enaml/layout/layout_helpers.py
-    - https://github.com/nucleic/enaml/blob/master/enaml/layout/linear_box_helper.py
-    - https://github.com/nucleic/enaml/blob/master/enaml/layout/sequence_helper.py
+    - https://github.com/nucleic/enaml/blob/main/enaml/layout/layout_helpers.py
+    - https://github.com/nucleic/enaml/blob/main/enaml/layout/linear_box_helper.py
+    - https://github.com/nucleic/enaml/blob/main/enaml/layout/sequence_helper.py
 
 
 Setting up the solver
