@@ -5,7 +5,7 @@ Constraints definition and system solving
 
 .. include:: ../substitutions.sub
 
-A system in Kiwi is defined by a set of contraints that can be either
+A system in Kiwi is defined by a set of constraints that can be either
 equalities or inequalities (>= and <= only, strict inequalities are not
 accepted), each of which can have an associated strength making more or less
 important to respect when solving the problem. The next sections will cover how
