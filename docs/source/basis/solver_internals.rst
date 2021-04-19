@@ -68,7 +68,7 @@ In the dump, the letters have the following meaning:
 
 
 Stay constraints emulation
--------------------------
+--------------------------
 
 One feature of Cassowary that Kiwi abandoned is the notion of stay
 constraints. Stay constraints are typically used in under-constrained
