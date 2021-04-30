@@ -11,7 +11,7 @@
 Implementation note
 ===================
 SharedDataPtr/SharedData offers the same basic functionality as std::shared_ptr,
-but without using atomic counters.
+but do not use atomic counters under the hood.
 Since kiwi operates within a single thread context, atomic counters are not necessary,
 especially given the extra CPU cost.
 Therefore the use of SharedDataPtr/SharedData is preferred over std::shared_ptr.
