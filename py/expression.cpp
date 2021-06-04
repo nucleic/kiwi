@@ -182,7 +182,7 @@ Expression_richcmp( PyObject* first, PyObject* second, int op )
         "'%.100s' and '%.100s'",
         pyop_str( op ),
         Py_TYPE( first )->tp_name,
-        PY_TYPE( second )->tp_name
+        Py_TYPE( second )->tp_name
     );
     return 0;
 }
