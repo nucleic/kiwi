@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10.0-beta.4', pypy3]
+        python-version: ['3.7', '3.8', '3.9', '3.10.0-rc.1', pypy3]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -54,7 +54,7 @@ jobs:
           python -X dev -m pytest py/tests
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: matrix.os != 'windows-latest'
+        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
