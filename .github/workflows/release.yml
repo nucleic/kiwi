@@ -47,11 +47,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Update repo
-        run: |
-          git submodule update --init
-          cd kiwi
-          git checkout ${{ env.BUILD_COMMIT }}
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
