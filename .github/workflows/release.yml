@@ -80,7 +80,7 @@ jobs:
           # Do not link against VC2014_1 on Windows
           KIWI_DISABLE_FH4: 1
         run: |
-          python -m cibuildwheel kiwi --output-dir dist
+          python -m cibuildwheel . --output-dir dist
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
