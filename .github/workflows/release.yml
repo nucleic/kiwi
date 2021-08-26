@@ -43,6 +43,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        python: [cp37, cp38, cp39, cp310, pp3.7]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -57,8 +58,9 @@ jobs:
           platforms: all
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
+        if: matrix.python == 'cp37' || matrix.python == 'cp38'
         env:
-          CIBW_BUILD: "cp37-* cp38-*"
+          CIBW_BUILD: ${{ matrix.python }}-*
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           # configure cibuildwheel to build native archs ('auto'), and some
           # emulated ones
@@ -71,6 +73,7 @@ jobs:
           KIWI_DISABLE_FH4: 1
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
+         if: matrix.python != 'cp37' && matrix.python != 'cp38'
         env:
           CIBW_BUILD: "cp39-* cp310-* pp37-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
@@ -87,7 +90,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: artifact
-          path: dist/*.whl
+          path: ./wheelhouse/*.whl
 
   release_upload:
     name: Create Release and Upload Release Asset
