@@ -7,7 +7,7 @@
 //
 // Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2019-2020 Martin Ankerl <martin.ankerl@gmail.com>
+// Copyright (c) 2019-2021 Martin Ankerl <martin.ankerl@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@
 
 // see https://semver.org/
 #define ANKERL_NANOBENCH_VERSION_MAJOR 4 // incompatible API changes
-#define ANKERL_NANOBENCH_VERSION_MINOR 2 // backwards-compatible changes
-#define ANKERL_NANOBENCH_VERSION_PATCH 0 // backwards-compatible bug fixes
+#define ANKERL_NANOBENCH_VERSION_MINOR 3 // backwards-compatible changes
+#define ANKERL_NANOBENCH_VERSION_PATCH 4 // backwards-compatible bug fixes
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // public facing api - as minimal as possible
@@ -88,7 +88,10 @@
         } while (0)
 #endif
 
-#if defined(__linux__) && !defined(ANKERL_NANOBENCH_DISABLE_PERF_COUNTERS)
+#if defined(__linux__) && defined(PERF_EVENT_IOC_ID) && defined(PERF_COUNT_HW_REF_CPU_CYCLES) && defined(PERF_FLAG_FD_CLOEXEC) && \
+    !defined(ANKERL_NANOBENCH_DISABLE_PERF_COUNTERS)
+// only enable perf counters on kernel 3.14 which seems to have all the necessary defines. The three PERF_... defines are not in
+// kernel 2.6.32 (all others are).
 #    define ANKERL_NANOBENCH_PRIVATE_PERF_COUNTERS() 1
 #else
 #    define ANKERL_NANOBENCH_PRIVATE_PERF_COUNTERS() 0
@@ -523,6 +526,7 @@ public:
      */
     explicit Rng(uint64_t seed) noexcept;
     Rng(uint64_t x, uint64_t y) noexcept;
+    Rng(std::vector<uint64_t> const& data);
 
     /**
      * Creates a copy of the Rng, thus the copy provides exactly the same random sequence as the original.
@@ -576,6 +580,14 @@ public:
      */
     template <typename Container>
     void shuffle(Container& container) noexcept;
+
+    /**
+     * Extracts the full state of the generator, e.g. for serialization. For this RNG this is just 2 values, but to stay API compatible
+     * with future implementations that potentially use more state, we use a vector.
+     *
+     * @return Vector containing the full state:
+     */
+    std::vector<uint64_t> state() const;
 
 private:
     static constexpr uint64_t rotl(uint64_t x, unsigned k) noexcept;
@@ -1101,7 +1113,7 @@ constexpr uint64_t(Rng::max)() {
     return (std::numeric_limits<uint64_t>::max)();
 }
 
-ANKERL_NANOBENCH_NO_SANITIZE("integer")
+ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined")
 uint64_t Rng::operator()() noexcept {
     auto x = mX;
 
@@ -1111,7 +1123,7 @@ uint64_t Rng::operator()() noexcept {
     return x;
 }
 
-ANKERL_NANOBENCH_NO_SANITIZE("integer")
+ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined")
 uint32_t Rng::bounded(uint32_t range) noexcept {
     uint64_t r32 = static_cast<uint32_t>(operator()());
     auto multiresult = r32 * range;
@@ -2013,7 +2025,7 @@ uint64_t& singletonHeaderHash() noexcept {
     return sHeaderHash;
 }
 
-ANKERL_NANOBENCH_NO_SANITIZE("integer")
+ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined")
 inline uint64_t hash_combine(uint64_t seed, uint64_t val) {
     return seed ^ (val + UINT64_C(0x9e3779b9) + (seed << 6U) + (seed >> 2U));
 }
@@ -2091,7 +2103,7 @@ struct IterationLogic::Impl {
         return static_cast<uint64_t>(doubleNewIters + 0.5);
     }
 
-    ANKERL_NANOBENCH_NO_SANITIZE("integer") void upscale(std::chrono::nanoseconds elapsed) {
+    ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined") void upscale(std::chrono::nanoseconds elapsed) {
         if (elapsed * 10 < mTargetRuntimePerEpoch) {
             // we are far below the target runtime. Multiply iterations by 10 (with overflow check)
             if (mNumIters * 10 < mNumIters) {
@@ -2233,8 +2245,8 @@ struct IterationLogic::Impl {
             hash = hash_combine(std::hash<std::string>{}(mBench.title()), hash);
             hash = hash_combine(std::hash<std::string>{}(mBench.timeUnitName()), hash);
             hash = hash_combine(std::hash<double>{}(mBench.timeUnit().count()), hash);
-            hash = hash_combine(mBench.relative(), hash);
-            hash = hash_combine(mBench.performanceCounters(), hash);
+            hash = hash_combine(std::hash<bool>{}(mBench.relative()), hash);
+            hash = hash_combine(std::hash<bool>{}(mBench.performanceCounters()), hash);
 
             if (hash != singletonHeaderHash()) {
                 singletonHeaderHash() = hash;
@@ -2390,7 +2402,7 @@ public:
     }
 
     template <typename Op>
-    ANKERL_NANOBENCH_NO_SANITIZE("integer")
+    ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined")
     void calibrate(Op&& op) {
         // clear current calibration data,
         for (auto& v : mCalibratedOverhead) {
@@ -2496,7 +2508,7 @@ bool LinuxPerformanceCounters::monitor(perf_hw_id hwId, LinuxPerformanceCounters
 }
 
 // overflow is ok, it's checked
-ANKERL_NANOBENCH_NO_SANITIZE("integer")
+ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined")
 void LinuxPerformanceCounters::updateResults(uint64_t numIters) {
     // clear old data
     for (auto& id_value : mIdToTarget) {
@@ -3223,7 +3235,7 @@ Rng::Rng()
     } while (mX == 0 && mY == 0);
 }
 
-ANKERL_NANOBENCH_NO_SANITIZE("integer")
+ANKERL_NANOBENCH_NO_SANITIZE("integer", "undefined")
 uint64_t splitMix64(uint64_t& state) noexcept {
     uint64_t z = (state += UINT64_C(0x9e3779b97f4a7c15));
     z = (z ^ (z >> 30U)) * UINT64_C(0xbf58476d1ce4e5b9);
@@ -3247,6 +3259,24 @@ Rng::Rng(uint64_t x, uint64_t y) noexcept
 
 Rng Rng::copy() const noexcept {
     return Rng{mX, mY};
+}
+
+Rng::Rng(std::vector<uint64_t> const& data)
+    : mX(0)
+    , mY(0) {
+    if (data.size() != 2) {
+        throw std::runtime_error("ankerl::nanobench::Rng::Rng: needed exactly 2 entries in data, but got " +
+                                 std::to_string(data.size()));
+    }
+    mX = data[0];
+    mY = data[1];
+}
+
+std::vector<uint64_t> Rng::state() const {
+    std::vector<uint64_t> data(2);
+    data[0] = mX;
+    data[1] = mY;
+    return data;
 }
 
 BigO::RangeMeasure BigO::collectRangeMeasure(std::vector<Result> const& results) {

@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10.0-rc.1', pypy3]
+        python-version: [3.7, 3.8, 3.9, 3.10.0-rc.1, pypy-3.7]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -46,6 +46,7 @@ jobs:
       - name: Install project
         env:
           CPPFLAGS: --coverage
+          KIWI_DISABLE_FH4: 1
         run: |
           python setup.py develop
       - name: Test with pytest

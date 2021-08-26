@@ -59,7 +59,7 @@ quite painful to write by hand.
 
 To make constraints definition easier, Enaml relies on helpers function and
 classes. In the following, we will focus on how horizontal and vertical boxes
-constraints are handled, by studing the following example in details:
+constraints are handled, by studying the following example in details:
 
 .. image:: enaml_hbox.svg
 

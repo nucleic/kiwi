@@ -67,8 +67,8 @@ In the dump, the letters have the following meaning:
 - i: invalid symbol, returned when no valid symbol can be found.
 
 
-Stay contraints emulation
--------------------------
+Stay constraints emulation
+--------------------------
 
 One feature of Cassowary that Kiwi abandoned is the notion of stay
 constraints. Stay constraints are typically used in under-constrained
