@@ -1,6 +1,11 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.3.2 | Solver 1.3.1 | 31/08/2021
+------------------------------------------
+- Add support for Python 3.10, drop official support Python 3.6 PR #103
+- Remove direct accesses to ob_type in C-API use Py_TYPE instead PR #103
+
 Wrappers 1.3.1 | Solver 1.3.1 | 11/01/2020
 ------------------------------------------
 - allow to avoid linking against VC2014_1 on windows PR #97
