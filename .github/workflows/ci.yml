@@ -24,7 +24,16 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Build and run benchmark
+      - name: Install dependencies
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get install -y g++-11
+      - name: Build and run benchmark (C++11)
+        run: cd benchmarks && ./build_and_run_bench.sh
+      - name: Build and run benchmark (C++20)
+        env:
+          CXX_COMPILER: g++-11
+          CXX_FLAGS: -std=c++20
         run: cd benchmarks && ./build_and_run_bench.sh
   tests:
     name: Unit tests

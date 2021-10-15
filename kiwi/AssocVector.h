@@ -33,12 +33,12 @@ namespace Loki
 
     namespace Private
     {
-        template <class Value, class C>
+        template <class Value, class C, class K>
         class AssocVectorCompare : public C
         {
-            typedef std::pair<typename C::first_argument_type, Value>
+            typedef std::pair<K, Value>
                 Data;
-            typedef typename C::first_argument_type first_argument_type;
+            typedef K first_argument_type;
 
         public:
             AssocVectorCompare()
@@ -85,10 +85,10 @@ namespace Loki
     >
     class AssocVector
         : private std::vector< std::pair<K, V>, A >
-        , private Private::AssocVectorCompare<V, C>
+        , private Private::AssocVectorCompare<V, C, K>
     {
         typedef std::vector<std::pair<K, V>, A> Base;
-        typedef Private::AssocVectorCompare<V, C> MyCompare;
+        typedef Private::AssocVectorCompare<V, C, K> MyCompare;
 
     public:
         typedef K key_type;
@@ -97,14 +97,10 @@ namespace Loki
 
         typedef C key_compare;
         typedef A allocator_type;
-        typedef typename A::reference reference;
-        typedef typename A::const_reference const_reference;
         typedef typename Base::iterator iterator;
         typedef typename Base::const_iterator const_iterator;
         typedef typename Base::size_type size_type;
         typedef typename Base::difference_type difference_type;
-        typedef typename A::pointer pointer;
-        typedef typename A::const_pointer const_pointer;
         typedef typename Base::reverse_iterator reverse_iterator;
         typedef typename Base::const_reverse_iterator const_reverse_iterator;
 
