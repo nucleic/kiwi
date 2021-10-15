@@ -1,6 +1,11 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.3.3 | Solver 1.3.1 | unreleased
+------------------------------------------
+- make the the c++ part of the code c++20 compliant PR #120
+- test with c++11 and c++20 PR #120
+
 Wrappers 1.3.2 | Solver 1.3.1 | 31/08/2021
 ------------------------------------------
 - Add support for Python 3.10, drop official support Python 3.6 PR #103
