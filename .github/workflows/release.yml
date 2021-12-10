@@ -36,14 +36,35 @@ jobs:
           path: dist/*
 
   build_wheels:
-    name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.python }}
+    name: Build wheels on ${{ matrix.os }} for ${{ matrix.archs }} and Python ${{ matrix.python }}+
     runs-on: ${{ matrix.os }}
     env:
       BUILD_COMMIT: main
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python: [cp37, cp38, cp39, cp310, pp3.7]
+        # We build separately 3.7+ and 3.9+ since 3.7+ we use manylinux1 for those
+        py_version: [cp37, cp39]
+        archs: [auto]
+        include:
+          - os: ubuntu-latest
+            archs: aarch64
+            py_version: cp37
+          - os: ubuntu-latest
+            archs: ppc64le
+            py_version: cp37
+          - os: ubuntu-latest
+            archs: s390x
+            py_version: cp37
+          - os: ubuntu-latest
+            archs: aarch64
+            py_version: cp39
+          - os: ubuntu-latest
+            archs: ppc64le
+            py_version: cp39
+          - os: ubuntu-latest
+            archs: s390x
+            py_version: cp39
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -58,13 +79,13 @@ jobs:
           platforms: all
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
-        if: matrix.python == 'cp37' || matrix.python == 'cp38'
+        if: matrix.python == 'cp37'
         env:
-          CIBW_BUILD: ${{ matrix.python }}-*
+          CIBW_BUILD: "cp37-* cp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           # configure cibuildwheel to build native archs ('auto'), and some
           # emulated ones
-          CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
+          CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
           CIBW_MANYLINUX_I686_IMAGE: manylinux1
           CIBW_TEST_REQUIRES: pytest
@@ -73,13 +94,13 @@ jobs:
           KIWI_DISABLE_FH4: 1
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
-        if: matrix.python != 'cp37' && matrix.python != 'cp38'
+        if: matrix.python == 'cp39'
         env:
           CIBW_BUILD: "cp39-* cp310-* pp37-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           # configure cibuildwheel to build native archs ('auto'), and some
           # emulated ones
-          CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
+          CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
           CIBW_MANYLINUX_I686_IMAGE: manylinux2010
           CIBW_TEST_REQUIRES: pytest
