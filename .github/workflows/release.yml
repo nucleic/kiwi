@@ -43,8 +43,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        # We build separately 3.7+ and 3.9+ since 3.7+ we use manylinux1 for those
-        py_version: [cp37, cp39]
+        # We build separately 3.7 and 3.8 using manylinux1
+        manylinux_version: [manylinux1, mnanylinux2010]
         archs: [auto]
         include:
           - os: ubuntu-latest
@@ -79,12 +79,10 @@ jobs:
           platforms: all
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
-        if: matrix.python == 'cp37'
+        if: matrix.manylinux_version == 'manylinux1'
         env:
           CIBW_BUILD: "cp37-* cp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-          # configure cibuildwheel to build native archs ('auto'), and some
-          # emulated ones
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
           CIBW_MANYLINUX_I686_IMAGE: manylinux1
@@ -94,12 +92,10 @@ jobs:
           KIWI_DISABLE_FH4: 1
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
-        if: matrix.python == 'cp39'
+        if: matrix.manylinux_version == 'manylinux2010'
         env:
           CIBW_BUILD: "cp39-* cp310-* pp37-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-          # configure cibuildwheel to build native archs ('auto'), and some
-          # emulated ones
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
           CIBW_MANYLINUX_I686_IMAGE: manylinux2010
