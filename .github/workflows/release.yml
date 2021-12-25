@@ -58,13 +58,13 @@ jobs:
             manylinux_version: manylinux1
           - os: ubuntu-latest
             archs: aarch64
-            manylinux_version: mnanylinux2010
+            manylinux_version: manylinux2010
           - os: ubuntu-latest
             archs: ppc64le
-            manylinux_version: mnanylinux2010
+            manylinux_version: manylinux2010
           - os: ubuntu-latest
             archs: s390x
-            manylinux_version: mnanylinux2010
+            manylinux_version: manylinux2010
     steps:
       - name: Checkout
         uses: actions/checkout@v2
