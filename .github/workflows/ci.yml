@@ -10,9 +10,9 @@ on:
       - main
     paths:
       - .github/workflows/ci.yml
-      - benchmarks/*
-      - kiwi/*
-      - py/*
+      - "benchmarks/**"
+      - "kiwi/**"
+      - "py/**"
       - setup.py
 
 jobs:

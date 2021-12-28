@@ -1,2 +1,4 @@
+sphinx>=4
+sphinx-rtd-theme>=1
 sphinx-tabs
-https://github.com/nucleic/cppy/tarball/main
+git+https://github.com/nucleic/cppy@main
