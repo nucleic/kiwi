@@ -29,7 +29,7 @@ jobs:
           pip install -r docs/requirements.txt
       - name: Install project
         run: |
-          python setup.py develop
+          pip install .
       - name: Install graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Build documentation

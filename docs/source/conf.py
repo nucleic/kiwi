@@ -16,17 +16,20 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+# NOTE the project needs to be installed for the docs to be properly built.
+import kiwisolver
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'kiwisolver'
-copyright = '2018-2020, Nucleic team'
+copyright = '2018-2021, Nucleic team'
 author = 'Nucleic team'
 
 # The short X.Y version
-version = '1.4'
+version = ".".join(kiwisolver.__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags
-release = '1.4.0'
+release = kiwisolver.__version__
 
 
 # -- General configuration ---------------------------------------------------

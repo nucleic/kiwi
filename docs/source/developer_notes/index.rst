@@ -16,7 +16,7 @@ one of the focus of the library is speed.
 Python bindings
 ---------------
 
-Python bindings targets Python 3.6 and above. The bindings are hand-written and
+Python bindings targets Python 3.7 and above. The bindings are hand-written and
 relies on cppy (https://github.com/nucleic/cppy). Kiwisolver tries to use a
 reasonably modern C API and to support sub-interpreter, this has a couple of
 consequences:
