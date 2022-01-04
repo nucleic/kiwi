@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2014-2018, Nucleic Development Team.
+#---------------------------------------------------------------------------------------
+# Copyright (c) 2014-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 import pytest
 
 from kiwisolver import (Solver, Variable,
@@ -13,7 +13,7 @@ from kiwisolver import (Solver, Variable,
                         UnsatisfiableConstraint, BadRequiredStrength)
 
 
-def test_solver_creation():
+def test_solver_creation() -> None:
     """Test initializing a solver.
 
     """
@@ -21,10 +21,10 @@ def test_solver_creation():
     assert isinstance(s, Solver)
 
     with pytest.raises(TypeError):
-        Solver(Variable())
+        Solver(Variable())  # type: ignore
 
 
-def test_managing_edit_variable():
+def test_managing_edit_variable() -> None:
     """Test adding/removing edit variables.
 
     """
@@ -33,13 +33,13 @@ def test_managing_edit_variable():
     v2 = Variable('bar')
 
     with pytest.raises(TypeError):
-        s.hasEditVariable(object())
+        s.hasEditVariable(object())  # type: ignore
     with pytest.raises(TypeError):
-        s.addEditVariable(object(), 'weak')
+        s.addEditVariable(object(), 'weak')  # type: ignore
     with pytest.raises(TypeError):
-        s.removeEditVariable(object())
+        s.removeEditVariable(object())  # type: ignore
     with pytest.raises(TypeError):
-        s.suggestValue(object(), 10)
+        s.suggestValue(object(), 10)  # type: ignore
 
     assert not s.hasEditVariable(v1)
     s.addEditVariable(v1, 'weak')
@@ -63,7 +63,7 @@ def test_managing_edit_variable():
     assert not s.hasEditVariable(v2)
 
 
-def test_suggesting_values_for_edit_variables():
+def test_suggesting_values_for_edit_variables() -> None:
     """Test suggesting values in different situations.
 
     """
@@ -92,7 +92,7 @@ def test_suggesting_values_for_edit_variables():
     assert v2.value() <= -1
 
 
-def test_managing_constraints():
+def test_managing_constraints() -> None:
     """Test adding/removing constraints.
 
     """
@@ -104,11 +104,11 @@ def test_managing_constraints():
     c3 = ((v2 >= 1) and (v2 <= 0))
 
     with pytest.raises(TypeError):
-        s.hasConstraint(object())
+        s.hasConstraint(object())  # type: ignore
     with pytest.raises(TypeError):
-        s.addConstraint(object())
+        s.addConstraint(object())  # type: ignore
     with pytest.raises(TypeError):
-        s.removeConstraint(object())
+        s.removeConstraint(object())  # type: ignore
 
     assert not s.hasConstraint(c1)
     s.addConstraint(c1)
@@ -131,7 +131,7 @@ def test_managing_constraints():
     assert not s.hasConstraint(c2)
 
 
-def test_solving_under_constrained_system():
+def test_solving_under_constrained_system() -> None:
     """Test solving an under constrained system.
 
     """
@@ -148,8 +148,8 @@ def test_solving_under_constrained_system():
     assert c.expression().terms()[0].variable().value() == 10
 
 
-def test_solving_with_strength():
-    """Test solving a system with unstatisfiable non-required constraint.
+def test_solving_with_strength() -> None:
+    """Test solving a system with unsatisfiable non-required constraint.
 
     """
     v1 = Variable('foo')
@@ -209,7 +209,7 @@ def test_solving_with_strength():
 # """
 
 
-def test_dumping_solver(capsys):
+def test_dumping_solver(capsys) -> None:
     """Test dumping the solver internal to stdout.
 
     """
@@ -236,7 +236,7 @@ def test_dumping_solver(capsys):
         assert header in state
 
 
-def test_handling_infeasible_constraints():
+def test_handling_infeasible_constraints() -> None:
     """Test that we properly handle infeasible constraints.
 
     We use the example of the cassowary paper to generate an infeasible

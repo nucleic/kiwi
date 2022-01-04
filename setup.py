@@ -91,4 +91,5 @@ setup(
     setup_requires=['cppy>=1.1.0'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
+    package_data={"py": ["py.typed", "*.pyi"]},
 )

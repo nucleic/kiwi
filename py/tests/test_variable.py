@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
-# Copyright (c) 2014-2018, Nucleic Development Team.
+#---------------------------------------------------------------------------------------
+# Copyright (c) 2014-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 import math
 import operator
 import sys
@@ -15,7 +14,7 @@ import pytest
 from kiwisolver import Constraint, Expression, Term, Variable, strength
 
 
-def test_variable_methods():
+def test_variable_methods() -> None:
     """Test the variable modification methods.
 
     """
@@ -26,10 +25,10 @@ def test_variable_methods():
     v.setName('foo')
     assert v.name() == 'foo'
     with pytest.raises(TypeError):
-        v.setName(1)
+        v.setName(1)  # type: ignore
     if sys.version_info >= (3,):
         with pytest.raises(TypeError):
-            v.setName(b'r')
+            v.setName(b'r')  # type: ignore
 
     assert v.value() == 0.0
 
@@ -41,10 +40,10 @@ def test_variable_methods():
     assert str(v) == 'foo'
 
     with pytest.raises(TypeError):
-        Variable(1)
+        Variable(1)  # type: ignore
 
 
-def test_variable_neg():
+def test_variable_neg() -> None:
     """Test neg on a variable.
 
     """
@@ -55,7 +54,7 @@ def test_variable_neg():
     assert neg.variable() is v and neg.coefficient() == -1
 
 
-def test_variable_mul():
+def test_variable_mul() -> None:
     """Test variable multiplications.
 
     """
@@ -67,10 +66,10 @@ def test_variable_mul():
         assert mul.variable() is v and mul.coefficient() == 2
 
     with pytest.raises(TypeError):
-        v * v2
+        v * v2  # type: ignore
 
 
-def test_variable_division():
+def test_variable_division() -> None:
     """Test variable divisions.
 
     """
@@ -82,13 +81,13 @@ def test_variable_division():
     assert div.variable() is v and div.coefficient() == 0.5
 
     with pytest.raises(TypeError):
-        v / v2
+        v / v2  # type: ignore
 
     with pytest.raises(ZeroDivisionError):
         v / 0
 
 
-def test_variable_addition():
+def test_variable_addition() -> None:
     """Test variable additions.
 
     """
@@ -111,10 +110,10 @@ def test_variable_addition():
             terms[1].variable() is v2 and terms[1].coefficient() == 1)
 
     with pytest.raises(TypeError):
-        v + ''
+        v + ''  # type: ignore
 
 
-def test_variable_sub():
+def test_variable_sub() -> None:
     """Test variable substractions.
 
     """
@@ -137,7 +136,7 @@ def test_variable_sub():
             terms[1].variable() is v2 and terms[1].coefficient() == -1)
 
 
-def test_variable_rich_compare_operations():
+def test_variable_rich_compare_operations() -> None:
     """Test using comparison on variables.
 
     """

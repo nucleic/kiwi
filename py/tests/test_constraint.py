@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
-# Copyright (c) 2014-2018, Nucleic Development Team.
+#---------------------------------------------------------------------------------------
+# Copyright (c) 2014-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 import gc
 import re
 
@@ -15,7 +14,7 @@ from kiwisolver import Constraint, Variable, strength
 
 
 @pytest.mark.parametrize('op', ('==', '<=', '>='))
-def test_constraint_creation(op):
+def test_constraint_creation(op) -> None:
     """Test constraints creation and methods.
 
     """
@@ -32,7 +31,8 @@ def test_constraint_creation(op):
     assert re.match(constraint_format, str(c))
 
     for s in ('weak', 'medium', 'strong', 'required'):
-        c = Constraint(v + 1, op, s)
+        # Not an exact literal...
+        c = Constraint(v + 1, op, s)  # type: ignore
         assert c.strength() == getattr(strength, s)
 
     # Ensure we test garbage collection.
@@ -40,27 +40,27 @@ def test_constraint_creation(op):
     gc.collect()
 
 
-def test_constraint_creation2():
+def test_constraint_creation2() -> None:
     """Test for errors in Constraints creation.
 
     """
     v = Variable('foo')
 
     with pytest.raises(TypeError) as excinfo:
-        Constraint(1, '==')
+        Constraint(1, '==')  # type: ignore
     assert "Expression" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
-        Constraint(v + 1, 1)
+        Constraint(v + 1, 1)  # type: ignore
     assert "str" in excinfo.exconly()
 
-    with pytest.raises(ValueError) as excinfo:
-        Constraint(v + 1, '!=')
-    assert "relational operator" in excinfo.exconly()
+    with pytest.raises(ValueError) as excinfo2:
+        Constraint(v + 1, '!=')  # type: ignore
+    assert "relational operator" in excinfo2.exconly()
 
 
 @pytest.mark.parametrize("op", ('==', '<=', '>='))
-def test_constraint_repr(op):
+def test_constraint_repr(op) -> None:
     """Test the repr method of a constraint object.
 
     """
@@ -70,20 +70,20 @@ def test_constraint_repr(op):
     assert op in repr(c)
 
 
-def test_constraint_or_operator():
+def test_constraint_or_operator() -> None:
     """Test modifying a constraint strength using the | operator.
 
     """
     v = Variable('foo')
-    c = Constraint(v + 1, u'==')
+    c = Constraint(v + 1, '==')
 
-    for s in (u'weak', 'medium', 'strong', u'required',
+    for s in ('weak', 'medium', 'strong', 'required',
               strength.create(1, 1, 0)):
-        c2 = c | s
-        if isinstance(s, (type(''), type(u''))):
+        c2 = c | s  # type: ignore
+        if isinstance(s, str):
             assert c2.strength() == getattr(strength, s)
         else:
             assert c2.strength() == s
 
     with pytest.raises(ValueError):
-        c | 'unknown'
+        c | 'unknown'  # type: ignore

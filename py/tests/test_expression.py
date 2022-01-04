@@ -1,20 +1,21 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2014-2018, Nucleic Development Team.
+#---------------------------------------------------------------------------------------
+# Copyright (c) 2014-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 import gc
 import math
 import operator
+from typing import Tuple
 
 import pytest
 
 from kiwisolver import Constraint, Expression, Term, Variable, strength
 
 
-def test_expression_creation():
+def test_expression_creation() -> None:
     """Test the Term constructor.
 
     """
@@ -35,7 +36,7 @@ def test_expression_creation():
     assert str(e2) == '1 * foo + 2 * bar + 3 * aux + 10'
 
     with pytest.raises(TypeError) as excinfo:
-        Expression((1, v2*2, v3*3))
+        Expression((1, v2*2, v3*3))  # type: ignore
     assert 'Term' in excinfo.exconly()
 
     # ensure we test garbage collection.
@@ -57,7 +58,7 @@ def expressions():
     return e, e2, t, t2, v, v2
 
 
-def test_expression_neg(expressions):
+def test_expression_neg(expressions: Tuple[Expression, Expression, Term, Term, Variable, Variable]):
     """Test neg on an expression.
 
     """
@@ -71,7 +72,7 @@ def test_expression_neg(expressions):
             neg.constant() == -5)
 
 
-def test_expression_mul(expressions):
+def test_expression_mul(expressions: Tuple[Expression, Expression, Term, Term, Variable, Variable]):
     """Test expresion multiplication.
 
     """
@@ -85,10 +86,10 @@ def test_expression_mul(expressions):
                 mul.constant() == 10)
 
     with pytest.raises(TypeError):
-        e * v
+        e * v  # type: ignore
 
 
-def test_expression_div(expressions):
+def test_expression_div(expressions: Tuple[Expression, Expression, Term, Term, Variable, Variable]):
     """Test expression divisions.
 
     """
@@ -102,13 +103,13 @@ def test_expression_div(expressions):
             div.constant() == 2.5)
 
     with pytest.raises(TypeError):
-        e / v2
+        e / v2  # type: ignore
 
     with pytest.raises(ZeroDivisionError):
         e / 0
 
 
-def test_expression_addition(expressions):
+def test_expression_addition(expressions: Tuple[Expression, Expression, Term, Term, Variable, Variable]):
     """Test expressions additions.
 
     """
@@ -146,7 +147,7 @@ def test_expression_addition(expressions):
             terms[1].variable() is v2 and terms[1].coefficient() == 1)
 
 
-def test_expressions_substraction(expressions):
+def test_expressions_substraction(expressions: Tuple[Expression, Expression, Term, Term, Variable, Variable]):
     """Test expression substraction.
 
     """
@@ -195,7 +196,7 @@ def test_expressions_substraction(expressions):
                           (operator.lt, None),
                           (operator.ne, None),
                           (operator.gt, None)])
-def test_expression_rich_compare_operations(op, symbol):
+def test_expression_rich_compare_operations(op, symbol) -> None:
     """Test using comparison on variables.
 
     """

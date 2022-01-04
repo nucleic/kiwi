@@ -1,20 +1,21 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2014-2018, Nucleic Development Team.
+#---------------------------------------------------------------------------------------
+# Copyright (c) 2014-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 import gc
 import math
 import operator
+from typing import Tuple
 
 import pytest
 
 from kiwisolver import Constraint, Expression, Term, Variable, strength
 
 
-def test_term_creation():
+def test_term_creation() -> None:
     """Test the Term constructor.
 
     """
@@ -30,7 +31,7 @@ def test_term_creation():
     assert str(t) == '100 * foo'
 
     with pytest.raises(TypeError) as excinfo:
-        Term('')
+        Term('')  # type: ignore
     assert 'Variable' in excinfo.exconly()
 
     # ensure we test garbage collection
@@ -51,7 +52,7 @@ def terms():
     return t, t2, v, v2
 
 
-def test_term_neg(terms):
+def test_term_neg(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     """Test neg on a term.
 
     """
@@ -62,7 +63,7 @@ def test_term_neg(terms):
     assert neg.variable() is v and neg.coefficient() == -10
 
 
-def test_term_mul(terms):
+def test_term_mul(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     """Test term multiplications
 
     """
@@ -73,10 +74,10 @@ def test_term_mul(terms):
         assert mul.variable() is v and mul.coefficient() == 20
 
     with pytest.raises(TypeError):
-        t * v
+        t * v   # type: ignore
 
 
-def test_term_div(terms):
+def test_term_div(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     """Test term divisions.
 
     """
@@ -87,13 +88,13 @@ def test_term_div(terms):
     assert div.variable() is v and div.coefficient() == 5
 
     with pytest.raises(TypeError):
-        t / v2
+        t / v2  # type: ignore
 
     with pytest.raises(ZeroDivisionError):
         t / 0
 
 
-def test_term_add(terms):
+def test_term_add(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     """Test term additions.
 
     """
@@ -102,30 +103,30 @@ def test_term_add(terms):
     for add in (t + 2, 2.0 + t):
         assert isinstance(add, Expression)
         assert add.constant() == 2
-        terms = add.terms()
-        assert (len(terms) == 1 and terms[0].variable() is v and
-                terms[0].coefficient() == 10)
+        terms_ = add.terms()
+        assert (len(terms_) == 1 and terms[0].variable() is v and
+                terms_[0].coefficient() == 10)
 
     for add2, order in zip((t + v2, v2 + t), ((0, 1), (1, 0))):
         assert isinstance(add2, Expression)
         assert add2.constant() == 0
-        terms = add2.terms()
+        terms_ = add2.terms()
         assert (len(terms) == 2 and
-                terms[order[0]].variable() is v and
-                terms[order[0]].coefficient() == 10 and
-                terms[order[1]].variable() is v2 and
-                terms[order[1]].coefficient() == 1)
+                terms_[order[0]].variable() is v and
+                terms_[order[0]].coefficient() == 10 and
+                terms_[order[1]].variable() is v2 and
+                terms_[order[1]].coefficient() == 1)
 
     add2 = t + t2
     assert isinstance(add2, Expression)
     assert add2.constant() == 0
-    terms = add2.terms()
-    assert (len(terms) == 2 and
-            terms[0].variable() is v and terms[0].coefficient() == 10 and
-            terms[1].variable() is v2 and terms[1].coefficient() == 1)
+    terms_ = add2.terms()
+    assert (len(terms_) == 2 and
+            terms_[0].variable() is v and terms[0].coefficient() == 10 and
+            terms_[1].variable() is v2 and terms[1].coefficient() == 1)
 
 
-def test_term_sub(terms):
+def test_term_sub(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     """Test term substractions.
 
     """
@@ -134,27 +135,27 @@ def test_term_sub(terms):
     for sub, diff in zip((t - 2, 2.0 - t), (-2, 2)):
         assert isinstance(sub, Expression)
         assert sub.constant() == diff
-        terms = sub.terms()
-        assert (len(terms) == 1 and terms[0].variable() is v and
-                terms[0].coefficient() == -math.copysign(10, diff))
+        terms_ = sub.terms()
+        assert (len(terms_) == 1 and terms[0].variable() is v and
+                terms_[0].coefficient() == -math.copysign(10, diff))
 
     for sub2, order in zip((t - v2, v2 - t), ((0, 1), (1, 0))):
         assert isinstance(sub2, Expression)
         assert sub2.constant() == 0
-        terms = sub2.terms()
+        terms_ = sub2.terms()
         assert (len(terms) == 2 and
-                terms[order[0]].variable() is v and
-                terms[order[0]].coefficient() == 10*(-1)**order[0] and
-                terms[order[1]].variable() is v2 and
-                terms[order[1]].coefficient() == -1*(-1)**order[0])
+                terms_[order[0]].variable() is v and
+                terms_[order[0]].coefficient() == 10*(-1)**order[0] and
+                terms_[order[1]].variable() is v2 and
+                terms_[order[1]].coefficient() == -1*(-1)**order[0])
 
     sub2 = t - t2
     assert isinstance(sub2, Expression)
     assert sub2.constant() == 0
-    terms = sub2.terms()
-    assert (len(terms) == 2 and
-            terms[0].variable() is v and terms[0].coefficient() == 10 and
-            terms[1].variable() is v2 and terms[1].coefficient() == -1)
+    terms_ = sub2.terms()
+    assert (len(terms_) == 2 and
+            terms_[0].variable() is v and terms[0].coefficient() == 10 and
+            terms_[1].variable() is v2 and terms[1].coefficient() == -1)
 
 
 @pytest.mark.parametrize("op, symbol",
