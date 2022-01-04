@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2014-2021, Nucleic Development Team.
+# Copyright (c) 2014-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -18,7 +18,7 @@ def test_variable_methods() -> None:
     """Test the variable modification methods."""
     v = Variable()
     assert v.name() == ""
-    v.setName(u"γ")
+    v.setName("γ")
     assert v.name() == "γ"
     v.setName("foo")
     assert v.name() == "foo"
@@ -139,7 +139,7 @@ def test_variable_sub() -> None:
 def test_variable_rich_compare_operations() -> None:
     """Test using comparison on variables."""
     v = Variable("foo")
-    v2 = Variable(u"γ")
+    v2 = Variable("γ")
 
     for op, symbol in ((operator.le, "<="), (operator.eq, "=="), (operator.ge, ">=")):
         c = op(v, v2 + 1)

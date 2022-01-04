@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2014-2021, Nucleic Development Team.
+# Copyright (c) 2014-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -274,10 +274,10 @@ def test_constraint_violated():
 
     """
     s = Solver()
-    v = Variable('foo')
+    v = Variable("foo")
 
-    c1 = (v >= 10) | 'required'
-    c2 = (v <= -5) | 'weak'
+    c1 = (v >= 10) | "required"
+    c2 = (v <= -5) | "weak"
 
     s.addConstraint(c1)
     s.addConstraint(c2)
@@ -285,5 +285,5 @@ def test_constraint_violated():
     s.updateVariables()
 
     assert v.value() >= 10
-    assert c1.violated() == False
-    assert c2.violated() == True
+    assert c1.violated() is False
+    assert c2.violated() is True

@@ -103,7 +103,7 @@ def test_term_add(terms: Tuple[Term, Term, Variable, Variable]) -> None:
         assert add2.constant() == 0
         terms_ = add2.terms()
         assert (
-            len(terms) == 2
+            len(terms_) == 2
             and terms_[order[0]].variable() is v
             and terms_[order[0]].coefficient() == 10
             and terms_[order[1]].variable() is v2
@@ -117,9 +117,9 @@ def test_term_add(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     assert (
         len(terms_) == 2
         and terms_[0].variable() is v
-        and terms[0].coefficient() == 10
+        and terms_[0].coefficient() == 10
         and terms_[1].variable() is v2
-        and terms[1].coefficient() == 1
+        and terms_[1].coefficient() == 1
     )
 
 
@@ -142,7 +142,7 @@ def test_term_sub(terms: Tuple[Term, Term, Variable, Variable]) -> None:
         assert sub2.constant() == 0
         terms_ = sub2.terms()
         assert (
-            len(terms) == 2
+            len(terms_) == 2
             and terms_[order[0]].variable() is v
             and terms_[order[0]].coefficient() == 10 * (-1) ** order[0]
             and terms_[order[1]].variable() is v2
@@ -156,9 +156,9 @@ def test_term_sub(terms: Tuple[Term, Term, Variable, Variable]) -> None:
     assert (
         len(terms_) == 2
         and terms_[0].variable() is v
-        and terms[0].coefficient() == 10
+        and terms_[0].coefficient() == 10
         and terms_[1].variable() is v2
-        and terms[1].coefficient() == -1
+        and terms_[1].coefficient() == -1
     )
 
 
