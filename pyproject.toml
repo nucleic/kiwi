@@ -70,6 +70,10 @@ minversion = "6.0"
 follow_imports = "normal"
 strict_optional = true
 
+[[tool.mypy.overrides]]
+module="pytest.*"
+ignore_missing_imports = true
+
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
@@ -77,3 +81,4 @@ combine_as_imports = true
 force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
+known_first_party = "kiwisolver"

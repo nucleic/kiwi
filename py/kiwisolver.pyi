@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 
-from typing import Any, Iterable, NoReturn, Sequence, Tuple, type_check_only
+from typing import Any, Iterable, NoReturn, Tuple, type_check_only
 
 try:
     from typing import Literal
@@ -23,7 +23,6 @@ class UnknownEditVariable(Exception): ...
 class UnsatisfiableConstraint(Exception): ...
 
 # Types
-
 @type_check_only
 class Strength:
     @property
@@ -87,7 +86,7 @@ class Term:
 
     __hash__: None  # type: ignore
     def __init__(
-        self, variable: Variable, coefficient: int | float = 1.0, /
+        self, variable: Variable, coefficient: int | float = 1.0, /  # noqa
     ) -> None: ...
     def coefficient(self) -> float:
         """Get the coefficient for the term."""
@@ -119,7 +118,7 @@ class Expression:
 
     __hash__: None  # type: ignore
     def __init__(
-        self, terms: Iterable[Term], constant: int | float = 0.0, /
+        self, terms: Iterable[Term], constant: int | float = 0.0, /  # noqa
     ) -> None: ...
     def constant(self) -> float:
         "" "Get the constant for the expression." ""
