@@ -1,20 +1,17 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2020, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 import os
 import sys
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
-# Before releasing the version needs to be updated in:
-# - setup.py
-# - py/kiwisolver.cpp
-# - kiwi/version.h
-# - docs/source/conf.py
+# Before releasing the version needs to be updated in kiwi/version.h, if the changes
+# are not limited to the solver.
 
 # Use the env var KIWI_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
 
@@ -67,8 +64,8 @@ class BuildExt(build_ext):
 
 
 setup(
+    # FIXME remove once setuptool supports PEP 621
     name='kiwisolver',
-    version='1.4.0',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/kiwi',
@@ -88,7 +85,9 @@ setup(
           'Programming Language :: Python :: Implementation :: PyPy',
       ],
     python_requires='>=3.7',
-    setup_requires=['cppy>=1.1.0'],
+    # FIXME end of remove once setuptool supports PEP 621
+    setup_requires=["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.1.0"],
+    install_requires=["typing_extensions;python_version<'3.8'"],
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
     package_data={"py": ["py.typed", "*.pyi"]},

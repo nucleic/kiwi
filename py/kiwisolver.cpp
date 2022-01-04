@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2019, Nucleic Development Team.
+| Copyright (c) 2013-2021, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,8 +8,8 @@
 #include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"
+#include "version.h"
 
-#define PY_KIWI_VERSION "1.4.0"
 
 namespace
 {
