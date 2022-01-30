@@ -100,6 +100,10 @@ Constraint_repr(Constraint *self)
         break;
     }
     stream << " | strength = " << self->constraint.strength();
+    if (self->constraint.violated())
+    {
+        stream << " (VIOLATED)";
+    }
     return PyUnicode_FromString(stream.str().c_str());
 }
 
@@ -135,6 +139,16 @@ Constraint_strength(Constraint *self)
 }
 
 PyObject *
+Constraint_violated(Constraint *self)
+{
+    if (self->constraint.violated()) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+PyObject *
 Constraint_or(PyObject *pyoldcn, PyObject *value)
 {
     if (!Constraint::TypeCheck(pyoldcn))
@@ -160,6 +174,9 @@ static PyMethodDef
          "Get the relational operator for the constraint."},
         {"strength", (PyCFunction)Constraint_strength, METH_NOARGS,
          "Get the strength for the constraint."},
+        {"violated", (PyCFunction)Constraint_violated, METH_NOARGS,
+         "Return whether or not the constraint was violated "
+         "during the last solver pass."},
         {0} // sentinel
 };
 

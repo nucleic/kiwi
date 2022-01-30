@@ -270,3 +270,24 @@ def test_handling_infeasible_constraints():
     assert xl.value() + xr.value() == 2*xm.value()
     assert xl.value() == 80
     assert xr.value() == 100
+
+
+def test_constraint_violated():
+    """Test running a solver and check that constraints
+    report they've been violated
+
+    """
+    s = Solver()
+    v = Variable('foo')
+
+    c1 = (v >= 10) | 'required'
+    c2 = (v <= -5) | 'weak'
+
+    s.addConstraint(c1)
+    s.addConstraint(c2)
+
+    s.updateVariables()
+
+    assert v.value() >= 10
+    assert c1.violated() == False
+    assert c2.violated() == True

@@ -1,6 +1,10 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.0 | Solver 1.4.0 | unreleased
+------------------------------------------
+- add Constraint::violated() method PR #128
+
 Wrappers 1.3.3 | Solver 1.3.1 | unreleased
 ------------------------------------------
 - make the the c++ part of the code c++20 compliant PR #120
