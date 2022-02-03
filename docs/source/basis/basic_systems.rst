@@ -196,6 +196,13 @@ This last update creates an infeasible situation by pushing x2 further than
 following solution: ``xm == 90, x1 == 80, x2 == 100``
 
 
+.. note::
+
+    To know if a non-required constraint was violated when solving the system,
+    you can use the constraint ``violated`` method.
+
+    .. versionadded:: 1.4
+
 Footnotes
 ---------
 
