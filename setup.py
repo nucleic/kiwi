@@ -1,20 +1,29 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import os
-import sys
 
 from setuptools import Extension, setup
-from setuptools.command.build_ext import build_ext
+
+try:
+    from cppy import CppyBuildExt
+except ImportError as e:
+    raise RuntimeError(
+        "Missing setup required dependencies: cppy. "
+        "Installing through pip as recommended ensure one never hits this issue."
+    ) from e
 
 # Before releasing the version needs to be updated in kiwi/version.h, if the changes
 # are not limited to the solver.
 
 # Use the env var KIWI_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
+
+if "KIWI_DISABLE_FH4" in os.environ:
+    os.environ.setdefault("CPPY_DISABLE_FH4", "1")
 
 ext_modules = [
     Extension(
@@ -32,34 +41,6 @@ ext_modules = [
         language="c++",
     ),
 ]
-
-
-class BuildExt(build_ext):
-    """A custom build extension for adding compiler-specific options."""
-
-    c_opts = {"msvc": ["/EHsc", "/std:c++11"], "unix": ["-std=c++11"]}
-
-    def build_extensions(self):
-
-        # Delayed import of cppy to let setup_requires install it if necessary
-        import cppy
-
-        ct = self.compiler.compiler_type
-        opts = self.c_opts.get(ct, [])
-
-        for ext in self.extensions:
-            ext.include_dirs.insert(0, cppy.get_include())
-            ext.extra_compile_args = opts
-            if sys.platform == "darwin":
-                ext.extra_compile_args += ["-stdlib=libc++"]
-                ext.extra_link_args += ["-stdlib=libc++"]
-            if ct == "msvc" and os.environ.get("KIWI_DISABLE_FH4"):
-                # Disable FH4 Exception Handling implementation so that we don't
-                # require VCRUNTIME140_1.dll. For more details, see:
-                # https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/
-                # https://github.com/joerick/cibuildwheel/issues/423#issuecomment-677763904
-                ext.extra_compile_args.append("/d2FH4-")
-        build_ext.build_extensions(self)
 
 
 setup(
@@ -89,10 +70,10 @@ setup(
         "setuptools>=42",
         "wheel",
         "setuptools_scm[toml]>=3.4.3",
-        "cppy>=1.1.0",
+        "cppy>=1.2.0",
     ],
     install_requires=["typing_extensions;python_version<'3.8'"],
     ext_modules=ext_modules,
-    cmdclass={"build_ext": BuildExt},
+    cmdclass={"build_ext": CppyBuildExt},
     package_data={"py": ["py.typed", "*.pyi"]},
 )
