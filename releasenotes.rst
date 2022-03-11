@@ -3,6 +3,8 @@ Kiwi Release Notes
 
 Wrappers 1.4.0 | Solver 1.4.0 | unreleased
 ------------------------------------------
+- make installation PEP517 compliant PR #125
+- add type hints  PR #125
 - add Constraint::violated() method PR #128
 - make the the c++ part of the code c++20 compliant PR #120
 - test with c++11 and c++20 PR #120

@@ -5,8 +5,8 @@ Installing Kiwisolver on Python
 
 .. include:: ../substitutions.sub
 
-Kiwisolver is supported on Python 2.7, and 3.4+. Installing it is a
-straight-forward process. There are three approaches to choose from.
+Kiwisolver is supported on Python 3.7+. Installing it is a straight-forward
+process. There are three approaches to choose from.
 
 The easy way: Pre-compiled packages
 -----------------------------------
@@ -45,7 +45,7 @@ straighforward. On Windows, starting with Python 3.6 the free version of the
 Microsoft toolchain should work out of the box. Installing Kiwisolver is then
 as simple as::
 
-    $ python setup.py install
+    $ pip install .
 
 .. note::
 

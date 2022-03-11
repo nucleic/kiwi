@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
-# Copyright (c) 2014-2018, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2014-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 import math
 import operator
 import sys
@@ -15,21 +14,19 @@ import pytest
 from kiwisolver import Constraint, Expression, Term, Variable, strength
 
 
-def test_variable_methods():
-    """Test the variable modification methods.
-
-    """
+def test_variable_methods() -> None:
+    """Test the variable modification methods."""
     v = Variable()
     assert v.name() == ""
-    v.setName(u'γ')
-    assert v.name() == 'γ'
-    v.setName('foo')
-    assert v.name() == 'foo'
+    v.setName("γ")
+    assert v.name() == "γ"
+    v.setName("foo")
+    assert v.name() == "foo"
     with pytest.raises(TypeError):
-        v.setName(1)
+        v.setName(1)  # type: ignore
     if sys.version_info >= (3,):
         with pytest.raises(TypeError):
-            v.setName(b'r')
+            v.setName(b"r")  # type: ignore
 
     assert v.value() == 0.0
 
@@ -38,16 +35,14 @@ def test_variable_methods():
     v.setContext(ctx)
     assert v.context() is ctx
 
-    assert str(v) == 'foo'
+    assert str(v) == "foo"
 
     with pytest.raises(TypeError):
-        Variable(1)
+        Variable(1)  # type: ignore
 
 
-def test_variable_neg():
-    """Test neg on a variable.
-
-    """
+def test_variable_neg() -> None:
+    """Test neg on a variable."""
     v = Variable("foo")
 
     neg = -v
@@ -55,97 +50,98 @@ def test_variable_neg():
     assert neg.variable() is v and neg.coefficient() == -1
 
 
-def test_variable_mul():
-    """Test variable multiplications.
-
-    """
+def test_variable_mul() -> None:
+    """Test variable multiplications."""
     v = Variable("foo")
-    v2 = Variable('bar')
+    v2 = Variable("bar")
 
     for mul in (v * 2.0, 2 * v):
         assert isinstance(mul, Term)
         assert mul.variable() is v and mul.coefficient() == 2
 
     with pytest.raises(TypeError):
-        v * v2
+        v * v2  # type: ignore
 
 
-def test_variable_division():
-    """Test variable divisions.
-
-    """
+def test_variable_division() -> None:
+    """Test variable divisions."""
     v = Variable("foo")
-    v2 = Variable('bar')
+    v2 = Variable("bar")
 
     div = v / 2.0
     assert isinstance(div, Term)
     assert div.variable() is v and div.coefficient() == 0.5
 
     with pytest.raises(TypeError):
-        v / v2
+        v / v2  # type: ignore
 
     with pytest.raises(ZeroDivisionError):
         v / 0
 
 
-def test_variable_addition():
-    """Test variable additions.
-
-    """
+def test_variable_addition() -> None:
+    """Test variable additions."""
     v = Variable("foo")
-    v2 = Variable('bar')
+    v2 = Variable("bar")
 
     for add in (v + 2, 2.0 + v):
         assert isinstance(add, Expression)
         assert add.constant() == 2
         terms = add.terms()
-        assert (len(terms) == 1 and terms[0].variable() is v and
-                terms[0].coefficient() == 1)
+        assert (
+            len(terms) == 1 and terms[0].variable() is v and terms[0].coefficient() == 1
+        )
 
     add2 = v + v2
     assert isinstance(add2, Expression)
     assert add2.constant() == 0
     terms = add2.terms()
-    assert (len(terms) == 2 and
-            terms[0].variable() is v and terms[0].coefficient() == 1 and
-            terms[1].variable() is v2 and terms[1].coefficient() == 1)
+    assert (
+        len(terms) == 2
+        and terms[0].variable() is v
+        and terms[0].coefficient() == 1
+        and terms[1].variable() is v2
+        and terms[1].coefficient() == 1
+    )
 
     with pytest.raises(TypeError):
-        v + ''
+        v + ""  # type: ignore
 
 
-def test_variable_sub():
-    """Test variable substractions.
-
-    """
+def test_variable_sub() -> None:
+    """Test variable substractions."""
     v = Variable("foo")
-    v2 = Variable('bar')
+    v2 = Variable("bar")
 
     for sub, diff in zip((v - 2, 2 - v), (-2, 2)):
         assert isinstance(sub, Expression)
         assert sub.constant() == diff
         terms = sub.terms()
-        assert (len(terms) == 1 and terms[0].variable() is v and
-                terms[0].coefficient() == -math.copysign(1, diff))
+        assert (
+            len(terms) == 1
+            and terms[0].variable() is v
+            and terms[0].coefficient() == -math.copysign(1, diff)
+        )
 
     sub2 = v - v2
     assert isinstance(sub2, Expression)
     assert sub2.constant() == 0
     terms = sub2.terms()
-    assert (len(terms) == 2 and
-            terms[0].variable() is v and terms[0].coefficient() == 1 and
-            terms[1].variable() is v2 and terms[1].coefficient() == -1)
+    assert (
+        len(terms) == 2
+        and terms[0].variable() is v
+        and terms[0].coefficient() == 1
+        and terms[1].variable() is v2
+        and terms[1].coefficient() == -1
+    )
 
 
-def test_variable_rich_compare_operations():
-    """Test using comparison on variables.
+def test_variable_rich_compare_operations() -> None:
+    """Test using comparison on variables."""
+    v = Variable("foo")
+    v2 = Variable("γ")
 
-    """
-    v = Variable('foo')
-    v2 = Variable(u'γ')
-
-    for op, symbol in ((operator.le, '<='), (operator.eq, '=='),
-                       (operator.ge, '>=')):
+    for op, symbol in ((operator.le, "<="), (operator.eq, "=="), (operator.ge, ">=")):
         c = op(v, v2 + 1)
         assert isinstance(c, Constraint)
         e = c.expression()
@@ -153,8 +149,12 @@ def test_variable_rich_compare_operations():
         assert len(t) == 2
         if t[0].variable() is not v:
             t = (t[1], t[0])
-        assert (t[0].variable() is v and t[0].coefficient() == 1 and
-                t[1].variable() is v2 and t[1].coefficient() == -1)
+        assert (
+            t[0].variable() is v
+            and t[0].coefficient() == 1
+            and t[1].variable() is v2
+            and t[1].coefficient() == -1
+        )
         assert e.constant() == -1
         assert c.op() == symbol and c.strength() == strength.required
 

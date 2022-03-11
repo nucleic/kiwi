@@ -1,0 +1,13 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    docs/source/conf.py,
+    build,
+    dist,
+ignore = E203, E266, E501, W503, E731, E301, E302, E305, E704, E701
+# line length is intentionally set to 80 here because kiwi uses Bugbear
+# See https://github.com/psf/black/blob/master/README.md#line-length for more details
+max-line-length = 80
+max-complexity = 19
+select = B,C,E,F,W,T4,B9

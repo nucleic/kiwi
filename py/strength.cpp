@@ -126,7 +126,7 @@ PyTypeObject* strength::TypeObject = NULL;
 
 
 PyType_Spec strength::TypeObject_Spec = {
-	"kiwisolver.strength",             /* tp_name */
+	"kiwisolver.Strength",             /* tp_name */
 	sizeof( strength ),                /* tp_basicsize */
 	0,                                 /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT,                /* tp_flags */

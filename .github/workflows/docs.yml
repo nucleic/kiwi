@@ -14,6 +14,7 @@ on:
       - "py/**"
       - "docs/**"
       - setup.py
+      - pyproject.toml
 
 jobs:
   docs:
@@ -21,6 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set up Python
         uses: actions/setup-python@v2
       - name: Install dependencies
@@ -29,7 +34,7 @@ jobs:
           pip install -r docs/requirements.txt
       - name: Install project
         run: |
-          python setup.py develop
+          pip install .
       - name: Install graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Build documentation
