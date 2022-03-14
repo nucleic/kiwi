@@ -30,7 +30,7 @@ jobs:
       - name: Test sdist
         run: |
           pip install pytest
-          pip install --no-index --find-links dist kiwisolver
+          pip install dist/*.tar.gz
           cd ..
           python -m pytest kiwi/py/tests
       - name: Store artifacts
