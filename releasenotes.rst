@@ -1,7 +1,7 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.4.0 | Solver 1.4.0 | unreleased
+Wrappers 1.4.0 | Solver 1.4.0 | 14/03/2021
 ------------------------------------------
 - make installation PEP517 compliant PR #125
 - add type hints  PR #125
