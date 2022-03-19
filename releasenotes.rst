@@ -1,6 +1,10 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.1 | Solver 1.4.1 | unreleased
+------------------------------------------
+- add missing include PR #129
+
 Wrappers 1.4.0 | Solver 1.4.0 | 14/03/2021
 ------------------------------------------
 - make installation PEP517 compliant PR #125
