@@ -6,6 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
+#include <cstdlib>
 #include <map>
 #include <vector>
 #include "expression.h"
