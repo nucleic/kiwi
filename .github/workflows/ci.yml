@@ -51,8 +51,11 @@ jobs:
           flake8 py
       - name: Run Mypy
         if: always()
+        # We test twice to ensure the type annotations are properly installed
         run: |
           mypy py
+          cd py/tests
+          mypy .
   benchmark:
     name: C++ Benchmark
     runs-on: ${{ matrix.os }}
