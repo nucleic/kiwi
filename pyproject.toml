@@ -70,10 +70,6 @@ minversion = "6.0"
 follow_imports = "normal"
 strict_optional = true
 
-[[tool.mypy.overrides]]
-module="pytest.*"
-ignore_missing_imports = true
-
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
