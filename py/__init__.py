@@ -7,17 +7,19 @@
 # --------------------------------------------------------------------------------------
 from ._cext import (
     BadRequiredStrength,
+    Constraint,
     DuplicateConstraint,
     DuplicateEditVariable,
+    Expression,
+    Solver,
+    Term,
     UnknownConstraint,
     UnknownEditVariable,
     UnsatisfiableConstraint,
-    strength,
     Variable,
-    Term,
-    Expression,
-    Constraint,
-    Solver,
+    __kiwi_version__,
+    __version__,
+    strength,
 )
 
 __all__ = [
@@ -33,4 +35,6 @@ __all__ = [
     "Expression",
     "Constraint",
     "Solver",
+    "__version__",
+    "__kiwi_version__"
 ]
