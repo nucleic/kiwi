@@ -44,8 +44,30 @@ ext_modules = [
 
 
 setup(
+    # FIXME remove once setuptool supports PEP 621
+    name="kiwisolver",
+    author="The Nucleic Development Team",
+    author_email="sccolbert@gmail.com",
+    url="https://github.com/nucleic/kiwi",
+    description="A fast implementation of the Cassowary constraint solver",
+    long_description=open("README.rst").read(),
+    license="BSD",
+    classifiers=[
+        # https://pypi.org/pypi?%3Aaction=list_classifiers
+        "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+    ],
+    python_requires=">=3.7",
+    # FIXME end of remove once setuptool supports PEP 621
     setup_requires=[
-        "setuptools>=61",
+        "setuptools>=42",
         "wheel",
         "setuptools_scm[toml]>=3.4.3",
         "cppy>=1.2.0",
