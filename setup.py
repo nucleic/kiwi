@@ -27,15 +27,15 @@ if "KIWI_DISABLE_FH4" in os.environ:
 
 ext_modules = [
     Extension(
-        "kiwisolver",
+        "kiwisolver._cext",
         [
-            "py/kiwisolver.cpp",
-            "py/constraint.cpp",
-            "py/expression.cpp",
-            "py/solver.cpp",
-            "py/strength.cpp",
-            "py/term.cpp",
-            "py/variable.cpp",
+            "py/src/kiwisolver.cpp",
+            "py/src/constraint.cpp",
+            "py/src/expression.cpp",
+            "py/src/solver.cpp",
+            "py/src/strength.cpp",
+            "py/src/term.cpp",
+            "py/src/variable.cpp",
         ],
         include_dirs=["."],
         language="c++",
@@ -72,8 +72,11 @@ setup(
         "setuptools_scm[toml]>=3.4.3",
         "cppy>=1.2.0",
     ],
+    package_dir={"": "py"},
+    packages=["kiwisolver"],
     install_requires=["typing_extensions;python_version<'3.8'"],
     ext_modules=ext_modules,
     cmdclass={"build_ext": CppyBuildExt},
-    package_data={"py": ["py.typed", "*.pyi"]},
+    include_package_data=False,
+    package_data={"kiwisolver": ["py.typed", "*.pyi"]},
 )

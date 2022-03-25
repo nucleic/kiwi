@@ -43,7 +43,7 @@ requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "py/version.h"
+write_to = "py/src/version.h"
 write_to_template = """
 /* ----------------------------------------------------------------------------
 | Copyright (c) 2013-2021, Nucleic Development Team.
@@ -69,10 +69,6 @@ minversion = "6.0"
 [tool.mypy]
 follow_imports = "normal"
 strict_optional = true
-
-[[tool.mypy.overrides]]
-module="pytest.*"
-ignore_missing_imports = true
 
 [tool.isort]
 multi_line_output = 3

@@ -2,3 +2,5 @@ black
 flake8
 isort
 mypy
+# Allow to lint tests using mypy
+pytest

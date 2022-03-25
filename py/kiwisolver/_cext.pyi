@@ -13,6 +13,9 @@ try:
 except ImportError:
     from typing_extensions import Literal  # type: ignore
 
+__version__: str
+__kiwi_version__: str
+
 # --- Exceptions
 
 class BadRequiredStrength(Exception): ...

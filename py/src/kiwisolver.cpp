@@ -134,7 +134,7 @@ bool add_objects( PyObject* mod )
 
 
 int
-catom_modexec( PyObject *mod )
+kiwi_modexec( PyObject *mod )
 {
     if( !ready_types() )
     {
@@ -161,14 +161,14 @@ kiwisolver_methods[] = {
 
 
 PyModuleDef_Slot kiwisolver_slots[] = {
-    {Py_mod_exec, reinterpret_cast<void*>( catom_modexec ) },
+    {Py_mod_exec, reinterpret_cast<void*>( kiwi_modexec ) },
     {0, NULL}
 };
 
 
 struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
-        "kiwisolver",
+        "_cext",
         "kiwisolver extension module",
         0,
         kiwisolver_methods,
@@ -181,7 +181,7 @@ struct PyModuleDef moduledef = {
 }  // namespace
 
 
-PyMODINIT_FUNC PyInit_kiwisolver( void )
+PyMODINIT_FUNC PyInit__cext( void )
 {
     return PyModuleDef_Init( &moduledef );
 }
