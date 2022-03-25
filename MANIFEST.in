@@ -4,7 +4,7 @@ include README.rst
 include releasenotes.rst
 recursive-include kiwi *.h
 recursive-include py *.cpp *.h *.py *.pyi
-include py/py.typed
+include py/kiwisolver/py.typed
 recursive-include docs/source *.rst
 recursive-include docs/source *.png
 recursive-include docs/source *.py

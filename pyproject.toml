@@ -39,11 +39,11 @@ changelog = "https://github.com/nucleic/kiwi/blob/main/releasenotes.rst"
 
 
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
+requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "py/version.h"
+write_to = "py/src/version.h"
 write_to_template = """
 /* ----------------------------------------------------------------------------
 | Copyright (c) 2013-2021, Nucleic Development Team.

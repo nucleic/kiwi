@@ -36,5 +36,5 @@ __all__ = [
     "Constraint",
     "Solver",
     "__version__",
-    "__kiwi_version__"
+    "__kiwi_version__",
 ]

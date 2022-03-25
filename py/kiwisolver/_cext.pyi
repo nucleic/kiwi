@@ -16,7 +16,6 @@ except ImportError:
 __version__: str
 __kiwi_version__: str
 
-
 # --- Exceptions
 
 class BadRequiredStrength(Exception): ...

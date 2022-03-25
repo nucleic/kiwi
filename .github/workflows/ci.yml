@@ -40,19 +40,19 @@ jobs:
           pip install -e .
       - name: Isort
         run: |
-          isort py py_tests -cv
+          isort py -cv
       - name: Black
         if: always()
         run: |
-          black py py_tests --check
+          black py --check
       - name: Flake8
         if: always()
         run: |
-          flake8 py py_tests
+          flake8 py
       - name: Run Mypy
         if: always()
         run: |
-          mypy py py_tests
+          mypy py
   benchmark:
     name: C++ Benchmark
     runs-on: ${{ matrix.os }}
@@ -101,7 +101,7 @@ jobs:
       - name: Test with pytest
         run: |
           pip install pytest
-          python -X dev -m pytest py_tests
+          python -X dev -m pytest py
       - name: Generate C++ coverage reports
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         run: |
