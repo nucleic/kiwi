@@ -1,12 +1,12 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.4.1 | Solver 1.4.1 | unreleased
+Wrappers 1.4.1 | Solver 1.4.1 | 27/03/2022
 ------------------------------------------
 - add missing include PR #129
 - re-organize the Python binding sources to properly ship type hints PR #131
 
-Wrappers 1.4.0 | Solver 1.4.0 | 14/03/2021
+Wrappers 1.4.0 | Solver 1.4.0 | 14/03/2022
 ------------------------------------------
 - make installation PEP517 compliant PR #125
 - add type hints  PR #125
