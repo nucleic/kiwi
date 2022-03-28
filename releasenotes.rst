@@ -1,7 +1,7 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.4.2 | Solver 1.4.1 | unreleased
+Wrappers 1.4.2 | Solver 1.4.1 | 28/03/2022
 ------------------------------------------
 - fix an issue with setuptools configuration PR #134
 
