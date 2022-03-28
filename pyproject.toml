@@ -8,6 +8,7 @@
 
 [project]
 name = "kiwisolver"
+version = "1.4.1"
 description = "A fast implementation of the Cassowary constraint solver"
 readme = "README.rst"
 requires-python = ">=3.7"
