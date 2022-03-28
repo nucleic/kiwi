@@ -17,8 +17,11 @@ except ImportError as e:
         "Installing through pip as recommended ensure one never hits this issue."
     ) from e
 
-# Before releasing the version needs to be updated in kiwi/version.h, if the changes
-# are not limited to the solver.
+# Before releasing:
+# 1) The version needs to be updated in kiwi/version.h, if the changes
+#    are not limited to the solver.
+#
+# 2) Make sure the version field in pyproject.toml is updated to the new version tag
 
 # Use the env var KIWI_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
 
