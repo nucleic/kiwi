@@ -123,7 +123,7 @@ PyObject* BinaryMul::operator()( Expression* first, double second )
 		return 0;
 	Py_ssize_t end = PyTuple_GET_SIZE( first->terms );
 	for( Py_ssize_t i = 0; i < end; ++i )  // memset 0 for safe error return
-		PyTuple_SET_ITEM( terms.get(), i, 0 );
+		PyTuple_SET_ITEM( terms.get(), i, nullptr );
 	for( Py_ssize_t i = 0; i < end; ++i )
 	{
 		PyObject* item = PyTuple_GET_ITEM( first->terms, i );

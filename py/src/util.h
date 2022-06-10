@@ -117,7 +117,7 @@ make_terms( const std::map<PyObject*, double>& coeffs )
         return 0;
     Py_ssize_t size = PyTuple_GET_SIZE( terms.get() );
     for( Py_ssize_t i = 0; i < size; ++i ) // zero tuple for safe early return
-        PyTuple_SET_ITEM( terms.get(), i, 0 );
+        PyTuple_SET_ITEM( terms.get(), i, nullptr );
     Py_ssize_t i = 0;
     iter_t it = coeffs.begin();
     iter_t end = coeffs.end();
