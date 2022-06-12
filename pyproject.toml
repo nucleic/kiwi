@@ -29,8 +29,8 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+dependencies = ["typing_extensions;python_version<'3.8'"]
 dynamic=["version"]
-
 
 [project.urls]
 homepage = "https://github.com/nucleic/kiwi"
@@ -38,10 +38,16 @@ documentation = "https://kiwisolver.readthedocs.io/en/latest/"
 repository = "https://github.com/nucleic/kiwi"
 changelog = "https://github.com/nucleic/kiwi/blob/main/releasenotes.rst"
 
-
 [build-system]
 requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = false
+package-data = {kiwisolver = ["py.typed", "*.pyi"]}
+
+[tool.setuptools.packages.find]
+where = ["py"]
 
 [tool.setuptools_scm]
 write_to = "py/src/version.h"

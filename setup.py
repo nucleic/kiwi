@@ -44,11 +44,6 @@ ext_modules = [
 
 
 setup(
-    package_dir={"": "py"},
-    packages=["kiwisolver"],
-    install_requires=["typing_extensions;python_version<'3.8'"],
     ext_modules=ext_modules,
     cmdclass={"build_ext": CppyBuildExt},
-    include_package_data=False,
-    package_data={"kiwisolver": ["py.typed", "*.pyi"]},
 )
