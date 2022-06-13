@@ -48,6 +48,7 @@ package-data = {kiwisolver = ["py.typed", "*.pyi"]}
 
 [tool.setuptools.packages.find]
 where = ["py"]
+exclude = ["tests"]
 
 [tool.setuptools_scm]
 write_to = "py/src/version.h"
