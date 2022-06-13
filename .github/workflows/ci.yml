@@ -104,7 +104,7 @@ jobs:
       - name: Test with pytest
         run: |
           pip install pytest
-          python -X dev -m pytest py
+          python -X dev -m pytest py -W error
       - name: Generate C++ coverage reports
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         run: |
