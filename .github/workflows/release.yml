@@ -102,7 +102,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.1.1
         if: matrix.manylinux_version == 'manylinux2010'
         env:
-          CIBW_BUILD: "cp39-* cp310-* pp37-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* pp37-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
