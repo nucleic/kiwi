@@ -1,6 +1,12 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.3 | Solver 1.4.1 | 13/06/2022
+------------------------------------------
+- add support for Python 3.11 PR #142
+- do not install tests PR #143
+- fix packaging for latest setuptools PR #140
+
 Wrappers 1.4.2 | Solver 1.4.1 | 28/03/2022
 ------------------------------------------
 - fix an issue with setuptools configuration PR #134
