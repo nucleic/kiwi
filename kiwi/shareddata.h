@@ -142,10 +142,10 @@ public:
     {
         if (m_data != other.m_data)
         {
-            decref(m_data);
-
+            T *temp = m_data;
             m_data = other.m_data;
             other.m_data = nullptr;
+            decref(temp);
         }
         return *this;
     }
