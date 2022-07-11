@@ -1,6 +1,10 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.4 | Solver 1.4.2 | unreleased
+------------------------------------------
+- fix timing in shared data release procedure PR #149
+
 Wrappers 1.4.3 | Solver 1.4.1 | 13/06/2022
 ------------------------------------------
 - add support for Python 3.11 PR #142
