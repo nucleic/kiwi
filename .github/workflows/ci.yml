@@ -24,7 +24,7 @@ jobs:
       matrix:
         python-version: ['3.9']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
@@ -63,7 +63,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -81,9 +81,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10', 'pypy-3.7', 'pypy-3.8', '3.11.0-beta - 3.11.0']
+        python-version: ['3.7', '3.8', '3.9', '3.10', 'pypy-3.7', 'pypy-3.8', '3.11.0-beta4 - 3.11.0']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
