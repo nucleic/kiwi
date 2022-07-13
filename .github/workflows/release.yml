@@ -19,9 +19,9 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.x'
       - name: Build sdist
         run: |
           pip install --upgrade pip
@@ -77,9 +77,9 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.x'
       - name: Set up QEMU
         if: runner.os == 'Linux' && matrix.archs != 'auto'
         uses: docker/setup-qemu-action@v1
@@ -102,7 +102,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.1.1
         if: matrix.manylinux_version == 'manylinux2010'
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* pp37-*"
+          CIBW_BUILD: "cp39-* cp310-* pp37-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
