@@ -1,9 +1,12 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.4.4 | Solver 1.4.2 | unreleased
+Wrappers 1.4.4 | Solver 1.4.2 | 15/07/2022
 ------------------------------------------
 - fix timing in shared data release procedure PR #149
+- revert use of nullpointer introduced in #142
+  Its use is not necessary anymore in 3.11.0-beta.4 and used to cause issues on
+  some platforms (see #144 ) PR #145
 
 Wrappers 1.4.3 | Solver 1.4.1 | 13/06/2022
 ------------------------------------------
