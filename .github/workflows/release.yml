@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
@@ -34,7 +34,7 @@ jobs:
           cd ..
           pytest kiwi/py/tests -v -W error
       - name: Store artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: artifact
           path: dist/*
@@ -71,7 +71,7 @@ jobs:
             manylinux_version: manylinux2010
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
@@ -112,7 +112,7 @@ jobs:
           # Do not link against VC2014_1 on Windows
           KIWI_DISABLE_FH4: 1
       - name: Store artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: artifact
           path: ./wheelhouse/*.whl
