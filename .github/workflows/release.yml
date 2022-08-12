@@ -69,6 +69,15 @@ jobs:
           - os: ubuntu-latest
             archs: s390x
             manylinux_version: manylinux2010
+          - os: ubuntu-latest
+            archs: aarch64
+            manylinux_version: manylinux2014
+          - os: ubuntu-latest
+            archs: ppc64le
+            manylinux_version: manylinux2014
+          - os: ubuntu-latest
+            archs: s390x
+            manylinux_version: manylinux2014
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -123,8 +132,8 @@ jobs:
           CIBW_BUILD: "cp311-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2010
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
           # Do not link against VC2014_1 on Windows
