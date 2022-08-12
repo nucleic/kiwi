@@ -115,7 +115,7 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2010'
         env:
-          CIBW_BUILD: "cp39-* cp310-* pp37-* pp38-* pp39-*"
+          CIBW_BUILD: "cp39-* cp310-* pp37-* pp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
@@ -129,7 +129,7 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2014'
         env:
-          CIBW_BUILD: "cp311-*"
+          CIBW_BUILD: "cp311-* pp39-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
