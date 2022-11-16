@@ -91,7 +91,7 @@ jobs:
           python-version: '3.x'
       - name: Set up QEMU
         if: runner.os == 'Linux' && matrix.archs != 'auto'
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
         with:
           platforms: all
       - name: Install cibuildwheel
@@ -162,7 +162,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: ${{ contains(github.ref, 'rc') || contains(github.ref, 'a') || contains(github.ref, 'b')}}
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: artifact
           path: dist
@@ -180,7 +180,7 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: artifact
           path: dist
