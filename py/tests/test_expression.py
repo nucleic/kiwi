@@ -8,6 +8,7 @@
 import gc
 import math
 import operator
+import sys
 from typing import Tuple
 
 import pytest
@@ -264,4 +265,7 @@ def test_expression_rich_compare_operations(op, symbol) -> None:
     else:
         with pytest.raises(TypeError) as excinfo:
             op(e1, e2)
-        assert "kiwisolver.Expression" in excinfo.exconly()
+        if "PyPy" in sys.version:
+            assert "Expression" in excinfo.exconly()
+        else:
+            assert "kiwisolver.Expression" in excinfo.exconly()
