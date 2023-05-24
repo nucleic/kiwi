@@ -5,17 +5,19 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from ._cext import (
+from .exceptions import (
     BadRequiredStrength,
-    Constraint,
     DuplicateConstraint,
     DuplicateEditVariable,
-    Expression,
-    Solver,
-    Term,
     UnknownConstraint,
     UnknownEditVariable,
     UnsatisfiableConstraint,
+)
+from ._cext import (
+    Constraint,
+    Expression,
+    Solver,
+    Term,
     Variable,
     __kiwi_version__,
     __version__,
