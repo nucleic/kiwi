@@ -5,14 +5,6 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from .exceptions import (
-    BadRequiredStrength,
-    DuplicateConstraint,
-    DuplicateEditVariable,
-    UnknownConstraint,
-    UnknownEditVariable,
-    UnsatisfiableConstraint,
-)
 from ._cext import (
     Constraint,
     Expression,
@@ -22,6 +14,14 @@ from ._cext import (
     __kiwi_version__,
     __version__,
     strength,
+)
+from .exceptions import (
+    BadRequiredStrength,
+    DuplicateConstraint,
+    DuplicateEditVariable,
+    UnknownConstraint,
+    UnknownEditVariable,
+    UnsatisfiableConstraint,
 )
 
 __all__ = [

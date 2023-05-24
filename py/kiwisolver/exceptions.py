@@ -7,40 +7,41 @@
 # --------------------------------------------------------------------------------------
 """Kiwi exceptions."""
 
+
 class BadRequiredStrength(Exception):
     pass
 
-class DuplicateConstraint(Exception):
 
+class DuplicateConstraint(Exception):
     __slots__ = ("constraint",)
 
     def __init__(self, constraint):
         self.constraint = constraint
+
 
 class DuplicateEditVariable(Exception):
-
     __slots__ = ("edit_variable",)
 
     def __init__(self, edit_variable):
         self.edit_variable = edit_variable
 
-class UnknownConstraint(Exception):
 
+class UnknownConstraint(Exception):
     __slots__ = ("constraint",)
 
     def __init__(self, constraint):
         self.constraint = constraint
 
-class UnknownEditVariable(Exception):
 
+class UnknownEditVariable(Exception):
     __slots__ = ("edit_variable",)
 
     def __init__(self, edit_variable):
         self.edit_variable = edit_variable
 
-class UnsatisfiableConstraint(Exception):
 
-    __slots__ = ("constraint")
+class UnsatisfiableConstraint(Exception):
+    __slots__ = "constraint"
 
     def __init__(self, constraint):
         self.constraint = constraint
