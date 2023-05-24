@@ -5,7 +5,11 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Kiwi exceptions."""
+"""Kiwi exceptions.
+
+Imported by the kiwisolver C extension.
+
+"""
 
 
 class BadRequiredStrength(Exception):
@@ -41,7 +45,7 @@ class UnknownEditVariable(Exception):
 
 
 class UnsatisfiableConstraint(Exception):
-    __slots__ = "constraint"
+    __slots__ = ("constraint",)
 
     def __init__(self, constraint):
         self.constraint = constraint
