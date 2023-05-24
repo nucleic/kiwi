@@ -49,9 +49,9 @@ def test_managing_edit_variable() -> None:
     with pytest.raises(DuplicateEditVariable) as e:
         s.addEditVariable(v1, "medium")
     assert e.value.edit_variable is v1
-    with pytest.raises(UnknownEditVariable) as e:
+    with pytest.raises(UnknownEditVariable) as e2:
         s.removeEditVariable(v2)
-    assert e.value.edit_variable is v2
+    assert e2.value.edit_variable is v2
     s.removeEditVariable(v1)
     assert not s.hasEditVariable(v1)
 
@@ -60,9 +60,9 @@ def test_managing_edit_variable() -> None:
 
     s.addEditVariable(v2, "strong")
     assert s.hasEditVariable(v2)
-    with pytest.raises(UnknownEditVariable) as e:
+    with pytest.raises(UnknownEditVariable) as e3:
         s.suggestValue(v1, 10)
-    assert e.value.edit_variable is v1
+    assert e3.value.edit_variable is v1
 
     s.reset()
     assert not s.hasEditVariable(v2)
@@ -115,12 +115,12 @@ def test_managing_constraints() -> None:
     with pytest.raises(DuplicateConstraint) as e:
         s.addConstraint(c1)
     assert e.value.constraint is c1
-    with pytest.raises(UnknownConstraint) as e:
+    with pytest.raises(UnknownConstraint) as e2:
         s.removeConstraint(c2)
-    assert e.value.constraint is c2
-    with pytest.raises(UnsatisfiableConstraint) as e:
+    assert e2.value.constraint is c2
+    with pytest.raises(UnsatisfiableConstraint) as e3:
         s.addConstraint(c2)
-    assert e.value.constraint is c2
+    assert e3.value.constraint is c2
     # XXX need to find how to get an invalid symbol from choose subject
     # with pytest.raises(UnsatisfiableConstraint):
     #     s.addConstraint(c3)
