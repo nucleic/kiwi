@@ -160,6 +160,9 @@ class Constraint:
     def strength(self) -> float:
         """Get the strength for the constraint."""
         ...
+    def violated(self) -> bool:
+        """Indicate if the constraint is violated in teh current state of the solver."""
+        ...
     def __or__(
         self,
         other: float
