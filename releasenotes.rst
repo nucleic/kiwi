@@ -6,6 +6,7 @@ Wrappers 1.4.5 | Solver 1.4.2 | unreleased
 - implement exceptions in Python PR #162
   This allows to expose in a natural manner the object relevant to the exception:
   constraint or edit_variable
+- add missing signature of Constraint.violated for Python wrapper PR #166
 
 Wrappers 1.4.4 | Solver 1.4.2 | 15/07/2022
 ------------------------------------------
