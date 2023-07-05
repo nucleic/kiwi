@@ -1,6 +1,12 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.5 | Solver 1.4.2 | unreleased
+------------------------------------------
+- implement exceptions in Python PR #162
+  This allows to expose in a natural manner the object relevant to the exception:
+  constraint or edit_variable
+
 Wrappers 1.4.4 | Solver 1.4.2 | 15/07/2022
 ------------------------------------------
 - fix timing in shared data release procedure PR #149
