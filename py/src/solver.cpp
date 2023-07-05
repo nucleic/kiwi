@@ -290,43 +290,43 @@ PyObject* BadRequiredStrength;
 
 bool init_exceptions()
 {
- 	DuplicateConstraint = PyErr_NewException(
- 		const_cast<char*>( "kiwisolver.DuplicateConstraint" ), 0, 0 );
+	cppy::ptr mod( PyImport_ImportModule( "kiwisolver.exceptions" ) );
+    if( !mod )
+    {
+        return false;
+    }
+
+ 	DuplicateConstraint = mod.getattr( "DuplicateConstraint" );
  	if( !DuplicateConstraint )
     {
         return false;
     }
 
-  	UnsatisfiableConstraint = PyErr_NewException(
-  		const_cast<char*>( "kiwisolver.UnsatisfiableConstraint" ), 0, 0 );
+  	UnsatisfiableConstraint = mod.getattr( "UnsatisfiableConstraint" );
  	if( !UnsatisfiableConstraint )
  	{
         return false;
     }
 
-  	UnknownConstraint = PyErr_NewException(
-  		const_cast<char*>( "kiwisolver.UnknownConstraint" ), 0, 0 );
+  	UnknownConstraint = mod.getattr( "UnknownConstraint" );
  	if( !UnknownConstraint )
  	{
         return false;
     }
 
-  	DuplicateEditVariable = PyErr_NewException(
-  		const_cast<char*>( "kiwisolver.DuplicateEditVariable" ), 0, 0 );
+  	DuplicateEditVariable = mod.getattr( "DuplicateEditVariable" );
  	if( !DuplicateEditVariable )
  	{
         return false;
     }
 
-  	UnknownEditVariable = PyErr_NewException(
-  		const_cast<char*>( "kiwisolver.UnknownEditVariable" ), 0, 0 );
+  	UnknownEditVariable = mod.getattr( "UnknownEditVariable" );
  	if( !UnknownEditVariable )
  	{
         return false;
     }
 
-  	BadRequiredStrength = PyErr_NewException(
-  		const_cast<char*>( "kiwisolver.BadRequiredStrength" ), 0, 0 );
+  	BadRequiredStrength = mod.getattr( "BadRequiredStrength" );
  	if( !BadRequiredStrength )
  	{
         return false;
