@@ -1,12 +1,13 @@
 Kiwi Release Notes
 ==================
 
-Wrappers 1.4.5 | Solver 1.4.2 | unreleased
+Wrappers 1.4.5 | Solver 1.4.2 | 24/08/2023
 ------------------------------------------
 - implement exceptions in Python PR #162
   This allows to expose in a natural manner the object relevant to the exception:
   constraint or edit_variable
 - add missing signature of Constraint.violated for Python wrapper PR #166
+- add support for Python 3.12
 
 Wrappers 1.4.4 | Solver 1.4.2 | 15/07/2022
 ------------------------------------------
