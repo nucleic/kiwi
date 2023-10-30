@@ -49,7 +49,8 @@ include-package-data = false
 package-data = {kiwisolver = ["py.typed", "*.pyi"]}
 
 [tool.setuptools.packages.find]
-include = ["py/kiwisolver"]
+where = ["py"]
+include = ["kiwisolver"]
 
 [tool.setuptools_scm]
 write_to = "py/src/version.h"
