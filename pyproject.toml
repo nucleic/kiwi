@@ -27,6 +27,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
@@ -48,14 +49,13 @@ include-package-data = false
 package-data = {kiwisolver = ["py.typed", "*.pyi"]}
 
 [tool.setuptools.packages.find]
-where = ["py"]
-exclude = ["tests"]
+include = ["py/kiwisolver"]
 
 [tool.setuptools_scm]
 write_to = "py/src/version.h"
 write_to_template = """
 /* ----------------------------------------------------------------------------
-| Copyright (c) 2013-2021, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
