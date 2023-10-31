@@ -1,8 +1,6 @@
 Welcome to Kiwi
 ===============
 
-.. image:: https://travis-ci.org/nucleic/kiwi.svg?branch=main
-    :target: https://travis-ci.org/nucleic/kiwi
 .. image:: https://github.com/nucleic/kiwi/workflows/Continuous%20Integration/badge.svg
     :target: https://github.com/nucleic/kiwi/actions
 .. image:: https://github.com/nucleic/kiwi/workflows/Documentation%20building/badge.svg
