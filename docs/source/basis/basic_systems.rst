@@ -5,18 +5,20 @@ Constraints definition and system solving
 
 .. include:: ../substitutions.sub
 
-A system in Kiwi is defined by a set of constraints that can be either
-equalities or inequalities (>= and <= only, strict inequalities are not
-accepted), each of which can have an associated strength making more or less
-important to respect when solving the problem. The next sections will cover how
-to define those constraints and extract the result from the solver.
+A system within Kiwi is defined by a set of constraints, which may
+be either equalities or inequalities (limited to >= and <=, as strict inequalities
+are not supported). Each constraint can be assigned a specific 'strength',
+indicating its relative importance in the problem-solving process. The subsequent
+sections will delve into the methods of defining these constraints and extracting
+results from the solver.
 
 Defining variables and constraints
 ----------------------------------
 
-The first things that need to be defined are variables. Variables represent
-the values which the solver will be trying to determine. Variables are
-represented by |Variable| objects which can be created as follow:
+The initial step involves defining variables, which represent
+the values that the solver aims to determine. These variables are
+encapsulated by |Variable| objects. The creation of these objects
+can be accomplished as follows:
 
 .. tabs::
 
@@ -59,7 +61,7 @@ Now that we have some variables we can define our constraints.
                                      Constraint {xm == (x1 + x2) / 2}
                                     };
 
-The next step is to add them to our solver, which is an instance of |Solver|:
+Next, add these variables to the solver, an instance of |Solver|:
 
 .. tabs::
 
@@ -83,22 +85,23 @@ The next step is to add them to our solver, which is an instance of |Solver|:
 
 .. note::
 
-    You do not have to create all your variables before starting adding
-    constraints to the solver.
+   You can start adding constraints to the solver without creating all your
+    variables first.
 
-So far we have defined a system representing three points on the segment
-[0, 100], with one of them being the middle of the others which cannot get
-closer than 10. All those constraints have to be satisfied, in the context
-of cassowary they are "required" constraints.
+
+So far, we have defined a system representing three points on the segment
+[0, 100], with one of them being the middle of the others, which cannot get
+closer than 10. All those constraints have to be satisfied; in the context
+of Cassowary, they are required constraints.
 
 .. note::
 
-    Cassowary (and Kiwi) supports to have redundant constraints, meaning that
-    even if having two constraints (x == 10, x + y == 30) is equivalent to a
-    third one (y == 20), all three can be added to the solver without issue.
+    Cassowary (and Kiwi) allows for redundant constraints, which means
+    even with two constraints (x == 10, x + y == 30) being equivalent to a
+    third one (y == 20), all three can be added to the solver without issues.
 
-    However, one should not add multiple times the same constraint (in the same
-    form) to the solver.
+    However, it is advisable not to add the same constraint multiple times
+    in the same form to the solver.
 
 
 Managing constraints strength
@@ -106,13 +109,13 @@ Managing constraints strength
 
 Cassowary also supports constraints that are not required. Those are only
 respected on a best effort basis. To express that a constraint is not required
-we need to assign it a *strength*. Kiwi defines three standard strengths in
-addition of the "required" strength: strong, medium, weak. A strong constraint
-will always win over a medium constraints which will always win over a weak
-constraint [#f1]_ .
+we need to assign it a *strength*. Kiwi specifies three standard strengths
+besides the "required" strength: strong, medium, weak. A strong constraint
+will always win over a medium constraint, which in turn will always override
+a weak constraint [#f1]_ .
 
-Lets assume than in our example x1 would like to be at 40, but it does not have
-to. This is translated as follow:
+In our example, let's assume x1 would like to be at 40, without this being a
+requirement. This is translated as follows:
 
 .. tabs::
 
@@ -128,18 +131,18 @@ to. This is translated as follow:
 Adding edit variables
 ---------------------
 
-So far our system is pretty static, we have no way of trying to find solutions
-for a particular value of `xm` lets say. This is a problem. In a real
-application (for a GUI layout), we would like to find the size of the widgets
-based on the top window but also react to the window resizing so actually
+So far our system is pretty static; we have no way of trying to find solutions
+for a particular value of `xm`, let's say. This is a problem. In a real
+application (e.g. a GUI layout), we would like to find the size of the widgets
+based on the top window but also react to the window resizing, so actually
 adding and removing constraints all the time wouldn't be optimal. And there is
 a better way: edit variables.
 
-Edit variables are variables for which you can suggest values. Edit variable
+Edit variables are variables for which you can suggest values. Edit variables
 have a strength which can be at most strong (the value of a edit variable can
 never be required).
 
-For the sake of our example we will make "xm" editable:
+For the sake of our example, we will make "xm" editable:
 
 .. tabs::
 
@@ -164,17 +167,17 @@ it and the solver will try to solve the system with it.
 
         solver.suggestValue(xm, 60);
 
-This gives the following solution: ``xm == 60, x1 == 40, x2 == 80``.
+This would give the following solution: ``xm == 60, x1 == 40, x2 == 80``.
 
 
 Solving and updating variables
 ------------------------------
 
 Kiwi solves the system each time a constraint is added or removed, or a new
-value is suggested for an edit variable. Solving the system each time make for
-faster updates and allow to keep the solver in a consinstent state. However,
-the variable values are not updated automatically and you need to ask
-the solver to perform this operation before reading the values as illustrated
+value is suggested for an edit variable. Solving the system each time makes for
+faster updates and allows to keep the solver in a consinstent state. However,
+the variable values are not updated automatically, and you need to ask
+the solver to perform this operation before reading the values, as illustrated
 below:
 
 .. tabs::
@@ -192,19 +195,19 @@ below:
         std::cout << xm.value() << ", " << x1.value() << ", " << x2.value();
 
 This last update creates an infeasible situation by pushing x2 further than
-100 if we keep x1 where it would like to be and as a consequence we get the
+100, if we keep x1 where it would like to be. As a consequence, we get the
 following solution: ``xm == 90, x1 == 80, x2 == 100``
 
 
 .. note::
 
-    To know if a non-required constraint was violated when solving the system,
-    you can use the constraint ``violated`` method.
+    To determine if a non-required constraint was violated when solving the system,
+    you can use the constraint's ``violated`` method.
 
     .. versionadded:: 1.4
 
 Footnotes
 ---------
 
-.. [#f1] Actually there are some corner cases in which this can be violated.
+.. [#f1] Actually, there are some corner cases in which this can be violated.
          See :ref:`basics-internals`
