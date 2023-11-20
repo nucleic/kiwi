@@ -86,7 +86,7 @@ Next, add these variables to the solver, an instance of |Solver|:
 .. note::
 
    You can start adding constraints to the solver without creating all your
-variables first.
+    variables first.
 
 
 So far, we have defined a system representing three points on the segment
