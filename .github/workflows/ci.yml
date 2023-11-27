@@ -38,18 +38,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r lint_requirements.txt
           pip install -e .
-      - name: Isort
-        run: |
-          isort py -cv
-      - name: Black
+      - name: Formatting
         if: always()
         run: |
-          black py --check
-      - name: Flake8
+          ruff format py --check
+      - name: Linting
         if: always()
         run: |
-          flake8 py
-      - name: Run Mypy
+          ruff py
+      - name: Typing
         if: always()
         # We test twice to ensure the type annotations are properly installed
         run: |

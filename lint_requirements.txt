@@ -1,6 +1,4 @@
-black
-flake8
-isort
+ruff
 mypy
 # Allow to lint tests using mypy
 pytest

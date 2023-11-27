@@ -70,8 +70,19 @@ write_to_template = """
 
 """
 
-[tool.black]
-line-length = 88  # Enforce the default value
+[tool.ruff]
+  src = ["src"]
+  select = ["C", "E", "F", "W", "I", "C90", "RUF"]
+  extend-exclude = ["tests/instruments/hardware/nifpga/scope_based"]
+  extend-ignore = ["E501", "RUF012"]
+  line-length = 88
+
+  [tool.ruff.isort]
+    combine-as-imports = true
+    known-first-party = ["kiwisolver"]
+
+  [tool.ruff.mccabe]
+    max-complexity = 20
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -80,11 +91,3 @@ minversion = "6.0"
 follow_imports = "normal"
 strict_optional = true
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-combine_as_imports = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
-known_first_party = "kiwisolver"

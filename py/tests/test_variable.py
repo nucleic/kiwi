@@ -18,8 +18,8 @@ def test_variable_methods() -> None:
     """Test the variable modification methods."""
     v = Variable()
     assert v.name() == ""
-    v.setName("γ")
-    assert v.name() == "γ"
+    v.setName("Δ")
+    assert v.name() == "Δ"
     v.setName("foo")
     assert v.name() == "foo"
     with pytest.raises(TypeError):
@@ -139,7 +139,7 @@ def test_variable_sub() -> None:
 def test_variable_rich_compare_operations() -> None:
     """Test using comparison on variables."""
     v = Variable("foo")
-    v2 = Variable("γ")
+    v2 = Variable("Δ")
 
     for op, symbol in ((operator.le, "<="), (operator.eq, "=="), (operator.ge, ">=")):
         c = op(v, v2 + 1)

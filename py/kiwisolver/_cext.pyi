@@ -80,7 +80,7 @@ class Term:
 
     __hash__: None  # type: ignore
     def __init__(
-        self, variable: Variable, coefficient: int | float = 1.0, /  # noqa
+        self, variable: Variable, coefficient: int | float = 1.0, /
     ) -> None: ...
     def coefficient(self) -> float:
         """Get the coefficient for the term."""
@@ -112,7 +112,7 @@ class Expression:
 
     __hash__: None  # type: ignore
     def __init__(
-        self, terms: Iterable[Term], constant: int | float = 0.0, /  # noqa
+        self, terms: Iterable[Term], constant: int | float = 0.0, /
     ) -> None: ...
     def constant(self) -> float:
         "" "Get the constant for the expression." ""
