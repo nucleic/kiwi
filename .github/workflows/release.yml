@@ -78,6 +78,8 @@ jobs:
           - os: ubuntu-latest
             archs: s390x
             manylinux_version: manylinux2014
+          - os: windows-latest
+            archs: ARM64
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -137,6 +139,19 @@ jobs:
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
           # Do not link against VC2014_1 on Windows
+          KIWI_DISABLE_FH4: 1
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Build wheels
+        if: runner.os == 'Windows' && matrix.archs != 'auto'
+        env:
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
+          # It is not yet possible to run ARM64 tests, only cross-compile them.
+          CIBW_TEST_SKIP: "*-win_arm64"
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
+          # Do not link against VC2014_1 on Windows.
           KIWI_DISABLE_FH4: 1
         run: |
           python -m cibuildwheel . --output-dir dist
