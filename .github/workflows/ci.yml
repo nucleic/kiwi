@@ -45,7 +45,7 @@ jobs:
       - name: Linting
         if: always()
         run: |
-          ruff py
+          ruff check py
       - name: Typing
         if: always()
         # We test twice to ensure the type annotations are properly installed
