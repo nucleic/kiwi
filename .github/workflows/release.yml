@@ -103,6 +103,10 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux1'
         env:
+          CIBW_BEFORE_BUILD_WINDOWS: >-
+            pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            delvewheel repair -w {dest_dir} {wheel}
           CIBW_BUILD: "cp37-* cp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
@@ -117,6 +121,10 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2010'
         env:
+          CIBW_BEFORE_BUILD_WINDOWS: >-
+            pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            delvewheel repair -w {dest_dir} {wheel}
           CIBW_BUILD: "cp39-* cp310-* pp37-* pp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
@@ -131,6 +139,10 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2014'
         env:
+          CIBW_BEFORE_BUILD_WINDOWS: >-
+            pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            delvewheel repair -w {dest_dir} {wheel}
           CIBW_BUILD: "cp312-* cp311-* pp39-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
@@ -145,6 +157,10 @@ jobs:
       - name: Build wheels
         if: runner.os == 'Windows' && matrix.archs != 'auto'
         env:
+          CIBW_BEFORE_BUILD_WINDOWS: >-
+            pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            delvewheel repair -w {dest_dir} {wheel}
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
