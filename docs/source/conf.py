@@ -22,7 +22,7 @@ import kiwisolver
 # -- Project information -----------------------------------------------------
 
 project = "kiwisolver"
-copyright = "2018-2021, Nucleic team"
+copyright = "2018-2024, Nucleic team"
 author = "Nucleic team"
 
 # The short X.Y version
