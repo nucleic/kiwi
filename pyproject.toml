@@ -37,7 +37,12 @@
     changelog = "https://github.com/nucleic/kiwi/blob/main/releasenotes.rst"
 
 [build-system]
-  requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
+  requires = [
+    "setuptools>=61.2; implementation_name == 'cpython'",
+    "setuptools>=61.2,!=72.2.0; implementation_name != 'cpython'",
+    "setuptools_scm[toml]>=3.4.3",
+    "cppy>=1.2.0"
+  ]
   build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
