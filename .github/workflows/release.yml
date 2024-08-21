@@ -103,11 +103,16 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux1'
         env:
-          CIBW_BEFORE_BUILD_WINDOWS: >-
-            pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
-            delvewheel repair -w {dest_dir} {wheel}
-          CIBW_BUILD: "cp37-* cp38-*"
+          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
+          # MinGW on PATH that would be picked otherwise), switch to a static build for
+          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
+          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
+          # keeping shared state with the rest of the Python process/extensions.
+          CIBW_CONFIG_SETTINGS_WINDOWS: >-
+            setup-args="--vsenv"
+            setup-args="-Db_vscrt=mt"
+            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
+          CIBW_BUILD: "cp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
@@ -119,11 +124,16 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2010'
         env:
-          CIBW_BEFORE_BUILD_WINDOWS: >-
-            pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
-            delvewheel repair -w {dest_dir} {wheel}
-          CIBW_BUILD: "cp39-* cp310-* pp37-* pp38-*"
+          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
+          # MinGW on PATH that would be picked otherwise), switch to a static build for
+          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
+          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
+          # keeping shared state with the rest of the Python process/extensions.
+          CIBW_CONFIG_SETTINGS_WINDOWS: >-
+            setup-args="--vsenv"
+            setup-args="-Db_vscrt=mt"
+            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
+          CIBW_BUILD: "cp39-* cp310-* pp38-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
@@ -135,11 +145,16 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2014'
         env:
-          CIBW_BEFORE_BUILD_WINDOWS: >-
-            pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
-            delvewheel repair -w {dest_dir} {wheel}
-          CIBW_BUILD: "cp312-* cp311-* pp39-* pp310-*"
+          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
+          # MinGW on PATH that would be picked otherwise), switch to a static build for
+          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
+          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
+          # keeping shared state with the rest of the Python process/extensions.
+          CIBW_CONFIG_SETTINGS_WINDOWS: >-
+            setup-args="--vsenv"
+            setup-args="-Db_vscrt=mt"
+            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
+          CIBW_BUILD: "cp312-* cp311-* pp39-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
@@ -151,15 +166,15 @@ jobs:
       - name: Build wheels
         if: runner.os == 'Windows' && matrix.archs != 'auto'
         env:
-          CIBW_BEFORE_BUILD_WINDOWS: >-
-            pip install delvewheel
-          # To find the path to add I used this line within the REPAIR_WHEEL_COMMAND below:
-          # tree "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\" &
-          #
-          # Slightly weary of all the magic numbers/build numbers in the path being fragile for the future.
-          # However, unsure if there is a more stable way to achieve the same end here.
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
-            delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\14.40.33807\arm64\Microsoft.VC143.CRT"
+          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
+          # MinGW on PATH that would be picked otherwise), switch to a static build for
+          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
+          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
+          # keeping shared state with the rest of the Python process/extensions.
+          CIBW_CONFIG_SETTINGS_WINDOWS: >-
+            setup-args="--vsenv"
+            setup-args="-Db_vscrt=mt"
+            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
