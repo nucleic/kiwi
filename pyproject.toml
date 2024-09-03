@@ -38,7 +38,7 @@
 [build-system]
   requires = [
     "setuptools>=61.2; implementation_name == 'cpython'",
-    "setuptools>=61.2,<=72.2.0; implementation_name != 'cpython'",
+    "setuptools>=61.2,<=72.1.0; implementation_name != 'cpython'",
     "setuptools_scm[toml]>=3.4.3",
     "cppy>=1.2.0"
   ]
