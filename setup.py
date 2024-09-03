@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2022, Nucleic Development Team.
+# Copyright (c) 2013-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -19,11 +19,6 @@ except ImportError as e:
 
 # Before releasing the version needs to be updated in kiwi/version.h, if the changes
 # are not limited to the solver.
-
-# Use the env var KIWI_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
-
-if "KIWI_DISABLE_FH4" in os.environ:
-    os.environ.setdefault("CPPY_DISABLE_FH4", "1")
 
 ext_modules = [
     Extension(

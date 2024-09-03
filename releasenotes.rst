@@ -1,6 +1,13 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.6 | Solver 1.4.2 | unreleased
+------------------------------------------
+- drop support for Python 3.7 PR #183
+- add support for Python 3.13 PR #183
+- update linking strategy on Windows when building wheels PR #183
+  This is in line with Matplotlib strategy https://github.com/matplotlib/matplotlib/pull/28687
+
 Wrappers 1.4.5 | Solver 1.4.2 | 24/08/2023
 ------------------------------------------
 - implement exceptions in Python PR #162

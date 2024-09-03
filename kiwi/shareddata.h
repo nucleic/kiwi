@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2024, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -33,7 +33,7 @@ public:
     int m_refcount;
 
     SharedData &operator=(const SharedData &other) = delete;
-    
+
     SharedData &operator=(SharedData&& other) = delete;
 };
 
