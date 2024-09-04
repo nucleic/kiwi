@@ -1,6 +1,10 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.7 | Solver 1.4.2 | 03/09/2024
+------------------------------------------
+- no library changes only fixes to the build infrastructure
+
 Wrappers 1.4.6 | Solver 1.4.2 | 03/09/2024
 ------------------------------------------
 - drop support for Python 3.7 PR #183
