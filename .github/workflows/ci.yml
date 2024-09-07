@@ -78,7 +78,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev', 'pypy-3.8', 'pypy-3.9', 'pypy-3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', 'pypy-3.8', 'pypy-3.9', 'pypy-3.10']
         exclude:
           - python-version: '3.8'
             os: macos-latest
@@ -86,16 +86,31 @@ jobs:
             os: macos-latest
           - python-version: 'pypy-3.8'
             os: macos-latest
+        include:
+          # Only test free threading on ubuntu latest due to setup-python availability
+          - os: ubuntu-latest
+            python-version: '3.13t'
     steps:
       - uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+  
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
+        if: matrix.python-version != '3.13t'
         with:
           python-version: ${{ matrix.python-version }}
+
+      # Remove once the main setup-python adds python free threading
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: deadsnakes/action@6c8b9b82fe0b4344f4b98f2775fcc395df45e494  # v3.1.0
+        if: matrix.python-version == '3.13t'
+        with:
+          python-version: '3.13'
+          nogil: true
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
