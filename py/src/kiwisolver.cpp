@@ -162,6 +162,7 @@ kiwisolver_methods[] = {
 
 PyModuleDef_Slot kiwisolver_slots[] = {
     {Py_mod_exec, reinterpret_cast<void*>( kiwi_modexec ) },
+    {Py_mod_gil, Py_MOD_GIL_NOT_USED},
     {0, NULL}
 };
 
