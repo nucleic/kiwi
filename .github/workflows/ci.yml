@@ -78,7 +78,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev', 'pypy-3.8', 'pypy-3.9', 'pypy-3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.13t', 'pypy-3.8', 'pypy-3.9', 'pypy-3.10']
         exclude:
           - python-version: '3.8'
             os: macos-latest
@@ -93,7 +93,7 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: Quansight-Labs/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
