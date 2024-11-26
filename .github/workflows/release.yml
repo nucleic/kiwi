@@ -78,6 +78,8 @@ jobs:
             archs: s390x
             manylinux_version: manylinux2014
           - os: windows-latest
+            archs: x86
+          - os: windows-latest
             archs: ARM64
     steps:
       - name: Checkout
@@ -126,7 +128,17 @@ jobs:
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Build wheels
-        if: runner.os == 'Windows' && matrix.archs != 'auto'
+        if: runner.os == 'Windows' && matrix.archs == 'x86'
+        env:
+          CIBW_BUILD: "cp311-* cp312-* cp313-* pp310-*"
+          CIBW_ARCHS_WINDOWS: x86
+          CIBW_ENVIRONMENT_WINDOWS: CPPY_DISABLE_FH4
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Build wheels
+        if: runner.os == 'Windows' && matrix.archs == 'ARM64'
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
