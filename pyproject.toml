@@ -10,7 +10,7 @@
   name = "kiwisolver"
   description = "A fast implementation of the Cassowary constraint solver"
   readme = "README.rst"
-  requires-python = ">=3.8"
+  requires-python = ">=3.10"
   license = { file = "LICENSE" }
   authors = [{ name = "The Nucleic Development Team", email = "sccolbert@gmail.com" }]
   maintainers = [{ name = "Matthieu C. Dartiailh", email = "m.dartiailh@gmail.com" }]
