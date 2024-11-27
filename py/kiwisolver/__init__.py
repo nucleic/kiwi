@@ -26,17 +26,17 @@ from .exceptions import (
 
 __all__ = [
     "BadRequiredStrength",
+    "Constraint",
     "DuplicateConstraint",
     "DuplicateEditVariable",
+    "Expression",
+    "Solver",
+    "Term",
     "UnknownConstraint",
     "UnknownEditVariable",
     "UnsatisfiableConstraint",
-    "strength",
     "Variable",
-    "Term",
-    "Expression",
-    "Constraint",
-    "Solver",
-    "__version__",
     "__kiwi_version__",
+    "__version__",
+    "strength",
 ]

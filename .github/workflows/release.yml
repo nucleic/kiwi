@@ -47,19 +47,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        # We build separately 3.8 using manylinux1
-        manylinux_version: [manylinux1, manylinux2010, manylinux2014]
+        manylinux_version: [manylinux2010, manylinux2014]
         archs: [auto]
         include:
-          - os: ubuntu-latest
-            archs: aarch64
-            manylinux_version: manylinux1
-          - os: ubuntu-latest
-            archs: ppc64le
-            manylinux_version: manylinux1
-          - os: ubuntu-latest
-            archs: s390x
-            manylinux_version: manylinux1
           - os: ubuntu-latest
             archs: aarch64
             manylinux_version: manylinux2010
@@ -101,41 +91,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install wheel cibuildwheel
       - name: Build wheels
-        if: matrix.manylinux_version == 'manylinux1'
-        env:
-          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
-          # MinGW on PATH that would be picked otherwise), switch to a static build for
-          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
-          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
-          # keeping shared state with the rest of the Python process/extensions.
-          CIBW_CONFIG_SETTINGS_WINDOWS: >-
-            setup-args="--vsenv"
-            setup-args="-Db_vscrt=mt"
-            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
-          CIBW_BUILD: "cp38-*"
-          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-          CIBW_ARCHS_LINUX: ${{ matrix.archs }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-          CIBW_MANYLINUX_I686_IMAGE: manylinux1
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest {package}/py/tests -v -W error
-        run: |
-          python -m cibuildwheel . --output-dir dist
-      - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2010'
         env:
-          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
-          # MinGW on PATH that would be picked otherwise), switch to a static build for
-          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
-          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
-          # keeping shared state with the rest of the Python process/extensions.
-          CIBW_CONFIG_SETTINGS_WINDOWS: >-
-            setup-args="--vsenv"
-            setup-args="-Db_vscrt=mt"
-            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
-          CIBW_BUILD: "cp39-* cp310-* pp38-*"
+          CIBW_BUILD: "cp310-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
+          CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
           CIBW_MANYLINUX_I686_IMAGE: manylinux2010
           CIBW_TEST_REQUIRES: pytest
@@ -145,18 +106,10 @@ jobs:
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2014'
         env:
-          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
-          # MinGW on PATH that would be picked otherwise), switch to a static build for
-          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
-          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
-          # keeping shared state with the rest of the Python process/extensions.
-          CIBW_CONFIG_SETTINGS_WINDOWS: >-
-            setup-args="--vsenv"
-            setup-args="-Db_vscrt=mt"
-            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
-          CIBW_BUILD: "cp311-* cp312-* cp313-* pp39-* pp310-*"
+          CIBW_BUILD: "cp311-* cp312-* cp313-* pp310-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
+          CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_TEST_REQUIRES: pytest
@@ -164,18 +117,9 @@ jobs:
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Build wheels
-        if: runner.os == 'Windows' && matrix.archs != 'auto'
+        if: runner.os == 'Windows' && matrix.archs == 'ARM64'
         env:
-          # On Windows, we explicitly request MSVC compilers (as GitHub Action runners have
-          # MinGW on PATH that would be picked otherwise), switch to a static build for
-          # runtimes, but use dynamic linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`,
-          # and the UCRT. This avoids requiring specific versions of `MSVCP140.dll`, while
-          # keeping shared state with the rest of the Python process/extensions.
-          CIBW_CONFIG_SETTINGS_WINDOWS: >-
-            setup-args="--vsenv"
-            setup-args="-Db_vscrt=mt"
-            setup-args="-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
           CIBW_TEST_SKIP: "*-win_arm64"
