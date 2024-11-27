@@ -52,15 +52,6 @@ jobs:
         include:
           - os: ubuntu-latest
             archs: aarch64
-            manylinux_version: manylinux1
-          - os: ubuntu-latest
-            archs: ppc64le
-            manylinux_version: manylinux1
-          - os: ubuntu-latest
-            archs: s390x
-            manylinux_version: manylinux1
-          - os: ubuntu-latest
-            archs: aarch64
             manylinux_version: manylinux2010
           - os: ubuntu-latest
             archs: ppc64le
