@@ -1,6 +1,11 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.8 | Solver 1.4.2 | unreleased
+------------------------------------------
+- drop support for Python 3.8 and 3.9 PR #189
+- do not link to MSVCP on Windows and drop windows 32 bits support PR #189
+
 Wrappers 1.4.7 | Solver 1.4.2 | 03/09/2024
 ------------------------------------------
 - no library changes only fixes to the build infrastructure
