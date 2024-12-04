@@ -46,11 +46,15 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		std::string c_name;
 		if( !convert_pystr_to_str(name, c_name) )
 			return 0;  // LCOV_EXCL_LINE
+		ACQUIRE_GLOBAL_LOCK();
 		new( &self->variable ) kiwi::Variable( c_name );
+		RELEASE_GLOBAL_LOCK();
 	}
 	else
 	{
+		ACQUIRE_GLOBAL_LOCK();
 		new( &self->variable ) kiwi::Variable();
+		RELEASE_GLOBAL_LOCK();
 	}
 
 	return pyvar.release();
@@ -81,7 +85,9 @@ Variable_dealloc( Variable* self )
 {
 	PyObject_GC_UnTrack( self );
 	Variable_clear( self );
+	ACQUIRE_GLOBAL_LOCK();
 	self->variable.~Variable();
+	RELEASE_GLOBAL_LOCK();
 	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
@@ -89,14 +95,20 @@ Variable_dealloc( Variable* self )
 PyObject*
 Variable_repr( Variable* self )
 {
-	return PyUnicode_FromString( self->variable.name().c_str() );
+	ACQUIRE_GLOBAL_LOCK();
+	std::string name = self->variable.name();
+	RELEASE_GLOBAL_LOCK();
+	return PyUnicode_FromString( name.c_str() );
 }
 
 
 PyObject*
 Variable_name( Variable* self )
 {
-	return PyUnicode_FromString( self->variable.name().c_str() );
+	ACQUIRE_GLOBAL_LOCK();
+	std::string name = self->variable.name();
+	RELEASE_GLOBAL_LOCK();
+	return PyUnicode_FromString( name.c_str() );
 }
 
 
@@ -108,7 +120,11 @@ Variable_setName( Variable* self, PyObject* pystr )
    std::string str;
    if( !convert_pystr_to_str( pystr, str ) )
        return 0;
-   self->variable.setName( str );
+	
+	ACQUIRE_GLOBAL_LOCK();
+	self->variable.setName( str );
+	RELEASE_GLOBAL_LOCK();
+
 	Py_RETURN_NONE;
 }
 
@@ -127,9 +143,7 @@ Variable_setContext( Variable* self, PyObject* value )
 {
 	if( value != self->context )
 	{
-		PyObject* temp = self->context;
-		self->context = cppy::incref( value );
-		Py_XDECREF( temp );
+		Py_XSETREF(self->context, cppy::incref( value ));
 	}
 	Py_RETURN_NONE;
 }
@@ -138,7 +152,10 @@ Variable_setContext( Variable* self, PyObject* value )
 PyObject*
 Variable_value( Variable* self )
 {
-	return PyFloat_FromDouble( self->variable.value() );
+	ACQUIRE_GLOBAL_LOCK();
+	double value = self->variable.value();
+	RELEASE_GLOBAL_LOCK();
+	return PyFloat_FromDouble( value );
 }
 
 

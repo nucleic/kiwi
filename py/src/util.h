@@ -16,6 +16,15 @@
 namespace kiwisolver
 {
 
+#ifdef Py_GIL_DISABLED
+extern std::recursive_mutex global_lock;
+#define ACQUIRE_GLOBAL_LOCK() global_lock.lock()
+#define RELEASE_GLOBAL_LOCK() global_lock.unlock()
+#else
+#define ACQUIRE_GLOBAL_LOCK()
+#define RELEASE_GLOBAL_LOCK()
+#endif
+
 inline bool
 convert_to_double( PyObject* obj, double& out )
 {
@@ -171,9 +180,15 @@ convert_to_kiwi_expression( PyObject* pyexpr )  // pyexpr must be an Expression
         PyObject* item = PyTuple_GET_ITEM( expr->terms, i );
         Term* term = reinterpret_cast<Term*>( item );
         Variable* var = reinterpret_cast<Variable*>( term->variable );
-        kterms.push_back( kiwi::Term( var->variable, term->coefficient ) );
+        ACQUIRE_GLOBAL_LOCK();
+        kiwi::Term t( var->variable, term->coefficient );
+        RELEASE_GLOBAL_LOCK();
+        kterms.push_back( t );
     }
-    return kiwi::Expression( kterms, expr->constant );
+    ACQUIRE_GLOBAL_LOCK();
+    kiwi::Expression expression( kterms, expr->constant );
+    RELEASE_GLOBAL_LOCK();
+    return expression;
 }
 
 

@@ -10,6 +10,12 @@
 #include "types.h"
 #include "version.h"
 
+namespace kiwisolver
+{
+
+std::recursive_mutex global_lock;
+
+}
 
 namespace
 {
