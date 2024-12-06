@@ -79,6 +79,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.13t', 'pypy-3.10']
+        exclude:
+          # TODO: Reenable this once there's a setuptools release that sets Py_GIL_DISABLED
+          # correctly on Windows
+          - os: windows-latest
+            python-version: 3.13t
     steps:
       - uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
