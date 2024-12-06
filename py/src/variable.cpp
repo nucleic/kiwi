@@ -130,7 +130,7 @@ Variable_setName( Variable* self, PyObject* pystr )
 
 
 PyObject*
-Variable_context( Variable* self )
+Variable_context_locked( Variable* self )
 {
 	if( self->context )
 		return cppy::incref( self->context );
@@ -139,12 +139,32 @@ Variable_context( Variable* self )
 
 
 PyObject*
-Variable_setContext( Variable* self, PyObject* value )
+Variable_context( Variable* self )
+{
+	PyObject* context;
+	Py_BEGIN_CRITICAL_SECTION(self);
+	context = Variable_context_locked(self);
+	Py_END_CRITICAL_SECTION();
+	return context;
+}
+
+
+void
+Variable_setContext_locked( Variable* self, PyObject* value )
 {
 	if( value != self->context )
 	{
 		Py_XSETREF(self->context, cppy::incref( value ));
 	}
+}
+
+
+PyObject*
+Variable_setContext( Variable* self, PyObject* value )
+{
+	Py_BEGIN_CRITICAL_SECTION(self);
+	Variable_setContext_locked(self, value);
+	Py_END_CRITICAL_SECTION();
 	Py_RETURN_NONE;
 }
 

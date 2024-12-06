@@ -25,6 +25,11 @@ extern std::recursive_mutex global_lock;
 #define RELEASE_GLOBAL_LOCK()
 #endif
 
+#ifndef Py_BEGIN_CRITICAL_SECTION
+#define Py_BEGIN_CRITICAL_SECTION(op) {
+#define Py_END_CRITICAL_SECTION() }
+#endif
+
 inline bool
 convert_to_double( PyObject* obj, double& out )
 {
