@@ -5,6 +5,7 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <mutex>
 #include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"

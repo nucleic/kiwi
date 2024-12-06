@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <map>
+#include <mutex>
 #include <string>
 #include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
