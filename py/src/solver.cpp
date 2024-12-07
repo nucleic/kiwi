@@ -26,7 +26,9 @@ Solver_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	if( !pysolver )
 		return 0;
 	Solver* self = reinterpret_cast<Solver*>( pysolver );
+	ACQUIRE_GLOBAL_LOCK();
 	new( &self->solver ) kiwi::Solver();
+	RELEASE_GLOBAL_LOCK();
 	return pysolver;
 }
 
@@ -34,7 +36,9 @@ Solver_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 void
 Solver_dealloc( Solver* self )
 {
+	ACQUIRE_GLOBAL_LOCK();
 	self->solver.~Solver();
+	RELEASE_GLOBAL_LOCK();
 	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
@@ -47,15 +51,19 @@ Solver_addConstraint( Solver* self, PyObject* other )
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
+		ACQUIRE_GLOBAL_LOCK();
 		self->solver.addConstraint( cn->constraint );
+		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::DuplicateConstraint& )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( DuplicateConstraint, other );
 		return 0;
 	}
 	catch( const kiwi::UnsatisfiableConstraint& )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnsatisfiableConstraint, other );
 		return 0;
 	}
@@ -71,10 +79,13 @@ Solver_removeConstraint( Solver* self, PyObject* other )
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
+		ACQUIRE_GLOBAL_LOCK();
 		self->solver.removeConstraint( cn->constraint );
+		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownConstraint& )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownConstraint, other );
 		return 0;
 	}
@@ -88,7 +99,12 @@ Solver_hasConstraint( Solver* self, PyObject* other )
 	if( !Constraint::TypeCheck( other ) )
 		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
-	return cppy::incref( self->solver.hasConstraint( cn->constraint ) ? Py_True : Py_False );
+
+	ACQUIRE_GLOBAL_LOCK();
+	bool hasConstraint = self->solver.hasConstraint( cn->constraint );
+	RELEASE_GLOBAL_LOCK();
+
+	return cppy::incref( hasConstraint ? Py_True : Py_False );
 }
 
 
@@ -107,15 +123,19 @@ Solver_addEditVariable( Solver* self, PyObject* args )
 	Variable* var = reinterpret_cast<Variable*>( pyvar );
 	try
 	{
+		ACQUIRE_GLOBAL_LOCK();
 		self->solver.addEditVariable( var->variable, strength );
+		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::DuplicateEditVariable& )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( DuplicateEditVariable, pyvar );
 		return 0;
 	}
 	catch( const kiwi::BadRequiredStrength& e )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetString( BadRequiredStrength, e.what() );
 		return 0;
 	}
@@ -131,10 +151,13 @@ Solver_removeEditVariable( Solver* self, PyObject* other )
 	Variable* var = reinterpret_cast<Variable*>( other );
 	try
 	{
+		ACQUIRE_GLOBAL_LOCK();
 		self->solver.removeEditVariable( var->variable );
+		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownEditVariable& )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownEditVariable, other );
 		return 0;
 	}
@@ -148,7 +171,10 @@ Solver_hasEditVariable( Solver* self, PyObject* other )
 	if( !Variable::TypeCheck( other ) )
 		return cppy::type_error( other, "Variable" );
 	Variable* var = reinterpret_cast<Variable*>( other );
-	return cppy::incref( self->solver.hasEditVariable( var->variable ) ? Py_True : Py_False );
+	ACQUIRE_GLOBAL_LOCK();
+	bool hasEditVariable = self->solver.hasEditVariable( var->variable );
+	RELEASE_GLOBAL_LOCK();
+	return cppy::incref( hasEditVariable ? Py_True : Py_False );
 }
 
 
@@ -167,10 +193,13 @@ Solver_suggestValue( Solver* self, PyObject* args )
 	Variable* var = reinterpret_cast<Variable*>( pyvar );
 	try
 	{
+		ACQUIRE_GLOBAL_LOCK();
 		self->solver.suggestValue( var->variable, value );
+		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownEditVariable& )
 	{
+		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownEditVariable, pyvar );
 		return 0;
 	}
@@ -181,7 +210,9 @@ Solver_suggestValue( Solver* self, PyObject* args )
 PyObject*
 Solver_updateVariables( Solver* self )
 {
+	ACQUIRE_GLOBAL_LOCK();
 	self->solver.updateVariables();
+	RELEASE_GLOBAL_LOCK();
 	Py_RETURN_NONE;
 }
 
@@ -189,7 +220,9 @@ Solver_updateVariables( Solver* self )
 PyObject*
 Solver_reset( Solver* self )
 {
+	ACQUIRE_GLOBAL_LOCK();
 	self->solver.reset();
+	RELEASE_GLOBAL_LOCK();
 	Py_RETURN_NONE;
 }
 
@@ -197,7 +230,10 @@ Solver_reset( Solver* self )
 PyObject*
 Solver_dump( Solver* self )
 {
-	cppy::ptr dump_str( PyUnicode_FromString( self->solver.dumps().c_str() ) );
+	ACQUIRE_GLOBAL_LOCK();
+	std::string dumps = self->solver.dumps();
+	RELEASE_GLOBAL_LOCK();
+	cppy::ptr dump_str( PyUnicode_FromString( dumps.c_str() ) );
 	PyObject_Print( dump_str.get(), stdout, 0 );
 	Py_RETURN_NONE;
 }
@@ -205,7 +241,10 @@ Solver_dump( Solver* self )
 PyObject*
 Solver_dumps( Solver* self )
 {
-	return PyUnicode_FromString( self->solver.dumps().c_str() );
+	ACQUIRE_GLOBAL_LOCK();
+	std::string dumps = self->solver.dumps();
+	RELEASE_GLOBAL_LOCK();
+	return PyUnicode_FromString( dumps.c_str() );
 }
 
 static PyMethodDef

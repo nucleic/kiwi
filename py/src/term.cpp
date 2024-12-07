@@ -78,7 +78,10 @@ Term_repr( Term* self )
 {
 	std::stringstream stream;
 	stream << self->coefficient << " * ";
-	stream << reinterpret_cast<Variable*>( self->variable )->variable.name();
+	ACQUIRE_GLOBAL_LOCK();
+	std::string name = reinterpret_cast<Variable*>( self->variable )->variable.name();
+	RELEASE_GLOBAL_LOCK();
+	stream << name;
 	return PyUnicode_FromString( stream.str().c_str() );
 }
 
@@ -101,7 +104,10 @@ PyObject*
 Term_value( Term* self )
 {
 	Variable* pyvar = reinterpret_cast<Variable*>( self->variable );
-	return PyFloat_FromDouble( self->coefficient * pyvar->variable.value() );
+	ACQUIRE_GLOBAL_LOCK();
+	double value = pyvar->variable.value();
+	RELEASE_GLOBAL_LOCK();
+	return PyFloat_FromDouble( self->coefficient * value );
 }
 
 

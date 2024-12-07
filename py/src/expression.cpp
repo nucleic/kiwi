@@ -89,7 +89,10 @@ Expression_repr( Expression* self )
         PyObject* item = PyTuple_GET_ITEM( self->terms, i );
         Term* term = reinterpret_cast<Term*>( item );
         stream << term->coefficient << " * ";
-        stream << reinterpret_cast<Variable*>( term->variable )->variable.name();
+        ACQUIRE_GLOBAL_LOCK();
+        std::string name = reinterpret_cast<Variable*>( term->variable )->variable.name();
+        RELEASE_GLOBAL_LOCK();
+        stream << name;
         stream << " + ";
     }
     stream << self->constant;
@@ -121,7 +124,10 @@ Expression_value( Expression* self )
         PyObject* item = PyTuple_GET_ITEM( self->terms, i );
         Term* term = reinterpret_cast<Term*>( item );
         Variable* pyvar = reinterpret_cast<Variable*>( term->variable );
-        result += term->coefficient * pyvar->variable.value();
+        ACQUIRE_GLOBAL_LOCK();
+        double value = pyvar->variable.value();
+        RELEASE_GLOBAL_LOCK();
+        result += term->coefficient * value;
     }
     return PyFloat_FromDouble( result );
 }

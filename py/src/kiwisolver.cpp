@@ -5,11 +5,18 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <mutex>
 #include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"
 #include "version.h"
 
+namespace kiwisolver
+{
+
+std::recursive_mutex global_lock;
+
+}
 
 namespace
 {
@@ -162,6 +169,9 @@ kiwisolver_methods[] = {
 
 PyModuleDef_Slot kiwisolver_slots[] = {
     {Py_mod_exec, reinterpret_cast<void*>( kiwi_modexec ) },
+#ifdef Py_GIL_DISABLED
+    {Py_mod_gil, Py_MOD_GIL_NOT_USED},
+#endif
     {0, NULL}
 };
 
