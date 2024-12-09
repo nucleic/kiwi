@@ -579,8 +579,10 @@ PyObject* makecn( T first, U second, kiwi::RelationalOperator op )
 	cn->expression = reduce_expression( pyexpr.get() );
 	if( !cn->expression )
 		return 0;
+	ACQUIRE_GLOBAL_LOCK();
 	kiwi::Expression expr( convert_to_kiwi_expression( cn->expression ) );
 	new( &cn->constraint ) kiwi::Constraint( expr, op, kiwi::strength::required );
+	RELEASE_GLOBAL_LOCK();
 	return pycn.release();
 }
 
