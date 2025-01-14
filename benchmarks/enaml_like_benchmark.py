@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Time updating an EditVariable in a set of constraints typical of enaml use.
+"""Time updating an EditVariable in a set of constraints typical of enaml use."""
 
-"""
 import perf
 
 from kiwisolver import Solver, Variable, strength

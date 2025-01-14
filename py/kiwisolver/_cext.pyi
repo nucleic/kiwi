@@ -115,7 +115,7 @@ class Expression:
         self, terms: Iterable[Term], constant: int | float = 0.0, /
     ) -> None: ...
     def constant(self) -> float:
-        "" "Get the constant for the expression." ""
+        """Get the constant for the expression."""
         ...
     def terms(self) -> Tuple[Term, ...]:
         """Get the tuple of terms for the expression."""
