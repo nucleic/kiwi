@@ -5,9 +5,9 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include <algorithm>
 #include <sstream>
-#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"
 #include "util.h"
