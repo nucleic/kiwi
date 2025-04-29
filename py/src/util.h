@@ -6,10 +6,10 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
+#include <cppy/cppy.h>
 #include <map>
 #include <mutex>
 #include <string>
-#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
 #include "types.h"
 

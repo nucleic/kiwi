@@ -1,6 +1,10 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.4.9 | Solver 1.4.2 | ??/??/202?
+------------------------------------------
+- Include Python.h, or headers including Python.h, before system headers
+
 Wrappers 1.4.8 | Solver 1.4.2 | 24/12/2024
 ------------------------------------------
 - drop support for Python 3.8 and 3.9 PR #189

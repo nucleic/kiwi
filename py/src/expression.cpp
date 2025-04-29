@@ -5,8 +5,8 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include <sstream>
 #include <cppy/cppy.h>
+#include <sstream>
 #include "symbolics.h"
 #include "types.h"
 #include "util.h"
