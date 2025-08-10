@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2024, Nucleic Development Team.
+| Copyright (c) 2013-2025, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -120,7 +120,7 @@ Variable_setName( Variable* self, PyObject* pystr )
    std::string str;
    if( !convert_pystr_to_str( pystr, str ) )
        return 0;
-	
+
 	ACQUIRE_GLOBAL_LOCK();
 	self->variable.setName( str );
 	RELEASE_GLOBAL_LOCK();
