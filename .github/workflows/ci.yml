@@ -26,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
           if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
             git fetch --prune --unshallow
@@ -84,6 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
           if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
             git fetch --prune --unshallow
