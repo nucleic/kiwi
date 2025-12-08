@@ -136,9 +136,46 @@ jobs:
           name: cibw-wheels-${{ runner.os }}-${{ matrix.manylinux_version }}-${{ matrix.archs }}
           path: dist/*.whl
 
+  build_graalpy_wheels:
+    name: Build wheels on ${{ matrix.os }} for GraalPy
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel cibuildwheel==3.1.1
+      - name: Build wheels
+        env:
+          CIBW_BUILD: "graalpy310-* graalpy311-*"
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_LINUX: auto
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ runner.os }}-graalpy
+          path: dist/*.whl
+
   publish:
     if: github.event_name == 'push'
-    needs: [build_wheels, build_sdist]
+    needs: [build_wheels, build_sdist, build_graalpy_wheels]
     runs-on: ubuntu-latest
     environment:
       name: pypi
