@@ -158,10 +158,10 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install wheel cibuildwheel==3.1.1
+          python -m pip install wheel cibuildwheel==3.3.0
       - name: Build wheels
         env:
-          CIBW_BUILD: "graalpy310-* graalpy311-*"
+          CIBW_BUILD: "gp312_250-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: auto
           CIBW_ARCHS_WINDOWS: auto64
