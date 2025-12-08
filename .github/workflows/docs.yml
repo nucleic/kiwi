@@ -27,7 +27,7 @@ jobs:
           if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
             git fetch --prune --unshallow
           fi
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
