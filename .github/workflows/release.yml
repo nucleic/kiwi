@@ -170,6 +170,7 @@ jobs:
       - name: Build wheels
         env:
           CIBW_BUILD: "gp312_250-*"
+          CIBW_ENABLE: graalpy
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: auto
           CIBW_ARCHS_WINDOWS: auto64
