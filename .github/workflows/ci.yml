@@ -27,7 +27,9 @@ jobs:
       - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
         run: |
-          git fetch --prune --unshallow
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -83,7 +85,9 @@ jobs:
       - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
         run: |
-          git fetch --prune --unshallow
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
