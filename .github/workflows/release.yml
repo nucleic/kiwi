@@ -160,7 +160,7 @@ jobs:
       - name: Build wheels
         env:
           CIBW_BUILD: "graalpy310-* graalpy311-*"
-          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: auto
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_TEST_REQUIRES: pytest
