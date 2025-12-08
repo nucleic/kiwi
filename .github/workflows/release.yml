@@ -139,6 +139,8 @@ jobs:
   build_graalpy_wheels:
     name: Build wheels on ${{ matrix.os }} for GraalPy
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
