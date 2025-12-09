@@ -23,9 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

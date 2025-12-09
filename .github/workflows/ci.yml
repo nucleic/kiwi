@@ -26,9 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
@@ -78,13 +81,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy-3.10', 'pypy-3.11']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy-3.10', 'pypy-3.11', 'graalpy-25.0']
     steps:
       - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
