@@ -4,8 +4,6 @@ on:
   schedule:
     - cron: '0 0 * * 3'
   push:
-    branches:
-      - '**'
     tags:
       - '*'
 
@@ -17,12 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
-        shell: bash
         run: |
-          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-            git fetch --prune --unshallow
-          fi
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -88,12 +83,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
-        shell: bash
         run: |
-          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-            git fetch --prune --unshallow
-          fi
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -125,7 +117,7 @@ jobs:
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
-          CIBW_ENABLE: cpython-freethreading pypy cpython-prerelease pypy-eol
+          CIBW_ENABLE: cpython-freethreading pypy
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_ARCHS_WINDOWS: auto64
@@ -139,7 +131,7 @@ jobs:
         if: runner.os == 'Windows' && matrix.archs == 'ARM64'
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-*"
-          CIBW_ENABLE: cpython-freethreading cpython-prerelease
+          CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
           CIBW_TEST_SKIP: "*-win_arm64"
@@ -166,7 +158,7 @@ jobs:
           path: dist/*.whl
 
   publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'push'
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment:
