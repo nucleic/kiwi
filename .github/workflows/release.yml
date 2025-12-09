@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 0 * * 3'
   push:
+    branches:
+      - '**'
     tags:
       - '*'
 
@@ -15,9 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -70,13 +75,25 @@ jobs:
             manylinux_version: manylinux2014
           - os: windows-latest
             archs: ARM64
+          - os: ubuntu-latest
+            archs: auto
+            manylinux_version: graalpy
+          - os: windows-latest
+            archs: auto64
+            manylinux_version: graalpy
+          - os: macos-latest
+            archs: auto
+            manylinux_version: graalpy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get history and tags for SCM versioning to work
+        shell: bash
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --prune --unshallow
+          fi
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/* || true
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -89,7 +106,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install wheel cibuildwheel==3.1.1
+          python -m pip install wheel cibuildwheel==3.3.0
       - name: Build wheels
         if: matrix.manylinux_version == 'manylinux2010'
         env:
@@ -108,7 +125,7 @@ jobs:
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
-          CIBW_ENABLE: cpython-freethreading pypy
+          CIBW_ENABLE: cpython-freethreading pypy cpython-prerelease pypy-eol
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_ARCHS_WINDOWS: auto64
@@ -122,10 +139,22 @@ jobs:
         if: runner.os == 'Windows' && matrix.archs == 'ARM64'
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-*"
-          CIBW_ENABLE: cpython-freethreading
+          CIBW_ENABLE: cpython-freethreading cpython-prerelease
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
           CIBW_TEST_SKIP: "*-win_arm64"
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Build wheels
+        if: matrix.manylinux_version == 'graalpy'
+        env:
+          CIBW_BUILD: "gp312_250-*"
+          CIBW_ENABLE: graalpy
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_ARCHS_LINUX: auto
+          CIBW_ARCHS_WINDOWS: auto64
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
         run: |
@@ -137,7 +166,7 @@ jobs:
           path: dist/*.whl
 
   publish:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment:
