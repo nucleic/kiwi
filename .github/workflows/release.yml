@@ -131,7 +131,7 @@ jobs:
         if: runner.os == 'Windows' && matrix.archs == 'ARM64'
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-*"
-          CIBW_ENABLE: cpython-freethreading
+          CIBW_ENABLE: cpython-freethreading cpython-prerelease
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
           CIBW_TEST_SKIP: "*-win_arm64"
