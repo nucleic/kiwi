@@ -117,7 +117,7 @@ jobs:
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
-          CIBW_ENABLE: cpython-freethreading pypy
+          CIBW_ENABLE: cpython-freethreading pypy cpython-prerelease pypy-eol
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_ARCHS_WINDOWS: auto64
