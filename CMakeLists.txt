@@ -24,7 +24,7 @@ project(kiwi
 )
 
 # Options
-option(KIWI_BUILD_BENCHMARKS "Build benchmarks" ON)
+option(KIWI_BUILD_BENCHMARKS "Build benchmarks" OFF)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 11)
