@@ -66,6 +66,9 @@ jobs:
             archs: ppc64le
             manylinux_version: manylinux2014
           - os: ubuntu-latest
+            archs: riscv64
+            manylinux_version: manylinux_2_39
+          - os: ubuntu-latest
             archs: s390x
             manylinux_version: manylinux2014
           - os: windows-latest
@@ -123,6 +126,17 @@ jobs:
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Build wheels
+        if: matrix.manylinux_version == 'manylinux_2_39'
+        env:
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
+          CIBW_SKIP: "cp313t-win*"
+          CIBW_ENABLE: cpython-freethreading pypy cpython-prerelease pypy-eol
+          CIBW_ARCHS_LINUX: ${{ matrix.archs }}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
         run: |
