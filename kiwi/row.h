@@ -26,7 +26,31 @@ public:
 
     Row(double constant) : m_constant(constant) {}
 
-    Row(const Row &other) = default;
+    Row(const Row &other) {
+        m_constant = other.m_constant;
+        m_cells = other.m_cells;
+    }
+
+    Row(Row &&other) noexcept {
+        m_constant = other.m_constant;
+        m_cells = std::move(other.m_cells);
+    }
+
+    Row& operator=(const Row &other) {
+        if (this != &other) {
+            m_constant = other.m_constant;
+            m_cells = other.m_cells;
+        }
+        return *this;
+    }
+
+    Row& operator=(Row &&other) noexcept {
+        if (this != &other) {
+            m_constant = other.m_constant;
+            m_cells = std::move(other.m_cells);
+        }
+        return *this;
+    }
 
     ~Row() = default;
 

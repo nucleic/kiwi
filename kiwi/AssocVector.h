@@ -136,9 +136,21 @@ namespace Loki
             std::sort(begin(), end(), me);
         }
 
+        AssocVector(const AssocVector& rhs): Base(rhs), MyCompare(rhs) {}
+
+        AssocVector(AssocVector&& rhs) noexcept
+            : Base(std::move(rhs)), MyCompare(std::move(rhs))
+        {}
+
         AssocVector& operator=(const AssocVector& rhs)
         {
             AssocVector(rhs).swap(*this);
+            return *this;
+        }
+
+        AssocVector& operator=(AssocVector&& rhs) noexcept
+        {
+            AssocVector(std::move(rhs)).swap(*this);
             return *this;
         }
 
