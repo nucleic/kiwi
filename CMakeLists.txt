@@ -43,6 +43,13 @@ target_include_directories(kiwi
 
 target_compile_features(kiwi INTERFACE cxx_std_11)
 
+target_compile_options(kiwi INTERFACE
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:
+        -Wall 
+        -Wextra
+        -Wpedantic
+)
+
 # Benchmarks
 if(KIWI_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
