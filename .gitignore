@@ -14,3 +14,6 @@ kiwisolver.egg-info/
 .mypy_cache
 
 .idea
+
+# clangd cache
+.cache/
