@@ -9,7 +9,6 @@
 #include "constraint.h"
 #include "debug.h"
 #include "solverimpl.h"
-#include "strength.h"
 #include "variable.h"
 
 
