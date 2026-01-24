@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2025, Nucleic Development Team.
+| Copyright (c) 2013-2026, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -72,7 +72,7 @@ public:
     }
 
     // operator== is used for symbolics
-    bool equals(const Variable &other)
+    bool equals(const Variable &other) const
     {
         return m_data == other.m_data;
     }
