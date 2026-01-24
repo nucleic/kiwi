@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2025, Nucleic Development Team.
+# Copyright (c) 2013-2026, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -48,11 +48,18 @@ target_compile_options(kiwi INTERFACE
         -Wall 
         -Wextra
         -Wpedantic
+    >
 )
 
 # Benchmarks
 if(KIWI_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
+endif()
+
+# Tests
+# Only add tests when building the top-level project
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    add_subdirectory(tests)
 endif()
 
 # Print configuration summary
