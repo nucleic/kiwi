@@ -23,8 +23,16 @@ project(kiwi
     DESCRIPTION "A fast implementation of the Cassowary constraint solver"
 )
 
+# Determine if this is the top-level project
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(KIWI_IS_TOP_LEVEL TRUE)
+else()
+    set(KIWI_IS_TOP_LEVEL FALSE)
+endif()
+
 # Options
 option(KIWI_BUILD_BENCHMARKS "Build benchmarks" OFF)
+option(KIWI_BUILD_TESTS "Build tests" ${KIWI_IS_TOP_LEVEL})
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 11)
@@ -57,8 +65,7 @@ if(KIWI_BUILD_BENCHMARKS)
 endif()
 
 # Tests
-# Only add tests when building the top-level project
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(KIWI_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
@@ -68,4 +75,5 @@ message(STATUS "Kiwi Configuration Summary:")
 message(STATUS "  Version: ${PROJECT_VERSION}")
 message(STATUS "  C++ Standard: C++${CMAKE_CXX_STANDARD}")
 message(STATUS "  Build benchmarks: ${KIWI_BUILD_BENCHMARKS}")
+message(STATUS "  Build tests: ${KIWI_BUILD_TESTS}")
 message(STATUS "")
