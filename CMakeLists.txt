@@ -31,7 +31,7 @@ else()
 endif()
 
 # Options
-option(KIWI_BUILD_BENCHMARKS "Build benchmarks" OFF)
+option(KIWI_BUILD_BENCHMARKS "Build benchmarks" ${KIWI_IS_TOP_LEVEL})
 option(KIWI_BUILD_TESTS "Build tests" ${KIWI_IS_TOP_LEVEL})
 
 # C++ standard
