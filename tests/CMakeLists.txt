@@ -19,7 +19,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 set(sources
-    MainTest.cpp
+    SimplexTest.cpp
     VariableTest.cpp
     TermTest.cpp
     ExpressionTest.cpp

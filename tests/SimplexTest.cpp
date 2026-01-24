@@ -14,7 +14,7 @@
 using namespace kiwi;
 
 // https://edshare.soton.ac.uk/2458/1/MA230exam98_1.pdf
-TEST(MainTest, Test1) {
+TEST(SimplexTest, Maximization) {
     const auto x1 = Variable("x1");
     const auto x2 = Variable("x2");
     const auto x3 = Variable("x3");
@@ -36,8 +36,8 @@ TEST(MainTest, Test1) {
     // Solve
     solver.updateVariables();
     
-    EXPECT_NEAR(x1.value(), 13.0, 1e-2);
-    EXPECT_NEAR(x2.value(), 3.0, 1e-2);
-    EXPECT_NEAR(x3.value(), 11.0, 1e-2);
-    EXPECT_NEAR(z.value(), 39.0, 1e-2);
+    EXPECT_NEAR(x1.value(), 13.0, 1e-4);
+    EXPECT_NEAR(x2.value(), 3.0, 1e-4);
+    EXPECT_NEAR(x3.value(), 11.0, 1e-4);
+    EXPECT_NEAR(z.value(), 39.0, 1e-4);
 }
