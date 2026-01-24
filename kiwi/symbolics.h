@@ -213,7 +213,7 @@ Expression operator+( const Term& term, double constant )
 inline
 Expression operator-( const Term& term, const Expression& expression )
 {
-	return -expression + term;
+	return  Expression(term) - expression;
 }
 
 
@@ -243,14 +243,14 @@ Expression operator-( const Term& term, double constant )
 inline
 Expression operator+( const Variable& variable, const Expression& expression )
 {
-	return expression + variable;
+	return Expression(variable) + expression;
 }
 
 
 inline
 Expression operator+( const Variable& variable, const Term& term )
 {
-	return term + variable;
+	return Term(variable) + term;
 }
 
 
@@ -459,7 +459,7 @@ Constraint operator==( const Term& term, double constant )
 inline
 Constraint operator<=( const Term& term, const Expression& expression )
 {
-	return expression >= term;
+	return Expression(term) <= expression;
 }
 
 
@@ -487,7 +487,7 @@ Constraint operator<=( const Term& term, double constant )
 inline
 Constraint operator>=( const Term& term, const Expression& expression )
 {
-	return expression <= term;
+	return Expression(term) >= expression;
 }
 
 
