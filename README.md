@@ -13,8 +13,7 @@ from the ground up to be lightweight and fast. Kiwi ranges from 10x to 500x
 faster than the original Cassowary solver with typical use cases gaining a 40x
 improvement. Memory savings are consistently > 5x.
 
-In addition to the C++ solver, Kiwi ships with hand-rolled Python bindings for
-Python 3.7+.
+In addition to the C++ solver, Kiwi ships with hand-rolled Python bindings.
 
 # How to use
 ## C++ with CMake
