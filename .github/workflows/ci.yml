@@ -26,7 +26,7 @@ jobs:
       matrix:
         python-version: ['3.12']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
@@ -62,7 +62,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -86,7 +86,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -114,7 +114,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy-3.10', 'pypy-3.11', 'graalpy-25.0']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
