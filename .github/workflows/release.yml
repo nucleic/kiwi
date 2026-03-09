@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
       - name: Build sdist
@@ -34,7 +34,7 @@ jobs:
           cd ..
           pytest kiwi/py/tests -v -W error
       - name: Store artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cibw-sdist
           path: dist/*
@@ -84,13 +84,13 @@ jobs:
             manylinux_version: graalpy
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
       - name: Set up QEMU
@@ -166,7 +166,7 @@ jobs:
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Store artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cibw-wheels-${{ runner.os }}-${{ matrix.manylinux_version }}-${{ matrix.archs }}
           path: dist/*.whl
@@ -181,7 +181,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4.1.7
+      - uses: actions/download-artifact@v5.0.0
         with:
           pattern: cibw-*
           path: dist
@@ -203,13 +203,13 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v4.1.7
+      uses: actions/download-artifact@v5.0.0
       with:
         pattern: cibw-*
         path: dist
         merge-multiple: true
     - name: Sign the dists with Sigstore
-      uses: sigstore/gh-action-sigstore-python@v3.0.1
+      uses: sigstore/gh-action-sigstore-python@v3.2.0
       with:
         inputs: >-
           ./dist/*.tar.gz
