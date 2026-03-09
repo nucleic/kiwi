@@ -1,6 +1,14 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.5.0 | Solver 1.5.0 | unreleased
+------------------------------------------
+- add support for CMakeLists PR #206
+- implement more move constructor in the C++ code PR #207
+- add C++ tests PR #207
+- add support for GraalPy PR #204
+- add RiscV support PR #208
+
 Wrappers 1.4.9 | Solver 1.4.2 | 10/08/2025
 ------------------------------------------
 - add support for Python 3.14 PR #196 #198
