@@ -95,7 +95,7 @@ jobs:
           python-version: '3.x'
       - name: Set up QEMU
         if: runner.os == 'Linux' && matrix.archs != 'auto'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
       - name: Install cibuildwheel
