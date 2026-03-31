@@ -140,7 +140,7 @@ jobs:
         run: |
           bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
