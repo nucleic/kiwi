@@ -119,7 +119,7 @@ jobs:
       - name: Build wheels
         if: matrix.target == 'manylinux2014'
         env:
-          CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
           CIBW_ENABLE: pypy cpython-prerelease pypy-eol
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
@@ -132,7 +132,7 @@ jobs:
       - name: Build wheels
         if: matrix.target == 'manylinux_2_39'
         env:
-          CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
           CIBW_ENABLE: pypy cpython-prerelease pypy-eol
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
@@ -141,7 +141,7 @@ jobs:
       - name: Build wheels
         if: runner.os == 'Windows' && matrix.archs == 'ARM64'
         env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-*"
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-* cp314t-*"
           CIBW_ENABLE: cpython-prerelease
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
