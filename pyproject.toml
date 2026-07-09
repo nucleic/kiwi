@@ -72,7 +72,7 @@
 
 [tool.cibuildwheel]
   test-requires = ["pytest"]
-  test-command = "python -m pytest {package}py/tests -v"
+  test-command = "python -m pytest {package}/py/tests -v"
 
 [tool.cibuildwheel.ios]
   xbuild-tools = []
