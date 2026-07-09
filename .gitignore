@@ -8,6 +8,7 @@ py/src/version.h
 benchmarks/run_bench
 build/
 dist/
+wheelhouse/
 kiwisolver.egg-info/
 .eggs
 .vscode

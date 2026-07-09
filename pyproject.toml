@@ -70,6 +70,14 @@
 
 """
 
+[tool.cibuildwheel]
+  test-requires = ["pytest"]
+  test-command = "python -m pytest py/tests -v"
+
+[tool.cibuildwheel.ios]
+  xbuild-tools = []
+  test-sources = ["py/tests"]
+
 [tool.ruff]
   src = ["src"]
   line-length = 88

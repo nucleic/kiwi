@@ -40,48 +40,51 @@ jobs:
           path: dist/*
 
   build_wheels:
-    name: Build wheels on ${{ matrix.os }} for ${{ matrix.archs }} using ${{ matrix.manylinux_version }}+
+    name: Build wheels on ${{ matrix.os }} for ${{ matrix.archs }} using ${{ matrix.target }}+
     runs-on: ${{ matrix.os }}
     env:
       BUILD_COMMIT: main
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        manylinux_version: [manylinux2010, manylinux2014]
+        target: [manylinux2010, manylinux2014]
         archs: [auto]
         include:
           - os: ubuntu-latest
             archs: aarch64
-            manylinux_version: manylinux2010
+            target: manylinux2010
           - os: ubuntu-latest
             archs: ppc64le
-            manylinux_version: manylinux2010
+            target: manylinux2010
           - os: ubuntu-latest
             archs: s390x
-            manylinux_version: manylinux2010
+            target: manylinux2010
           - os: ubuntu-latest
             archs: aarch64
-            manylinux_version: manylinux2014
+            target: manylinux2014
           - os: ubuntu-latest
             archs: ppc64le
-            manylinux_version: manylinux2014
+            target: manylinux2014
           - os: ubuntu-latest
             archs: riscv64
-            manylinux_version: manylinux_2_39
+            target: manylinux_2_39
           - os: ubuntu-latest
             archs: s390x
-            manylinux_version: manylinux2014
+            target: manylinux2014
           - os: windows-latest
             archs: ARM64
           - os: ubuntu-latest
             archs: auto
-            manylinux_version: graalpy
+            target: graalpy
           - os: windows-latest
             archs: auto64
-            manylinux_version: graalpy
+            target: graalpy
           - os: macos-latest
             archs: auto
-            manylinux_version: graalpy
+            target: graalpy
+          - os: macos-latest
+            archs: all
+            target: ios
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -101,9 +104,9 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install wheel cibuildwheel==3.3.0
+          python -m pip install wheel cibuildwheel==4.1.0
       - name: Build wheels
-        if: matrix.manylinux_version == 'manylinux2010'
+        if: matrix.target == 'manylinux2010'
         env:
           CIBW_BUILD: "cp310-*"
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
@@ -111,12 +114,10 @@ jobs:
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64
           CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Build wheels
-        if: matrix.manylinux_version == 'manylinux2014'
+        if: matrix.target == 'manylinux2014'
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
@@ -126,19 +127,15 @@ jobs:
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Build wheels
-        if: matrix.manylinux_version == 'manylinux_2_39'
+        if: matrix.target == 'manylinux_2_39'
         env:
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp310-* pp311-*"
           CIBW_SKIP: "cp313t-win*"
           CIBW_ENABLE: cpython-freethreading pypy cpython-prerelease pypy-eol
           CIBW_ARCHS_LINUX: ${{ matrix.archs }}
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Build wheels
@@ -149,26 +146,29 @@ jobs:
           CIBW_ARCHS_WINDOWS: ${{ matrix.archs }}
           # It is not yet possible to run ARM64 tests, only cross-compile them.
           CIBW_TEST_SKIP: "*-win_arm64"
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Build wheels
-        if: matrix.manylinux_version == 'graalpy'
+        if: matrix.target == 'graalpy'
         env:
           CIBW_BUILD: "gp312_250-*"
           CIBW_ENABLE: graalpy
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: auto
           CIBW_ARCHS_WINDOWS: auto64
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest {package}/py/tests -v
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Build wheels
+        if: matrix.target == 'ios'
+        env:
+          CIBW_PLATFORM: ios
+          CIBW_ARCHS: all
         run: |
           python -m cibuildwheel . --output-dir dist
       - name: Store artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: cibw-wheels-${{ runner.os }}-${{ matrix.manylinux_version }}-${{ matrix.archs }}
+          name: cibw-wheels-${{ runner.os }}-${{ matrix.target }}-${{ matrix.archs }}
           path: dist/*.whl
 
   publish:
