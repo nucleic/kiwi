@@ -163,6 +163,7 @@ jobs:
         if: matrix.target == 'ios'
         env:
           CIBW_PLATFORM: ios
+          CIBW_ENABLE: cpython-prerelease
           CIBW_ARCHS: all
         run: |
           python -m cibuildwheel . --output-dir dist
