@@ -45,6 +45,7 @@ jobs:
     env:
       BUILD_COMMIT: main
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         target: [manylinux2010, manylinux2014]
@@ -153,7 +154,7 @@ jobs:
         env:
           CIBW_BUILD: "gp312_250-*"
           CIBW_ENABLE: graalpy
-          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_ARCHS_MACOS: auto
           CIBW_ARCHS_LINUX: auto
           CIBW_ARCHS_WINDOWS: auto64
         run: |
