@@ -23,7 +23,6 @@ In addition to the C++ solver, Kiwi ships with hand-rolled Python bindings.
    Use cases <use_cases/index.rst>
    Developer notes <developer_notes/index.rst>
    API Documentation <api/index.rst>
-   C++ API Reference <https://kiwisolver.readthedocs.io/en/latest/cpp-api/>
 
 Indices and tables
 ==================

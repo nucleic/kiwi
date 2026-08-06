@@ -14,8 +14,9 @@ build:
   apt_packages:
     - doxygen
   jobs:
-    post_build:
+    pre_build:
       - doxygen Doxyfile.sourcey
+    post_build:
       - npx --yes sourcey@3.6.5 build --output "$READTHEDOCS_OUTPUT/html/cpp-api"
 
 # Build documentation in the docs/source directory with Sphinx
