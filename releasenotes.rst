@@ -1,6 +1,11 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.5.1 | Solver 1.5.1 | unreleased
+------------------------------------------
+- add support for Python 3.15 PR #243
+- fix bad version reported in C++ code PR #243
+
 Wrappers 1.5.0 | Solver 1.5.0 | 09/03/2026
 ------------------------------------------
 - add support for CMakeLists PR #206
