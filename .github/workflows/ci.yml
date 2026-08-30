@@ -14,6 +14,7 @@ on:
       - "kiwi/**"
       - "py/**"
       - "tests/**"
+      - "tools/**"
       - setup.py
       - pyproject.toml
       - CMakeLists.txt
@@ -131,6 +132,9 @@ jobs:
           CPPFLAGS: --coverage
         run: |
           pip install .
+      - name: Test helper scripts
+        run: |
+          python tools/git_version.py --self-test
       - name: Test with pytest
         run: |
           pip install pytest
