@@ -86,6 +86,9 @@ jobs:
           - os: macos-latest
             archs: all
             target: ios
+          - os: ubuntu-latest
+            archs: auto
+            target: pyodide
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -105,7 +108,7 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install wheel cibuildwheel==4.1.0
+          python -m pip install wheel cibuildwheel==4.2.0
       - name: Build wheels
         if: matrix.target == 'manylinux2010'
         env:
@@ -164,6 +167,13 @@ jobs:
         env:
           CIBW_PLATFORM: ios
           CIBW_ENABLE: cpython-prerelease
+          CIBW_ARCHS: all
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Build wheels
+        if: matrix.target == 'pyodide'
+        env:
+          CIBW_PLATFORM: pyodide
           CIBW_ARCHS: all
         run: |
           python -m cibuildwheel . --output-dir dist
