@@ -45,10 +45,11 @@ Term_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-void
+int
 Term_clear( Term* self )
 {
 	Py_CLEAR( self->variable );
+	return 0;
 }
 
 

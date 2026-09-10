@@ -61,10 +61,11 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-void
+int
 Variable_clear( Variable* self )
 {
 	Py_CLEAR( self->context );
+	return 0;
 }
 
 
