@@ -53,9 +53,11 @@ Constraint_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     return pycn.release();
 }
 
-void Constraint_clear(Constraint *self)
+int
+Constraint_clear(Constraint *self)
 {
     Py_CLEAR(self->expression);
+    return 0;
 }
 
 int Constraint_traverse(Constraint *self, visitproc visit, void *arg)

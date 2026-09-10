@@ -51,10 +51,11 @@ Expression_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-void
+int
 Expression_clear( Expression* self )
 {
     Py_CLEAR( self->terms );
+    return 0;
 }
 
 
