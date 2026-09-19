@@ -1,0 +1,27 @@
+PROJECT_NAME           = "Kiwi C++ API"
+OUTPUT_DIRECTORY       = build/doxygen-public
+INPUT                  = kiwi/constraint.h \
+                         kiwi/errors.h \
+                         kiwi/expression.h \
+                         kiwi/solver.h \
+                         kiwi/strength.h \
+                         kiwi/symbolics.h \
+                         kiwi/term.h \
+                         kiwi/variable.h \
+                         kiwi/version.h
+FILE_PATTERNS           = *.h
+RECURSIVE               = YES
+GENERATE_HTML           = NO
+GENERATE_LATEX          = NO
+GENERATE_XML            = YES
+XML_OUTPUT              = xml
+EXTRACT_ALL             = YES
+EXTRACT_PRIVATE         = NO
+EXTRACT_STATIC          = YES
+FULL_PATH_NAMES         = NO
+STRIP_FROM_PATH         = .
+SOURCE_BROWSER          = YES
+REFERENCED_BY_RELATION  = YES
+REFERENCES_RELATION     = YES
+QUIET                   = YES
+WARN_IF_UNDOCUMENTED    = NO
