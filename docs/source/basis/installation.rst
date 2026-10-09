@@ -41,7 +41,7 @@ Compiling it yourself: The Hard Way
 
 Building Kiwisolver from scratch requires Python and a C++ compiler. On Unix
 platform getting a C++ compiler properly configured is generally
-straighforward. On Windows, starting with Python 3.6 the free version of the
+straightforward. On Windows, starting with Python 3.6 the free version of the
 Microsoft toolchain should work out of the box. Installing Kiwisolver is then
 as simple as::
 
