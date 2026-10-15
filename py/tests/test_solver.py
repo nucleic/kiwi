@@ -99,6 +99,22 @@ def test_suggesting_values_for_edit_variables() -> None:
     assert v2.value() <= -1
 
 
+def test_edit_variable_starts_at_value() -> None:
+    """Test that an edit variable holds its variable until a value is suggested."""
+    s = Solver()
+    v = Variable("foo")
+
+    v.setValue(5)
+    s.addEditVariable(v, "strong")
+    s.addConstraint((v == 1) | "weak")
+    s.updateVariables()
+    assert v.value() == pytest.approx(5)
+
+    s.suggestValue(v, 7)
+    s.updateVariables()
+    assert v.value() == pytest.approx(7)
+
+
 def test_managing_stays() -> None:
     """Test adding/removing stays."""
     s = Solver()
@@ -140,9 +156,7 @@ def test_dragging_with_stays() -> None:
 
     The stronger stay on the left end leaves the right end to move until it meets its bound.
     Each suggested value moves the stays to the current solution first, so dragging back
-    moves both ends from where they are, not from where they started. An edit variable starts
-    with a suggested value of zero, so the drag first suggests the midpoint's current
-    position, and only then are the ends held.
+    moves both ends from where they are, not from where they started.
 
     """
     xl = Variable("xl")
@@ -150,16 +164,16 @@ def test_dragging_with_stays() -> None:
     xr = Variable("xr")
     s = Solver()
 
+    xl.setValue(30)
+    xm.setValue(45)
+    xr.setValue(60)
+    s.addStay(xl, "medium")
+    s.addStay(xr, "weak")
     s.addConstraint(2 * xm == xl + xr)
     s.addConstraint(xl + 10 <= xr)
     s.addConstraint(xr <= 100)
     s.addConstraint(xl >= 0)
     s.addEditVariable(xm, "strong")
-    s.suggestValue(xm, 45)
-    xl.setValue(30)
-    xr.setValue(60)
-    s.addStay(xl, "medium")
-    s.addStay(xr, "weak")
     s.updateVariables()
     assert (xl.value(), xr.value()) == pytest.approx((30, 60))
 

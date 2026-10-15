@@ -64,7 +64,9 @@ public:
 	/* Add an edit variable to the solver.
 
 	This method should be called before the `suggestValue` method is
-	used to supply a suggested value for the given edit variable.
+	used to supply a suggested value for the given edit variable. Until
+	a value is suggested, the edit holds the variable at its value when
+	the edit is added, as in Cassowary.
 
 	Throws
 	------

@@ -53,6 +53,22 @@ TEST(SolverTest, ManagingEditVariable) {
     EXPECT_FALSE(s.hasEditVariable(v2));
 }
 
+// Test that an edit variable holds its variable at its value until a value is suggested
+TEST(SolverTest, EditVariableStartsAtValue) {
+    Solver s;
+    Variable v("foo");
+
+    v.setValue(5);
+    s.addEditVariable(v, strength::strong);
+    s.addConstraint((v == 1) | strength::weak);
+    s.updateVariables();
+    EXPECT_NEAR(v.value(), 5, 1e-6);
+
+    s.suggestValue(v, 7);
+    s.updateVariables();
+    EXPECT_NEAR(v.value(), 7, 1e-6);
+}
+
 // Test suggesting values for edit variables
 TEST(SolverTest, SuggestingValuesForEditVariables) {
     // Suggest value for an edit variable entering a weak equality
@@ -270,25 +286,23 @@ TEST(SolverTest, StayHoldsInitialValue) {
 // Test dragging the midpoint of a segment whose ends have stays, as in the Cassowary paper.
 // The stronger stay on the left end leaves the right end to move, until the right end meets
 // its bound. Each suggested value moves the stays to the current solution first, so dragging
-// back moves both ends from where they are, not from where they started. An edit variable
-// starts with a suggested value of zero, so the drag first suggests the midpoint's current
-// position, and only then are the ends held.
+// back moves both ends from where they are, not from where they started.
 TEST(SolverTest, DraggingWithStays) {
     Variable xl("xl");
     Variable xm("xm");
     Variable xr("xr");
     Solver s;
 
+    xl.setValue(30);
+    xm.setValue(45);
+    xr.setValue(60);
+    s.addStay(xl, strength::medium);
+    s.addStay(xr, strength::weak);
     s.addConstraint(2 * xm == xl + xr);
     s.addConstraint(xl + 10 <= xr);
     s.addConstraint(xr <= 100);
     s.addConstraint(xl >= 0);
     s.addEditVariable(xm, strength::strong);
-    s.suggestValue(xm, 45);
-    xl.setValue(30);
-    xr.setValue(60);
-    s.addStay(xl, strength::medium);
-    s.addStay(xr, strength::weak);
     s.updateVariables();
     EXPECT_NEAR(xl.value(), 30, 1e-6);
     EXPECT_NEAR(xr.value(), 60, 1e-6);

@@ -214,7 +214,9 @@ public:
 	/* Add an edit variable to the solver.
 
 	This method should be called before the `suggestValue` method is
-	used to supply a suggested value for the given edit variable.
+	used to supply a suggested value for the given edit variable. Until
+	a value is suggested, the edit holds the variable at its value when
+	the edit is added, as in Cassowary.
 
 	Throws
 	------
@@ -232,12 +234,12 @@ public:
 		strength = strength::clip( strength );
 		if( strength == strength::required )
 			throw BadRequiredStrength();
-		Constraint cn( Expression( variable ), OP_EQ, strength );
+		Constraint cn( Expression( variable, -variable.value() ), OP_EQ, strength );
 		addConstraint( cn );
 		EditInfo info;
 		info.tag = m_cns[ cn ];
 		info.constraint = cn;
-		info.constant = 0.0;
+		info.constant = variable.value();
 		m_edits[ variable ] = info;
 	}
 

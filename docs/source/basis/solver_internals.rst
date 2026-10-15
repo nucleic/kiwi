@@ -90,13 +90,6 @@ which holds its variable at its current value:
 
 Moving the stays only changes constants in the tableau, so it costs no pivots.
 
-.. note::
-
-    An edit variable starts with a suggested value of zero. When dragging with
-    stays, suggest the edit variable's starting value before the variables are
-    held, so that the stays do not pick up a solution in which the edit variable
-    was pulled to zero.
-
 .. tabs::
 
     .. code-tab:: python
@@ -104,29 +97,29 @@ Moving the stays only changes constants in the tableau, so it costs no pivots.
         from kiwisolver import Solver, Variable
 
         xl, xm, xr = Variable("xl"), Variable("xm"), Variable("xr")
+        xl.setValue(30)
+        xm.setValue(45)
+        xr.setValue(60)
         solver = Solver()
+        solver.addStay(xl, "weak")
+        solver.addStay(xr, "weak")
         solver.addConstraint(2 * xm == xl + xr)
         solver.addConstraint(xl + 10 <= xr)
         solver.addEditVariable(xm, "strong")
-        solver.suggestValue(xm, 45)
-        xl.setValue(30)
-        xr.setValue(60)
-        solver.addStay(xl, "weak")
-        solver.addStay(xr, "weak")
         solver.suggestValue(xm, 50)
 
     .. code-tab:: c++
 
         Variable xl("xl"), xm("xm"), xr("xr");
+        xl.setValue(30);
+        xm.setValue(45);
+        xr.setValue(60);
         Solver solver;
+        solver.addStay(xl, strength::weak);
+        solver.addStay(xr, strength::weak);
         solver.addConstraint(2 * xm == xl + xr);
         solver.addConstraint(xl + 10 <= xr);
         solver.addEditVariable(xm, strength::strong);
-        solver.suggestValue(xm, 45);
-        xl.setValue(30);
-        xr.setValue(60);
-        solver.addStay(xl, strength::weak);
-        solver.addStay(xr, strength::weak);
         solver.suggestValue(xm, 50);
 
 
