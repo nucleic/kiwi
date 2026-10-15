@@ -29,6 +29,12 @@ def test_variable_methods() -> None:
             v.setName(b"r")  # type: ignore
 
     assert v.value() == 0.0
+    v.setValue(1.5)
+    assert v.value() == 1.5
+    v.setValue(2)
+    assert v.value() == 2.0
+    with pytest.raises(TypeError):
+        v.setValue("1")  # type: ignore
 
     assert v.context() is None
     ctx = object()

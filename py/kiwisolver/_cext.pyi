@@ -53,6 +53,9 @@ class Variable:
     def value(self) -> float:
         """Get the current value of the variable."""
         ...
+    def setValue(self, value: int | float, /) -> None:
+        """Set the current value of the variable."""
+        ...
     def context(self) -> Any:
         """Get the context object associated with the variable."""
         ...

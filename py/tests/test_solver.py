@@ -138,10 +138,11 @@ def test_managing_stays() -> None:
 def test_dragging_with_stays() -> None:
     """Test dragging the midpoint of a segment whose ends have stays.
 
-    The ends are first placed by strong constraints, then held by stays and released, which
-    moves each stay to its end's current position. The stronger stay on the left end leaves
-    the right end to move until it meets its bound. Each suggested value moves the stays to
-    the current solution, so dragging back moves both ends from where they are.
+    The stronger stay on the left end leaves the right end to move until it meets its bound.
+    Each suggested value moves the stays to the current solution first, so dragging back
+    moves both ends from where they are, not from where they started. An edit variable starts
+    with a suggested value of zero, so the drag first suggests the midpoint's current
+    position, and only then are the ends held.
 
     """
     xl = Variable("xl")
@@ -155,15 +156,12 @@ def test_dragging_with_stays() -> None:
     s.addConstraint(xl >= 0)
     s.addEditVariable(xm, "strong")
     s.suggestValue(xm, 45)
-    place_left = (xl == 30) | "strong"
-    place_right = (xr == 60) | "strong"
-    s.addConstraint(place_left)
-    s.addConstraint(place_right)
-    s.updateVariables()
+    xl.setValue(30)
+    xr.setValue(60)
     s.addStay(xl, "medium")
     s.addStay(xr, "weak")
-    s.removeConstraint(place_left)
-    s.removeConstraint(place_right)
+    s.updateVariables()
+    assert (xl.value(), xr.value()) == pytest.approx((30, 60))
 
     for midpoint, left, right in (
         (50, 30, 70),

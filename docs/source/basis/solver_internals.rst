@@ -83,7 +83,7 @@ removed with ``removeStay``. As in Cassowary, a stay is a non-required equality
 which holds its variable at its current value:
 
 - when the stay is added, that is the variable's value, as last set by
-  ``updateVariables``;
+  ``updateVariables`` or ``setValue``;
 - before each suggested value and each removal of a constraint, every stay is
   moved to the value its variable has in the current solution, so a variable
   that nothing pushes elsewhere stays where it is.
@@ -109,7 +109,8 @@ Moving the stays only changes constants in the tableau, so it costs no pivots.
         solver.addConstraint(xl + 10 <= xr)
         solver.addEditVariable(xm, "strong")
         solver.suggestValue(xm, 45)
-        solver.updateVariables()
+        xl.setValue(30)
+        xr.setValue(60)
         solver.addStay(xl, "weak")
         solver.addStay(xr, "weak")
         solver.suggestValue(xm, 50)
@@ -122,7 +123,8 @@ Moving the stays only changes constants in the tableau, so it costs no pivots.
         solver.addConstraint(xl + 10 <= xr);
         solver.addEditVariable(xm, strength::strong);
         solver.suggestValue(xm, 45);
-        solver.updateVariables();
+        xl.setValue(30);
+        xr.setValue(60);
         solver.addStay(xl, strength::weak);
         solver.addStay(xr, strength::weak);
         solver.suggestValue(xm, 50);
