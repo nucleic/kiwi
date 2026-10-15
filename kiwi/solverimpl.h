@@ -44,6 +44,12 @@ class SolverImpl
 		double constant;
 	};
 
+	struct StayInfo
+	{
+		Tag tag;
+		Constraint constraint;
+	};
+
 	struct Pivot
 	{
 		Symbol leaving;
@@ -57,6 +63,8 @@ class SolverImpl
 	using CnMap = MapType<Constraint, Tag>;
 
 	using EditMap = MapType<Variable, EditInfo>;
+
+	using StayMap = MapType<Variable, StayInfo>;
 
 	struct DualOptimizeGuard
 	{
@@ -158,6 +166,11 @@ public:
 
 		Tag tag( cn_it->second );
 		m_cns.erase( cn_it );
+
+		// Hold the variables with a stay at their current values, so
+		// that removing the constraint does not bring back a stay that
+		// it previously overruled.
+		resetStays();
 
 		// Remove the error effects from the objective function
 		// *before* pivoting, or substitutions into the objective
@@ -270,6 +283,7 @@ public:
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
+		resetStays();
 		DualOptimizeGuard guard( *this );
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
@@ -302,6 +316,64 @@ public:
 				rowPair.first.type() != Symbol::External )
 				m_infeasible_rows.push_back( rowPair.first );
 		}
+	}
+
+	/* Add a stay to the solver.
+
+	A stay is a non-required constraint which holds a variable at its
+	current value. It first holds the variable at its value when the
+	stay is added. Before each suggested value and each removal of a
+	constraint, every stay is moved to the value its variable has in
+	the current solution, so that a variable not pushed elsewhere
+	stays where it is.
+
+	Throws
+	------
+	DuplicateStay
+		The given variable already has a stay in the solver.
+
+	BadRequiredStrength
+		The given strength is >= required.
+
+	*/
+	void addStay( const Variable& variable, double strength )
+	{
+		if( m_stays.find( variable ) != m_stays.end() )
+			throw DuplicateStay( variable );
+		strength = strength::clip( strength );
+		if( strength == strength::required )
+			throw BadRequiredStrength();
+		Constraint cn( Expression( variable, -variable.value() ), OP_EQ, strength );
+		addConstraint( cn );
+		StayInfo info;
+		info.tag = m_cns[ cn ];
+		info.constraint = cn;
+		m_stays[ variable ] = info;
+	}
+
+	/* Remove a stay from the solver.
+
+	Throws
+	------
+	UnknownStay
+		The given variable has no stay in the solver.
+
+	*/
+	void removeStay( const Variable& variable )
+	{
+		auto it = m_stays.find( variable );
+		if( it == m_stays.end() )
+			throw UnknownStay( variable );
+		removeConstraint( it->second.constraint );
+		m_stays.erase( it );
+	}
+
+	/* Test whether a variable has a stay in the solver.
+
+	*/
+	bool hasStay( const Variable& variable ) const
+	{
+		return m_stays.find( variable ) != m_stays.end();
 	}
 
 	/* Update the values of the external solver variables.
@@ -337,6 +409,7 @@ public:
 		m_cns.clear();
 		m_vars.clear();
 		m_edits.clear();
+		m_stays.clear();
 		m_infeasible_rows.clear();
 		m_objective.reset( new Row() );
 		m_artificial.reset();
@@ -876,6 +949,28 @@ private:
 			m_objective->insert( marker, -strength );
 	}
 
+	/* Move every stay to the current value of its variable.
+
+	A stay's error symbols occur together and only in the row of the
+	one which is basic, if either is. Zeroing that row's constant moves
+	the stay to its variable's current value without changing the value
+	of any variable or the feasibility of the tableau. If neither error
+	symbol is basic, the stay is already satisfied exactly.
+
+	*/
+	void resetStays()
+	{
+		for( auto& stayPair : m_stays )
+		{
+			const Tag& tag = stayPair.second.tag;
+			auto row_it = m_rows.find( tag.marker );
+			if( row_it == m_rows.end() )
+				row_it = m_rows.find( tag.other );
+			if( row_it != m_rows.end() )
+				row_it->second->add( -row_it->second->constant() );
+		}
+	}
+
 	/* Test whether a row is composed of all dummy variables.
 
 	*/
@@ -893,6 +988,7 @@ private:
 	RowMap m_rows;
 	VarMap m_vars;
 	EditMap m_edits;
+	StayMap m_stays;
 	std::vector<Symbol> m_infeasible_rows;
 	std::unique_ptr<Row> m_objective;
 	std::unique_ptr<Row> m_artificial;

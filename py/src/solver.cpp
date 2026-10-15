@@ -208,6 +208,76 @@ Solver_suggestValue( Solver* self, PyObject* args )
 
 
 PyObject*
+Solver_addStay( Solver* self, PyObject* args )
+{
+	PyObject* pyvar;
+	PyObject* pystrength;
+	if( !PyArg_ParseTuple( args, "OO", &pyvar, &pystrength ) )
+		return 0;
+	if( !Variable::TypeCheck( pyvar ) )
+		return cppy::type_error( pyvar, "Variable" );
+	double strength;
+	if( !convert_to_strength( pystrength, strength ) )
+		return 0;
+	Variable* var = reinterpret_cast<Variable*>( pyvar );
+	try
+	{
+		ACQUIRE_GLOBAL_LOCK();
+		self->solver.addStay( var->variable, strength );
+		RELEASE_GLOBAL_LOCK();
+	}
+	catch( const kiwi::DuplicateStay& )
+	{
+		RELEASE_GLOBAL_LOCK();
+		PyErr_SetObject( DuplicateStay, pyvar );
+		return 0;
+	}
+	catch( const kiwi::BadRequiredStrength& e )
+	{
+		RELEASE_GLOBAL_LOCK();
+		PyErr_SetString( BadRequiredStrength, e.what() );
+		return 0;
+	}
+	Py_RETURN_NONE;
+}
+
+
+PyObject*
+Solver_removeStay( Solver* self, PyObject* other )
+{
+	if( !Variable::TypeCheck( other ) )
+		return cppy::type_error( other, "Variable" );
+	Variable* var = reinterpret_cast<Variable*>( other );
+	try
+	{
+		ACQUIRE_GLOBAL_LOCK();
+		self->solver.removeStay( var->variable );
+		RELEASE_GLOBAL_LOCK();
+	}
+	catch( const kiwi::UnknownStay& )
+	{
+		RELEASE_GLOBAL_LOCK();
+		PyErr_SetObject( UnknownStay, other );
+		return 0;
+	}
+	Py_RETURN_NONE;
+}
+
+
+PyObject*
+Solver_hasStay( Solver* self, PyObject* other )
+{
+	if( !Variable::TypeCheck( other ) )
+		return cppy::type_error( other, "Variable" );
+	Variable* var = reinterpret_cast<Variable*>( other );
+	ACQUIRE_GLOBAL_LOCK();
+	bool hasStay = self->solver.hasStay( var->variable );
+	RELEASE_GLOBAL_LOCK();
+	return cppy::incref( hasStay ? Py_True : Py_False );
+}
+
+
+PyObject*
 Solver_updateVariables( Solver* self )
 {
 	ACQUIRE_GLOBAL_LOCK();
@@ -263,6 +333,12 @@ Solver_methods[] = {
 	  "Check whether the solver contains an edit variable." },
 	{ "suggestValue", ( PyCFunction )Solver_suggestValue, METH_VARARGS,
 	  "Suggest a desired value for an edit variable." },
+	{ "addStay", ( PyCFunction )Solver_addStay, METH_VARARGS,
+	  "Add a stay on a variable to the solver." },
+	{ "removeStay", ( PyCFunction )Solver_removeStay, METH_O,
+	  "Remove the stay on a variable from the solver." },
+	{ "hasStay", ( PyCFunction )Solver_hasStay, METH_O,
+	  "Check whether a variable has a stay in the solver." },
 	{ "updateVariables", ( PyCFunction )Solver_updateVariables, METH_NOARGS,
 	  "Update the values of the solver variables." },
 	{ "reset", ( PyCFunction )Solver_reset, METH_NOARGS,
@@ -324,6 +400,10 @@ PyObject* DuplicateEditVariable;
 
 PyObject* UnknownEditVariable;
 
+PyObject* DuplicateStay;
+
+PyObject* UnknownStay;
+
 PyObject* BadRequiredStrength;
 
 
@@ -364,6 +444,18 @@ bool init_exceptions()
  	{
         return false;
     }
+
+	DuplicateStay = mod.getattr( "DuplicateStay" );
+	if( !DuplicateStay )
+	{
+		return false;
+	}
+
+	UnknownStay = mod.getattr( "UnknownStay" );
+	if( !UnknownStay )
+	{
+		return false;
+	}
 
   	BadRequiredStrength = mod.getattr( "BadRequiredStrength" );
  	if( !BadRequiredStrength )

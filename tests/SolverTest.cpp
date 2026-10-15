@@ -223,6 +223,113 @@ TEST(SolverTest, ConstraintViolated) {
     EXPECT_TRUE(c2.violated());
 }
 
+// Test managing stays
+TEST(SolverTest, ManagingStays) {
+    Solver s;
+    Variable v1("foo");
+    Variable v2("bar");
+
+    EXPECT_FALSE(s.hasStay(v1));
+    s.addStay(v1, strength::weak);
+    EXPECT_TRUE(s.hasStay(v1));
+
+    // Adding a second stay to a variable should throw
+    EXPECT_THROW(s.addStay(v1, strength::medium), DuplicateStay);
+
+    // Removing an unknown stay should throw
+    EXPECT_THROW(s.removeStay(v2), UnknownStay);
+
+    // Adding a stay with required strength should throw
+    EXPECT_THROW(s.addStay(v2, strength::required), BadRequiredStrength);
+    EXPECT_FALSE(s.hasStay(v2));
+
+    // The stays are listed in the dump
+    EXPECT_TRUE(s.dumps().find("Stays") != std::string::npos);
+
+    s.removeStay(v1);
+    EXPECT_FALSE(s.hasStay(v1));
+
+    s.addStay(v2, strength::strong);
+    EXPECT_TRUE(s.hasStay(v2));
+    s.reset();
+    EXPECT_FALSE(s.hasStay(v2));
+}
+
+// Test that a stay first holds its variable at the value it has when the stay is added
+TEST(SolverTest, StayHoldsInitialValue) {
+    Solver s;
+    Variable v("foo");
+
+    v.setValue(42);
+    s.addStay(v, strength::weak);
+    s.addConstraint((v <= 100) | strength::required);
+    s.updateVariables();
+    EXPECT_NEAR(v.value(), 42, 1e-6);
+}
+
+// Test dragging the midpoint of a segment whose ends have stays, as in the Cassowary paper.
+// The stronger stay on the left end leaves the right end to move, until the right end meets
+// its bound. Each suggested value moves the stays to the current solution first, so dragging
+// back moves both ends from where they are, not from where they started. An edit variable
+// starts with a suggested value of zero, so the drag first suggests the midpoint's current
+// position, and only then are the ends held.
+TEST(SolverTest, DraggingWithStays) {
+    Variable xl("xl");
+    Variable xm("xm");
+    Variable xr("xr");
+    Solver s;
+
+    s.addConstraint(2 * xm == xl + xr);
+    s.addConstraint(xl + 10 <= xr);
+    s.addConstraint(xr <= 100);
+    s.addConstraint(xl >= 0);
+    s.addEditVariable(xm, strength::strong);
+    s.suggestValue(xm, 45);
+    xl.setValue(30);
+    xr.setValue(60);
+    s.addStay(xl, strength::medium);
+    s.addStay(xr, strength::weak);
+    s.updateVariables();
+    EXPECT_NEAR(xl.value(), 30, 1e-6);
+    EXPECT_NEAR(xr.value(), 60, 1e-6);
+
+    s.suggestValue(xm, 50);
+    s.updateVariables();
+    EXPECT_NEAR(xl.value(), 30, 1e-6);
+    EXPECT_NEAR(xr.value(), 70, 1e-6);
+
+    s.suggestValue(xm, 60);
+    s.updateVariables();
+    EXPECT_NEAR(xl.value(), 30, 1e-6);
+    EXPECT_NEAR(xr.value(), 90, 1e-6);
+
+    s.suggestValue(xm, 90);
+    s.updateVariables();
+    EXPECT_NEAR(xl.value(), 80, 1e-6);
+    EXPECT_NEAR(xr.value(), 100, 1e-6);
+
+    s.suggestValue(xm, 60);
+    s.updateVariables();
+    EXPECT_NEAR(xl.value(), 55, 1e-6);
+    EXPECT_NEAR(xr.value(), 65, 1e-6);
+}
+
+// Test that removing a constraint leaves a variable with a stay where the constraint put it
+TEST(SolverTest, RemovingConstraintKeepsStays) {
+    Solver s;
+    Variable v("foo");
+
+    s.addStay(v, strength::weak);
+    Constraint c = v >= 10;
+    s.addConstraint(c);
+    s.updateVariables();
+    EXPECT_NEAR(v.value(), 10, 1e-6);
+
+    s.removeConstraint(c);
+    s.updateVariables();
+    EXPECT_NEAR(v.value(), 10, 1e-6);
+}
+
 // Test adding required inequalities over variables held in place by non-required equalities.
 // No variable in these rows can enter the basis directly, so each row is added by the dual
 // simplex method.

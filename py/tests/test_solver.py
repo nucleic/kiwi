@@ -13,9 +13,11 @@ from kiwisolver import (
     BadRequiredStrength,
     DuplicateConstraint,
     DuplicateEditVariable,
+    DuplicateStay,
     Solver,
     UnknownConstraint,
     UnknownEditVariable,
+    UnknownStay,
     UnsatisfiableConstraint,
     Variable,
 )
@@ -95,6 +97,100 @@ def test_suggesting_values_for_edit_variables() -> None:
     s.suggestValue(v2, 0)
     s.updateVariables()
     assert v2.value() <= -1
+
+
+def test_managing_stays() -> None:
+    """Test adding/removing stays."""
+    s = Solver()
+    v1 = Variable("foo")
+    v2 = Variable("bar")
+
+    with pytest.raises(TypeError):
+        s.hasStay(object())  # type: ignore
+    with pytest.raises(TypeError):
+        s.addStay(object(), "weak")  # type: ignore
+    with pytest.raises(TypeError):
+        s.removeStay(object())  # type: ignore
+
+    assert not s.hasStay(v1)
+    s.addStay(v1, "weak")
+    assert s.hasStay(v1)
+    with pytest.raises(DuplicateStay) as e:
+        s.addStay(v1, "medium")
+    assert e.value.variable is v1
+    with pytest.raises(UnknownStay) as e2:
+        s.removeStay(v2)
+    assert e2.value.variable is v2
+    with pytest.raises(BadRequiredStrength):
+        s.addStay(v2, "required")
+    assert not s.hasStay(v2)
+    assert "Stays" in s.dumps()
+
+    s.removeStay(v1)
+    assert not s.hasStay(v1)
+
+    s.addStay(v2, "strong")
+    assert s.hasStay(v2)
+    s.reset()
+    assert not s.hasStay(v2)
+
+
+def test_dragging_with_stays() -> None:
+    """Test dragging the midpoint of a segment whose ends have stays.
+
+    The ends are first placed by strong constraints, then held by stays and released, which
+    moves each stay to its end's current position. The stronger stay on the left end leaves
+    the right end to move until it meets its bound. Each suggested value moves the stays to
+    the current solution, so dragging back moves both ends from where they are.
+
+    """
+    xl = Variable("xl")
+    xm = Variable("xm")
+    xr = Variable("xr")
+    s = Solver()
+
+    s.addConstraint(2 * xm == xl + xr)
+    s.addConstraint(xl + 10 <= xr)
+    s.addConstraint(xr <= 100)
+    s.addConstraint(xl >= 0)
+    s.addEditVariable(xm, "strong")
+    s.suggestValue(xm, 45)
+    place_left = (xl == 30) | "strong"
+    place_right = (xr == 60) | "strong"
+    s.addConstraint(place_left)
+    s.addConstraint(place_right)
+    s.updateVariables()
+    s.addStay(xl, "medium")
+    s.addStay(xr, "weak")
+    s.removeConstraint(place_left)
+    s.removeConstraint(place_right)
+
+    for midpoint, left, right in (
+        (50, 30, 70),
+        (60, 30, 90),
+        (90, 80, 100),
+        (60, 55, 65),
+    ):
+        s.suggestValue(xm, midpoint)
+        s.updateVariables()
+        assert xl.value() == pytest.approx(left)
+        assert xr.value() == pytest.approx(right)
+
+
+def test_removing_constraint_keeps_stays() -> None:
+    """Test that removing a constraint leaves a variable with a stay where it was."""
+    s = Solver()
+    v = Variable("foo")
+
+    s.addStay(v, "weak")
+    c = v >= 10
+    s.addConstraint(c)
+    s.updateVariables()
+    assert v.value() == pytest.approx(10)
+
+    s.removeConstraint(c)
+    s.updateVariables()
+    assert v.value() == pytest.approx(10)
 
 
 def test_adding_inequalities_to_held_variables() -> None:

@@ -50,6 +50,9 @@ A typical output is reproduced below:
     --------------
     bar
 
+    Stays
+    -----
+
     Constraints
     -----------
     1 * bar + -0 >= 0  | strength = 1
@@ -67,26 +70,62 @@ In the dump, the letters have the following meaning:
 - i: invalid symbol, returned when no valid symbol can be found.
 
 
-Stay constraints emulation
---------------------------
+Stay constraints
+----------------
 
-One feature of Cassowary that Kiwi abandoned is the notion of stay
-constraints. Stay constraints are typically used in under-constrained
-situations (drag and drop) to allow the solver to find a solution by keeping
-non-modified variable close to their original position. A typical example is
-a rectangle whose one corner is being dragged in a drawing application.
+Stay constraints are typically used in under-constrained situations (drag and
+drop) to allow the solver to find a solution by keeping non-modified variables
+close to their original position. A typical example is a rectangle whose one
+corner is being dragged in a drawing application.
 
-Kiwi does not have stay constraints mostly because in the context of widget
-placement, the system is typically well constrained, rendering stay constraints
-unnecessary.
+A stay is added to a variable with ``addStay``, at a non-required strength, and
+removed with ``removeStay``. As in Cassowary, a stay is a non-required equality
+which holds its variable at its current value:
 
-If your application requires them, several workarounds can be considered:
+- when the stay is added, that is the variable's value, as last set by
+  ``updateVariables``;
+- before each suggested value and each removal of a constraint, every stay is
+  moved to the value its variable has in the current solution, so a variable
+  that nothing pushes elsewhere stays where it is.
 
-- adding/removing non-required equality constraints to mimic stay constraints
-- using edit-variables to mimic stay constraints
+Moving the stays only changes constants in the tableau, so it costs no pivots.
 
-The first method will require to remove the old constraints as soon as they
-stop making sense, while the second will require to update the suggested value.
+.. note::
+
+    An edit variable starts with a suggested value of zero. When dragging with
+    stays, suggest the edit variable's starting value before the variables are
+    held, so that the stays do not pick up a solution in which the edit variable
+    was pulled to zero.
+
+.. tabs::
+
+    .. code-tab:: python
+
+        from kiwisolver import Solver, Variable
+
+        xl, xm, xr = Variable("xl"), Variable("xm"), Variable("xr")
+        solver = Solver()
+        solver.addConstraint(2 * xm == xl + xr)
+        solver.addConstraint(xl + 10 <= xr)
+        solver.addEditVariable(xm, "strong")
+        solver.suggestValue(xm, 45)
+        solver.updateVariables()
+        solver.addStay(xl, "weak")
+        solver.addStay(xr, "weak")
+        solver.suggestValue(xm, 50)
+
+    .. code-tab:: c++
+
+        Variable xl("xl"), xm("xm"), xr("xr");
+        Solver solver;
+        solver.addConstraint(2 * xm == xl + xr);
+        solver.addConstraint(xl + 10 <= xr);
+        solver.addEditVariable(xm, strength::strong);
+        solver.suggestValue(xm, 45);
+        solver.updateVariables();
+        solver.addStay(xl, strength::weak);
+        solver.addStay(xr, strength::weak);
+        solver.suggestValue(xm, 50);
 
 
 Adding required inequalities
@@ -94,12 +133,12 @@ Adding required inequalities
 
 Cassowary adds a required inequality which no variable can directly satisfy
 with an artificial variable and a phase one optimization. When many rows have
-a zero constant, as with many variables held in place by non-required
-equalities, that optimization is highly degenerate and can take thousands of
-pivots per added constraint. Kiwi adds such a row with its slack variable
-infeasible and restores feasibility with the dual simplex method, the same
-method used after a suggested value, since the objective is already optimal.
-A required equality still uses an artificial variable.
+a zero constant, as with many variables held in place by stays, that
+optimization is highly degenerate and can take thousands of pivots per added
+constraint. Kiwi adds such a row with its slack variable infeasible and
+restores feasibility with the dual simplex method, the same method used after
+a suggested value, since the objective is already optimal. A required equality
+still uses an artificial variable.
 
 
 Creating strengths and their internal representation

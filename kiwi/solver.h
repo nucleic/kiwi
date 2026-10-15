@@ -119,6 +119,50 @@ public:
 		m_impl.suggestValue( variable, value );
 	}
 
+	/* Add a stay to the solver.
+
+	A stay is a non-required constraint which holds a variable at its
+	current value. It first holds the variable at its value when the
+	stay is added. Before each suggested value and each removal of a
+	constraint, every stay is moved to the value its variable has in
+	the current solution, so that a variable not pushed elsewhere
+	stays where it is.
+
+	Throws
+	------
+	DuplicateStay
+		The given variable already has a stay in the solver.
+
+	BadRequiredStrength
+		The given strength is >= required.
+
+	*/
+	void addStay( const Variable& variable, double strength )
+	{
+		m_impl.addStay( variable, strength );
+	}
+
+	/* Remove a stay from the solver.
+
+	Throws
+	------
+	UnknownStay
+		The given variable has no stay in the solver.
+
+	*/
+	void removeStay( const Variable& variable )
+	{
+		m_impl.removeStay( variable );
+	}
+
+	/* Test whether a variable has a stay in the solver.
+
+	*/
+	bool hasStay( const Variable& variable ) const
+	{
+		return m_impl.hasStay( variable );
+	}
+
 	/* Update the values of the external solver variables.
 
 	*/
