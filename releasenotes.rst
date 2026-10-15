@@ -1,6 +1,16 @@
 Kiwi Release Notes
 ==================
 
+Wrappers 1.6.0 | Solver 1.6.0 | unreleased
+------------------------------------------
+- add required inequalities with the dual simplex method instead of an
+  artificial variable, fixing slow insertion of constraints into large systems
+  and spurious "objective is unbounded" errors
+- add stay constraints: Solver.addStay, removeStay and hasStay, with the new
+  DuplicateStay and UnknownStay errors
+- start an edit variable at its variable's current value instead of zero
+- add Variable.setValue to the Python wrappers
+
 Wrappers 1.5.1 | Solver 1.5.1 | 28/08/2026
 ------------------------------------------
 - add support for Python 3.15 PR #243
