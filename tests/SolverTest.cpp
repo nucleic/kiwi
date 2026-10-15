@@ -6,6 +6,9 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 
+#include <cmath>
+#include <vector>
+
 #include <gtest/gtest.h>
 #include <kiwi/kiwi.h>
 
@@ -218,4 +221,126 @@ TEST(SolverTest, ConstraintViolated) {
     EXPECT_GE(v.value(), 10);
     EXPECT_FALSE(c1.violated());
     EXPECT_TRUE(c2.violated());
+}
+
+// Test adding required inequalities over variables held in place by non-required equalities.
+// No variable in these rows can enter the basis directly, so each row is added by the dual
+// simplex method.
+TEST(SolverTest, AddingInequalitiesToHeldVariables) {
+    Solver s;
+    std::vector<Variable> x(50);
+
+    for (auto& v : x)
+        s.addConstraint((v == 0) | strength::weak);
+    s.addConstraint(x[0] >= 1);
+    for (std::size_t i = 0; i + 1 < x.size(); ++i)
+        s.addConstraint(x[i + 1] >= x[i] + 1);
+    s.updateVariables();
+
+    for (std::size_t i = 0; i < x.size(); ++i)
+        EXPECT_NEAR(x[i].value(), i + 1.0, 1e-6);
+}
+
+// Test that an unsatisfiable inequality added by the dual simplex method leaves the solver as
+// it was, including after the method has pivoted. Holding y more strongly fixes the solution.
+TEST(SolverTest, UnsatisfiableInequalityLeavesSolverUnchanged) {
+    Solver s;
+    Variable x("x");
+    Variable y("y");
+
+    s.addConstraint((x == 0) | strength::weak);
+    s.addConstraint((y == 0) | strength::medium);
+    Constraint sum = x + y >= 10;
+    s.addConstraint(sum);
+    s.addConstraint(x - y >= 2);
+    s.updateVariables();
+    EXPECT_NEAR(x.value(), 10, 1e-6);
+    EXPECT_NEAR(y.value(), 0, 1e-6);
+
+    Constraint bound = x <= 5;
+    EXPECT_THROW(s.addConstraint(bound), UnsatisfiableConstraint);
+    EXPECT_FALSE(s.hasConstraint(bound));
+    s.updateVariables();
+    EXPECT_NEAR(x.value(), 10, 1e-6);
+    EXPECT_NEAR(y.value(), 0, 1e-6);
+
+    // The solver remains usable: without the sum, the bound can be satisfied
+    s.removeConstraint(sum);
+    s.addConstraint(bound);
+    s.updateVariables();
+    EXPECT_NEAR(x.value(), 2, 1e-6);
+    EXPECT_NEAR(y.value(), 0, 1e-6);
+}
+
+// Test a large, highly degenerate system: lines drawn almost on top of one another, each vertex
+// held in place by a weak equality and free to move outward only, and each line required to lie
+// a gap beyond the line below it, read at the vertices of both lines. Odd lines put their
+// vertices halfway between those of the even lines. Each vertex is held just before the first
+// constraint that uses it. Adding these rows with an artificial variable stalled for more than
+// twenty seconds at three lines; the expected minimum was computed independently with the HiGHS
+// LP solver.
+TEST(SolverTest, LargeDegenerateSystem) {
+    const int levels = 9;
+    const int stations = 40;
+    const double gap = 0.03;
+    std::vector<std::vector<Variable>> lines;
+    std::vector<std::vector<double>> drawn;
+    std::vector<std::vector<bool>> held;
+    for (int l = 0; l < levels; ++l) {
+        lines.emplace_back(stations);
+        drawn.emplace_back();
+        for (int k = 0; k < stations; ++k)
+            drawn.back().push_back(0.004 * l + 0.002 * std::sin(1.7 * l + 0.9 * k));
+        held.emplace_back(stations, false);
+    }
+
+    Solver s;
+    std::vector<Constraint> constraints;
+    auto hold = [&](int l, int k) {
+        if (!held[l][k]) {
+            held[l][k] = true;
+            s.addConstraint((lines[l][k] == 0) | strength::weak);
+        }
+    };
+    auto add = [&](const Constraint& c) {
+        constraints.push_back(c);
+        s.addConstraint(c);
+    };
+    // The offset of line l at its vertex k, and halfway between its vertices k and k + 1
+    auto at = [&](int l, int k) {
+        hold(l, k);
+        return lines[l][k] + drawn[l][k];
+    };
+    auto between = [&](int l, int k) {
+        hold(l, k);
+        hold(l, k + 1);
+        return 0.5 * lines[l][k] + 0.5 * lines[l][k + 1] + 0.5 * (drawn[l][k] + drawn[l][k + 1]);
+    };
+
+    for (int l = 0; l < levels; ++l) {
+        for (int k = 0; k < stations; ++k) {
+            hold(l, k);
+            add(lines[l][k] >= 0);
+            if (l == 0) {
+                add(at(0, k) >= gap);
+                continue;
+            }
+            const bool odd = l % 2 == 1;
+            int j = odd ? k : k - 1;
+            if (j >= 0 && j + 1 < stations)
+                add(at(l, k) >= between(l - 1, j) + gap);
+            j = odd ? k - 1 : k;
+            if (j >= 0 && j + 1 < stations)
+                add(between(l, j) >= at(l - 1, k) + gap);
+        }
+    }
+    s.updateVariables();
+
+    for (const auto& c : constraints)
+        EXPECT_GE(c.expression().value(), -1e-9);
+    double sum = 0;
+    for (const auto& line : lines)
+        for (const auto& v : line)
+            sum += v.value();
+    EXPECT_NEAR(sum, 48.236825794, 1e-6);
 }

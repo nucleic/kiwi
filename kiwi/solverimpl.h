@@ -44,6 +44,12 @@ class SolverImpl
 		double constant;
 	};
 
+	struct Pivot
+	{
+		Symbol leaving;
+		Symbol entering;
+	};
+
 	using VarMap = MapType<Variable, Symbol>;
 
 	using RowMap = MapType<Symbol, Row*>;
@@ -109,12 +115,16 @@ public:
 				subject = tag.marker;
 		}
 
-		// If an entering symbol still isn't found, then the row must
-		// be added using an artificial variable. If that fails, then
-		// the row represents an unsatisfiable constraint.
+		// If an entering symbol still isn't found, then the row must be
+		// added using the dual simplex method or, for an equality, an
+		// artificial variable. If that fails, then the row represents
+		// an unsatisfiable constraint.
 		if( subject.type() == Symbol::Invalid )
 		{
-			if( !addWithArtificialVariable( *rowptr ) )
+			bool added = tag.marker.type() == Symbol::Slack ?
+				addWithDualOptimize( std::move( rowptr ), tag.marker ) :
+				addWithArtificialVariable( *rowptr );
+			if( !added )
 				throw UnsatisfiableConstraint( constraint );
 		}
 		else
@@ -485,6 +495,58 @@ private:
 		return Symbol();
 	}
 
+	/* Add the row to the tableau using the dual simplex method.
+
+	The row must be that of a required inequality which has no valid
+	subject, so its slack marker has a positive coefficient and takes
+	a non-positive value when the row is solved for it. The objective
+	is optimal before the row is added, so the dual simplex method can
+	restore feasibility while keeping it optimal, as it does for an
+	edited value. An artificial variable would instead require a phase
+	one optimization for every such row, which is highly degenerate
+	when many rows have a zero constant (as with many variables held
+	in place by non-required equalities). On large systems that costs
+	thousands of pivots per added row and can end on a spurious
+	unbounded objective.
+
+	This will return false if the constraint cannot be satisfied, in
+	which case the pivots are undone and the row is dropped, leaving
+	the tableau as it was before the call.
+
+	*/
+	bool addWithDualOptimize( std::unique_ptr<Row> rowptr, const Symbol& marker )
+	{
+		rowptr->solveFor( marker );
+		m_rows[ marker ] = rowptr.release();
+		m_infeasible_rows.push_back( marker );
+		std::vector<Pivot> pivots;
+		if( dualOptimize( &pivots ) )
+			return true;
+
+		// Undo the pivots in reverse order, which restores every row
+		// and the objective, then drop the row and any trace of its
+		// marker which rounding may have left in the other rows.
+		for( auto it = pivots.rbegin(); it != pivots.rend(); ++it )
+		{
+			auto row_it = m_rows.find( it->entering );
+			std::unique_ptr<Row> rowptr( row_it->second );
+			m_rows.erase( row_it );
+			if( rowptr->coefficientFor( it->leaving ) == 0.0 )
+				throw InternalSolverError( "failed to undo a dual pivot" );
+			rowptr->solveFor( it->entering, it->leaving );
+			substitute( it->leaving, *rowptr );
+			m_rows[ it->leaving ] = rowptr.release();
+		}
+		m_infeasible_rows.clear();
+		auto row_it = m_rows.find( marker );
+		delete row_it->second;
+		m_rows.erase( row_it );
+		for( auto& rowPair : m_rows )
+			rowPair.second->remove( marker );
+		m_objective->remove( marker );
+		return false;
+	}
+
  	/* Add the row to the tableau using an artificial variable.
 
 	This will return false if the constraint cannot be satisfied.
@@ -594,6 +656,20 @@ private:
 	*/
 	void dualOptimize()
 	{
+		if( !dualOptimize( nullptr ) )
+			throw InternalSolverError( "Dual optimize failed." );
+	}
+
+	/* Optimize the system using the dual of the simplex method.
+
+	This performs the same iterations as `dualOptimize()`, recording
+	each pivot in the given vector if one is provided. It returns false
+	if an infeasible row has no entering symbol, which means the system
+	cannot be made feasible.
+
+	*/
+	bool dualOptimize( std::vector<Pivot>* pivots )
+	{
 		while( !m_infeasible_rows.empty() )
 		{
 
@@ -605,15 +681,18 @@ private:
 			{
 				Symbol entering( getDualEnteringSymbol( *it->second ) );
 				if( entering.type() == Symbol::Invalid )
-					throw InternalSolverError( "Dual optimize failed." );
+					return false;
 				// pivot the entering symbol into the basis
 				Row* row = it->second;
 				m_rows.erase( it );
 				row->solveFor( leaving, entering );
 				substitute( entering, *row );
 				m_rows[ entering ] = row;
+				if( pivots )
+					pivots->push_back( { leaving, entering } );
 			}
 		}
+		return true;
 	}
 
 	/* Compute the entering variable for a pivot operation.

@@ -89,6 +89,19 @@ The first method will require to remove the old constraints as soon as they
 stop making sense, while the second will require to update the suggested value.
 
 
+Adding required inequalities
+----------------------------
+
+Cassowary adds a required inequality which no variable can directly satisfy
+with an artificial variable and a phase one optimization. When many rows have
+a zero constant, as with many variables held in place by non-required
+equalities, that optimization is highly degenerate and can take thousands of
+pivots per added constraint. Kiwi adds such a row with its slack variable
+infeasible and restores feasibility with the dual simplex method, the same
+method used after a suggested value, since the objective is already optimal.
+A required equality still uses an artificial variable.
+
+
 Creating strengths and their internal representation
 ----------------------------------------------------
 

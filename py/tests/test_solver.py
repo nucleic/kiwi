@@ -5,6 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+import itertools
+
 import pytest
 
 from kiwisolver import (
@@ -93,6 +95,54 @@ def test_suggesting_values_for_edit_variables() -> None:
     s.suggestValue(v2, 0)
     s.updateVariables()
     assert v2.value() <= -1
+
+
+def test_adding_inequalities_to_held_variables() -> None:
+    """Test adding required inequalities over variables held by non-required equalities.
+
+    No variable in these rows can enter the basis directly, so each row is added by the
+    dual simplex method.
+
+    """
+    s = Solver()
+    x = [Variable(f"x{i}") for i in range(50)]
+
+    for v in x:
+        s.addConstraint((v == 0) | "weak")
+    s.addConstraint(x[0] >= 1)
+    for a, b in itertools.pairwise(x):
+        s.addConstraint(b >= a + 1)
+    s.updateVariables()
+
+    assert [v.value() for v in x] == pytest.approx(list(range(1, 51)))
+
+
+def test_unsatisfiable_inequality_leaves_solver_unchanged() -> None:
+    """Test that a failed dual simplex add leaves the solver as it was."""
+    s = Solver()
+    x = Variable("x")
+    y = Variable("y")
+
+    s.addConstraint((x == 0) | "weak")
+    s.addConstraint((y == 0) | "medium")
+    total = x + y >= 10
+    s.addConstraint(total)
+    s.addConstraint(x - y >= 2)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((10, 0))
+
+    bound = x <= 5
+    with pytest.raises(UnsatisfiableConstraint) as e:
+        s.addConstraint(bound)
+    assert e.value.constraint is bound
+    assert not s.hasConstraint(bound)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((10, 0))
+
+    s.removeConstraint(total)
+    s.addConstraint(bound)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((2, 0))
 
 
 def test_managing_constraints() -> None:
