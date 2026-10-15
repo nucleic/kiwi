@@ -54,7 +54,10 @@ convert_to_double( PyObject* obj, double& out )
 inline bool
 convert_pystr_to_str( PyObject* value, std::string& out )
 {
-    out = PyUnicode_AsUTF8( value );
+    const char* str = PyUnicode_AsUTF8( value );
+    if( !str )
+        return false;
+    out = str;
     return true;
 }
 

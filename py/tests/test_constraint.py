@@ -10,7 +10,33 @@ import re
 
 import pytest
 
-from kiwisolver import Constraint, Variable, strength
+from kiwisolver import Constraint, Expression, Variable, strength
+
+
+@pytest.mark.parametrize("op", ("\ud800", "\udfff"))
+def test_constraint_operator_encoding_error(op) -> None:
+    """Propagate encoding errors before validating the operator."""
+    with pytest.raises(UnicodeEncodeError) as excinfo:
+        Constraint(Expression([]), op)  # type: ignore
+    assert excinfo.value.object == op
+
+
+@pytest.mark.parametrize("value", ("\ud800", "\udfff"))
+def test_constraint_strength_encoding_error(value) -> None:
+    """Propagate encoding errors from the constructor's strength."""
+    with pytest.raises(UnicodeEncodeError) as excinfo:
+        Constraint(Expression([]), "==", value)  # type: ignore
+    assert excinfo.value.object == value
+
+
+@pytest.mark.parametrize("value", ("\ud800", "\udfff"))
+def test_constraint_or_encoding_error(value) -> None:
+    """A failed strength conversion must leave the constraint unchanged."""
+    c = Constraint(Expression([]), "==", "weak")
+    with pytest.raises(UnicodeEncodeError) as excinfo:
+        c | value  # type: ignore
+    assert excinfo.value.object == value
+    assert c.strength() == strength.weak
 
 
 @pytest.mark.parametrize("op", ("==", "<=", ">="))
