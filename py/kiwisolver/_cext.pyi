@@ -53,6 +53,9 @@ class Variable:
     def value(self) -> float:
         """Get the current value of the variable."""
         ...
+    def setValue(self, value: int | float, /) -> None:
+        """Set the current value of the variable."""
+        ...
     def context(self) -> Any:
         """Get the context object associated with the variable."""
         ...
@@ -213,6 +216,24 @@ class Solver:
         ...
     def suggestValue(self, variable: Variable, value: int | float, /) -> None:
         """Suggest a desired value for an edit variable."""
+        ...
+    def addStay(
+        self,
+        variable: Variable,
+        strength: float
+        | Literal["weak"]
+        | Literal["medium"]
+        | Literal["strong"]
+        | Literal["required"],
+        /,
+    ) -> None:
+        """Add a stay on a variable to the solver."""
+        ...
+    def removeStay(self, variable: Variable, /) -> None:
+        """Remove the stay on a variable from the solver."""
+        ...
+    def hasStay(self, variable: Variable, /) -> bool:
+        """Check whether a variable has a stay in the solver."""
         ...
     def updateVariables(self) -> None:
         """Update the values of the solver variables."""

@@ -44,6 +44,18 @@ class SolverImpl
 		double constant;
 	};
 
+	struct StayInfo
+	{
+		Tag tag;
+		Constraint constraint;
+	};
+
+	struct Pivot
+	{
+		Symbol leaving;
+		Symbol entering;
+	};
+
 	using VarMap = MapType<Variable, Symbol>;
 
 	using RowMap = MapType<Symbol, Row*>;
@@ -51,6 +63,8 @@ class SolverImpl
 	using CnMap = MapType<Constraint, Tag>;
 
 	using EditMap = MapType<Variable, EditInfo>;
+
+	using StayMap = MapType<Variable, StayInfo>;
 
 	struct DualOptimizeGuard
 	{
@@ -109,10 +123,22 @@ public:
 				subject = tag.marker;
 		}
 
-		// If an entering symbol still isn't found, then the row must
-		// be added using an artificial variable. If that fails, then
-		// the row represents an unsatisfiable constraint.
-		if( subject.type() == Symbol::Invalid )
+		// An inequality with no external variable to carry it, whose slack
+		// would be negative, is added using the dual simplex method. That
+		// holds whether it is required or not: making the error symbol of
+		// a non-required inequality basic instead would leave the primal
+		// simplex to optimize the violation away, which is as degenerate
+		// as an artificial variable. If an entering symbol still isn't
+		// found, an equality must be added using an artificial variable.
+		// If either fails, then the row represents an unsatisfiable
+		// constraint.
+		if( tag.marker.type() == Symbol::Slack &&
+			( subject.type() == Symbol::Invalid || subject == tag.other ) )
+		{
+			if( !addWithDualOptimize( std::move( rowptr ), tag.marker ) )
+				throw UnsatisfiableConstraint( constraint );
+		}
+		else if( subject.type() == Symbol::Invalid )
 		{
 			if( !addWithArtificialVariable( *rowptr ) )
 				throw UnsatisfiableConstraint( constraint );
@@ -148,6 +174,11 @@ public:
 
 		Tag tag( cn_it->second );
 		m_cns.erase( cn_it );
+
+		// Hold the variables with a stay at their current values, so
+		// that removing the constraint does not bring back a stay that
+		// it previously overruled.
+		resetStays();
 
 		// Remove the error effects from the objective function
 		// *before* pivoting, or substitutions into the objective
@@ -191,7 +222,9 @@ public:
 	/* Add an edit variable to the solver.
 
 	This method should be called before the `suggestValue` method is
-	used to supply a suggested value for the given edit variable.
+	used to supply a suggested value for the given edit variable. Until
+	a value is suggested, the edit holds the variable at its value when
+	the edit is added, as in Cassowary.
 
 	Throws
 	------
@@ -209,12 +242,12 @@ public:
 		strength = strength::clip( strength );
 		if( strength == strength::required )
 			throw BadRequiredStrength();
-		Constraint cn( Expression( variable ), OP_EQ, strength );
+		Constraint cn( Expression( variable, -variable.value() ), OP_EQ, strength );
 		addConstraint( cn );
 		EditInfo info;
 		info.tag = m_cns[ cn ];
 		info.constraint = cn;
-		info.constant = 0.0;
+		info.constant = variable.value();
 		m_edits[ variable ] = info;
 	}
 
@@ -260,6 +293,7 @@ public:
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
+		resetStays();
 		DualOptimizeGuard guard( *this );
 		EditInfo& info = it->second;
 		double delta = value - info.constant;
@@ -292,6 +326,64 @@ public:
 				rowPair.first.type() != Symbol::External )
 				m_infeasible_rows.push_back( rowPair.first );
 		}
+	}
+
+	/* Add a stay to the solver.
+
+	A stay is a non-required constraint which holds a variable at its
+	current value. It first holds the variable at its value when the
+	stay is added. Before each suggested value and each removal of a
+	constraint, every stay is moved to the value its variable has in
+	the current solution, so that a variable not pushed elsewhere
+	stays where it is.
+
+	Throws
+	------
+	DuplicateStay
+		The given variable already has a stay in the solver.
+
+	BadRequiredStrength
+		The given strength is >= required.
+
+	*/
+	void addStay( const Variable& variable, double strength )
+	{
+		if( m_stays.find( variable ) != m_stays.end() )
+			throw DuplicateStay( variable );
+		strength = strength::clip( strength );
+		if( strength == strength::required )
+			throw BadRequiredStrength();
+		Constraint cn( Expression( variable, -variable.value() ), OP_EQ, strength );
+		addConstraint( cn );
+		StayInfo info;
+		info.tag = m_cns[ cn ];
+		info.constraint = cn;
+		m_stays[ variable ] = info;
+	}
+
+	/* Remove a stay from the solver.
+
+	Throws
+	------
+	UnknownStay
+		The given variable has no stay in the solver.
+
+	*/
+	void removeStay( const Variable& variable )
+	{
+		auto it = m_stays.find( variable );
+		if( it == m_stays.end() )
+			throw UnknownStay( variable );
+		removeConstraint( it->second.constraint );
+		m_stays.erase( it );
+	}
+
+	/* Test whether a variable has a stay in the solver.
+
+	*/
+	bool hasStay( const Variable& variable ) const
+	{
+		return m_stays.find( variable ) != m_stays.end();
 	}
 
 	/* Update the values of the external solver variables.
@@ -327,6 +419,7 @@ public:
 		m_cns.clear();
 		m_vars.clear();
 		m_edits.clear();
+		m_stays.clear();
 		m_infeasible_rows.clear();
 		m_objective.reset( new Row() );
 		m_artificial.reset();
@@ -485,6 +578,62 @@ private:
 		return Symbol();
 	}
 
+	/* Add the row to the tableau using the dual simplex method.
+
+	The row must be that of an inequality with no external variable to
+	carry it, whose slack marker has a positive coefficient and takes a
+	non-positive value when the row is solved for it. The objective is
+	optimal before the row is added, so the dual simplex method can
+	restore feasibility while keeping it optimal, as it does for an
+	edited value. A non-required row's error symbol is parametric in
+	the objective at the row's strength, so it enters the basis, and
+	the row falls short, only where that costs less than moving the
+	rest of the system. An artificial variable would instead require a
+	phase one optimization for every required row, and a basic error
+	symbol a primal optimization for every non-required one; both are
+	highly degenerate when many rows have a zero constant (as with many
+	variables held in place by non-required equalities). On large
+	systems that costs thousands of pivots per added row and can end on
+	a spurious unbounded objective.
+
+	This will return false if the constraint cannot be satisfied, in
+	which case the pivots are undone and the row is dropped, leaving
+	the tableau as it was before the call.
+
+	*/
+	bool addWithDualOptimize( std::unique_ptr<Row> rowptr, const Symbol& marker )
+	{
+		rowptr->solveFor( marker );
+		m_rows[ marker ] = rowptr.release();
+		m_infeasible_rows.push_back( marker );
+		std::vector<Pivot> pivots;
+		if( dualOptimize( &pivots ) )
+			return true;
+
+		// Undo the pivots in reverse order, which restores every row
+		// and the objective, then drop the row and any trace of its
+		// marker which rounding may have left in the other rows.
+		for( auto it = pivots.rbegin(); it != pivots.rend(); ++it )
+		{
+			auto row_it = m_rows.find( it->entering );
+			std::unique_ptr<Row> rowptr( row_it->second );
+			m_rows.erase( row_it );
+			if( rowptr->coefficientFor( it->leaving ) == 0.0 )
+				throw InternalSolverError( "failed to undo a dual pivot" );
+			rowptr->solveFor( it->entering, it->leaving );
+			substitute( it->leaving, *rowptr );
+			m_rows[ it->leaving ] = rowptr.release();
+		}
+		m_infeasible_rows.clear();
+		auto row_it = m_rows.find( marker );
+		delete row_it->second;
+		m_rows.erase( row_it );
+		for( auto& rowPair : m_rows )
+			rowPair.second->remove( marker );
+		m_objective->remove( marker );
+		return false;
+	}
+
  	/* Add the row to the tableau using an artificial variable.
 
 	This will return false if the constraint cannot be satisfied.
@@ -594,6 +743,20 @@ private:
 	*/
 	void dualOptimize()
 	{
+		if( !dualOptimize( nullptr ) )
+			throw InternalSolverError( "Dual optimize failed." );
+	}
+
+	/* Optimize the system using the dual of the simplex method.
+
+	This performs the same iterations as `dualOptimize()`, recording
+	each pivot in the given vector if one is provided. It returns false
+	if an infeasible row has no entering symbol, which means the system
+	cannot be made feasible.
+
+	*/
+	bool dualOptimize( std::vector<Pivot>* pivots )
+	{
 		while( !m_infeasible_rows.empty() )
 		{
 
@@ -605,15 +768,18 @@ private:
 			{
 				Symbol entering( getDualEnteringSymbol( *it->second ) );
 				if( entering.type() == Symbol::Invalid )
-					throw InternalSolverError( "Dual optimize failed." );
+					return false;
 				// pivot the entering symbol into the basis
 				Row* row = it->second;
 				m_rows.erase( it );
 				row->solveFor( leaving, entering );
 				substitute( entering, *row );
 				m_rows[ entering ] = row;
+				if( pivots )
+					pivots->push_back( { leaving, entering } );
 			}
 		}
+		return true;
 	}
 
 	/* Compute the entering variable for a pivot operation.
@@ -797,6 +963,28 @@ private:
 			m_objective->insert( marker, -strength );
 	}
 
+	/* Move every stay to the current value of its variable.
+
+	A stay's error symbols occur together and only in the row of the
+	one which is basic, if either is. Zeroing that row's constant moves
+	the stay to its variable's current value without changing the value
+	of any variable or the feasibility of the tableau. If neither error
+	symbol is basic, the stay is already satisfied exactly.
+
+	*/
+	void resetStays()
+	{
+		for( auto& stayPair : m_stays )
+		{
+			const Tag& tag = stayPair.second.tag;
+			auto row_it = m_rows.find( tag.marker );
+			if( row_it == m_rows.end() )
+				row_it = m_rows.find( tag.other );
+			if( row_it != m_rows.end() )
+				row_it->second->add( -row_it->second->constant() );
+		}
+	}
+
 	/* Test whether a row is composed of all dummy variables.
 
 	*/
@@ -814,6 +1002,7 @@ private:
 	RowMap m_rows;
 	VarMap m_vars;
 	EditMap m_edits;
+	StayMap m_stays;
 	std::vector<Symbol> m_infeasible_rows;
 	std::unique_ptr<Row> m_objective;
 	std::unique_ptr<Row> m_artificial;

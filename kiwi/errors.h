@@ -124,6 +124,50 @@ private:
     Variable m_variable;
 };
 
+class UnknownStay : public std::exception
+{
+
+public:
+    UnknownStay(Variable variable) : m_variable(std::move(variable)) {}
+
+    ~UnknownStay() noexcept {}
+
+    const char *what() const noexcept
+    {
+        return "The variable has no stay in the solver.";
+    }
+
+    const Variable &variable() const
+    {
+        return m_variable;
+    }
+
+private:
+    Variable m_variable;
+};
+
+class DuplicateStay : public std::exception
+{
+
+public:
+    DuplicateStay(Variable variable) : m_variable(std::move(variable)) {}
+
+    ~DuplicateStay() noexcept {}
+
+    const char *what() const noexcept
+    {
+        return "The variable already has a stay in the solver.";
+    }
+
+    const Variable &variable() const
+    {
+        return m_variable;
+    }
+
+private:
+    Variable m_variable;
+};
+
 class BadRequiredStrength : public std::exception
 {
 

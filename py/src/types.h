@@ -23,6 +23,10 @@ extern PyObject* DuplicateEditVariable;
 
 extern PyObject* UnknownEditVariable;
 
+extern PyObject* DuplicateStay;
+
+extern PyObject* UnknownStay;
+
 extern PyObject* BadRequiredStrength;
 
 

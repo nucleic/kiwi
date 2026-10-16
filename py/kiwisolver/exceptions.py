@@ -30,6 +30,13 @@ class DuplicateEditVariable(Exception):
         self.edit_variable = edit_variable
 
 
+class DuplicateStay(Exception):
+    __slots__ = ("variable",)
+
+    def __init__(self, variable):
+        self.variable = variable
+
+
 class UnknownConstraint(Exception):
     __slots__ = ("constraint",)
 
@@ -42,6 +49,13 @@ class UnknownEditVariable(Exception):
 
     def __init__(self, edit_variable):
         self.edit_variable = edit_variable
+
+
+class UnknownStay(Exception):
+    __slots__ = ("variable",)
+
+    def __init__(self, variable):
+        self.variable = variable
 
 
 class UnsatisfiableConstraint(Exception):
