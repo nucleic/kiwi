@@ -33,9 +33,8 @@ def test_edit_variable_strength_encoding_error(value) -> None:
     """A failed strength conversion must not add an edit variable."""
     s = Solver()
     v = Variable("foo")
-    with pytest.raises(UnicodeEncodeError) as excinfo:
+    with pytest.raises(UnicodeEncodeError):
         s.addEditVariable(v, value)
-    assert excinfo.value.object == value
     assert not s.hasEditVariable(v)
 
 

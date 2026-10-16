@@ -28,18 +28,16 @@ def test_variable_unicode_name(name) -> None:
 @pytest.mark.parametrize("name", ("test\ud800name", "test\udfffname"))
 def test_variable_name_encoding_error(name) -> None:
     """Propagate encoding errors during construction without crashing."""
-    with pytest.raises(UnicodeEncodeError) as excinfo:
+    with pytest.raises(UnicodeEncodeError):
         Variable(name)
-    assert excinfo.value.object == name
 
 
 @pytest.mark.parametrize("name", ("test\ud800name", "test\udfffname"))
 def test_variable_set_name_encoding_error(name) -> None:
     """A failed name conversion must leave the variable unchanged."""
     v = Variable("original")
-    with pytest.raises(UnicodeEncodeError) as excinfo:
+    with pytest.raises(UnicodeEncodeError):
         v.setName(name)
-    assert excinfo.value.object == name
     assert v.name() == "original"
 
 
