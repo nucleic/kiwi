@@ -28,6 +28,16 @@ def test_solver_creation() -> None:
         Solver(Variable())  # type: ignore
 
 
+@pytest.mark.parametrize("value", ("\ud800", "\udfff"))
+def test_edit_variable_strength_encoding_error(value) -> None:
+    """A failed strength conversion must not add an edit variable."""
+    s = Solver()
+    v = Variable("foo")
+    with pytest.raises(UnicodeEncodeError):
+        s.addEditVariable(v, value)
+    assert not s.hasEditVariable(v)
+
+
 def test_managing_edit_variable() -> None:
     """Test adding/removing edit variables."""
     s = Solver()

@@ -32,6 +32,15 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		&name, &context ) )
 		return 0;
 
+	std::string c_name;
+	if( name != 0 )
+	{
+		if( !PyUnicode_Check( name ) )
+			return cppy::type_error( name, "str" );
+		if( !convert_pystr_to_str( name, c_name ) )
+			return 0;
+	}
+
 	cppy::ptr pyvar( PyType_GenericNew( type, args, kwargs ) );
 	if( !pyvar )
 		return 0;
@@ -41,11 +50,6 @@ Variable_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 
 	if( name != 0 )
 	{
-		if( !PyUnicode_Check( name ) )
-			return cppy::type_error( name, "str" );
-		std::string c_name;
-		if( !convert_pystr_to_str(name, c_name) )
-			return 0;  // LCOV_EXCL_LINE
 		ACQUIRE_GLOBAL_LOCK();
 		new( &self->variable ) kiwi::Variable( c_name );
 		RELEASE_GLOBAL_LOCK();

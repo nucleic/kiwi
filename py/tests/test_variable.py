@@ -14,6 +14,33 @@ import pytest
 from kiwisolver import Constraint, Expression, Term, Variable, strength
 
 
+@pytest.mark.parametrize("name", ("Δ", "café\U0001f600"))
+def test_variable_unicode_name(name) -> None:
+    """Test UTF-8 names in construction and renaming."""
+    v = Variable(name)
+    assert v.name() == name
+    assert repr(v) == name
+
+    v.setName("renamed-" + name)
+    assert v.name() == "renamed-" + name
+
+
+@pytest.mark.parametrize("name", ("test\ud800name", "test\udfffname"))
+def test_variable_name_encoding_error(name) -> None:
+    """Propagate encoding errors during construction without crashing."""
+    with pytest.raises(UnicodeEncodeError):
+        Variable(name)
+
+
+@pytest.mark.parametrize("name", ("test\ud800name", "test\udfffname"))
+def test_variable_set_name_encoding_error(name) -> None:
+    """A failed name conversion must leave the variable unchanged."""
+    v = Variable("original")
+    with pytest.raises(UnicodeEncodeError):
+        v.setName(name)
+    assert v.name() == "original"
+
+
 def test_variable_methods() -> None:
     """Test the variable modification methods."""
     v = Variable()
