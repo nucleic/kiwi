@@ -393,14 +393,13 @@ TEST(SolverTest, UnsatisfiableInequalityLeavesSolverUnchanged) {
     EXPECT_NEAR(y.value(), 0, 1e-6);
 }
 
-// Test a large, highly degenerate system: lines drawn almost on top of one another, each vertex
-// held in place by a weak equality and free to move outward only, and each line required to lie
-// a gap beyond the line below it, read at the vertices of both lines. Odd lines put their
-// vertices halfway between those of the even lines. Each vertex is held just before the first
-// constraint that uses it. Adding these rows with an artificial variable stalled for more than
-// twenty seconds at three lines; the expected minimum was computed independently with the HiGHS
-// LP solver.
-TEST(SolverTest, LargeDegenerateSystem) {
+// Solve a large, highly degenerate system and check it: lines drawn almost on top of one another,
+// each vertex held in place by a weak equality and required to move outward only, and each line
+// to lie a gap beyond the line below it at `gapStrength`, read at the vertices of both lines. Odd
+// lines put their vertices halfway between those of the even lines. Each vertex is held just
+// before the first constraint that uses it. Every gap can be met, so the minimum is the same at
+// any strength; it was computed independently with the HiGHS LP solver.
+static void solveDegenerateSystem(double gapStrength) {
     const int levels = 9;
     const int stations = 40;
     const double gap = 0.03;
@@ -443,16 +442,16 @@ TEST(SolverTest, LargeDegenerateSystem) {
             hold(l, k);
             add(lines[l][k] >= 0);
             if (l == 0) {
-                add(at(0, k) >= gap);
+                add((at(0, k) >= gap) | gapStrength);
                 continue;
             }
             const bool odd = l % 2 == 1;
             int j = odd ? k : k - 1;
             if (j >= 0 && j + 1 < stations)
-                add(at(l, k) >= between(l - 1, j) + gap);
+                add((at(l, k) >= between(l - 1, j) + gap) | gapStrength);
             j = odd ? k - 1 : k;
             if (j >= 0 && j + 1 < stations)
-                add(between(l, j) >= at(l - 1, k) + gap);
+                add((between(l, j) >= at(l - 1, k) + gap) | gapStrength);
         }
     }
     s.updateVariables();
@@ -464,4 +463,42 @@ TEST(SolverTest, LargeDegenerateSystem) {
         for (const auto& v : line)
             sum += v.value();
     EXPECT_NEAR(sum, 48.236825794, 1e-6);
+}
+
+// Test the degenerate system with required gaps. Adding these rows with an artificial variable
+// stalled for more than twenty seconds at three lines.
+TEST(SolverTest, LargeDegenerateSystem) {
+    solveDegenerateSystem(strength::required);
+}
+
+// Test the degenerate system with strong gaps. Making each violated row's error symbol basic
+// left the primal simplex to remove the violations, and stalled the same way.
+TEST(SolverTest, LargeDegenerateSystemOfPreferences) {
+    solveDegenerateSystem(strength::strong);
+}
+
+// Test that a non-required inequality falls short only as far as a required one makes it, and
+// that the other variables keep their places
+TEST(SolverTest, OverruledInequality) {
+    Solver s;
+    Variable x("x");
+    Variable y("y");
+
+    s.addConstraint((x == 0) | strength::weak);
+    s.addConstraint((y == 0) | strength::weak);
+    s.addConstraint(x <= 5);
+    Constraint wanted = (x - y >= 10) | strength::strong;
+    s.addConstraint(wanted);
+    s.updateVariables();
+    // Moving y costs only a weak stay, so the strong row holds exactly
+    EXPECT_NEAR(x.value(), 5, 1e-6);
+    EXPECT_NEAR(y.value(), -5, 1e-6);
+    EXPECT_NEAR(x.value() - y.value(), 10, 1e-6);
+
+    // With y held at zero as well, the strong row falls short by exactly what is left
+    s.addConstraint(y >= 0);
+    s.updateVariables();
+    EXPECT_NEAR(x.value(), 5, 1e-6);
+    EXPECT_NEAR(y.value(), 0, 1e-6);
+    EXPECT_TRUE(wanted.violated());
 }

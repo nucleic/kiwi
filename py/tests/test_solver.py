@@ -225,6 +225,28 @@ def test_adding_inequalities_to_held_variables() -> None:
     assert [v.value() for v in x] == pytest.approx(list(range(1, 51)))
 
 
+def test_overruled_inequality() -> None:
+    """Test that a strong inequality falls short only as far as a required one makes it."""
+    s = Solver()
+    x = Variable("x")
+    y = Variable("y")
+
+    s.addConstraint((x == 0) | "weak")
+    s.addConstraint((y == 0) | "weak")
+    s.addConstraint(x <= 5)
+    wanted = (x - y >= 10) | "strong"
+    s.addConstraint(wanted)
+    s.updateVariables()
+    # Moving y costs only a weak stay, so the strong row holds exactly
+    assert (x.value(), y.value()) == pytest.approx((5, -5))
+
+    # With y held at zero as well, the strong row falls short by exactly what is left
+    s.addConstraint(y >= 0)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((5, 0))
+    assert wanted.violated()
+
+
 def test_unsatisfiable_inequality_leaves_solver_unchanged() -> None:
     """Test that a failed dual simplex add leaves the solver as it was."""
     s = Solver()

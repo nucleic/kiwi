@@ -123,16 +123,24 @@ public:
 				subject = tag.marker;
 		}
 
-		// If an entering symbol still isn't found, then the row must be
-		// added using the dual simplex method or, for an equality, an
-		// artificial variable. If that fails, then the row represents
-		// an unsatisfiable constraint.
-		if( subject.type() == Symbol::Invalid )
+		// An inequality with no external variable to carry it, whose slack
+		// would be negative, is added using the dual simplex method. That
+		// holds whether it is required or not: making the error symbol of
+		// a non-required inequality basic instead would leave the primal
+		// simplex to optimize the violation away, which is as degenerate
+		// as an artificial variable. If an entering symbol still isn't
+		// found, an equality must be added using an artificial variable.
+		// If either fails, then the row represents an unsatisfiable
+		// constraint.
+		if( tag.marker.type() == Symbol::Slack &&
+			( subject.type() == Symbol::Invalid || subject == tag.other ) )
 		{
-			bool added = tag.marker.type() == Symbol::Slack ?
-				addWithDualOptimize( std::move( rowptr ), tag.marker ) :
-				addWithArtificialVariable( *rowptr );
-			if( !added )
+			if( !addWithDualOptimize( std::move( rowptr ), tag.marker ) )
+				throw UnsatisfiableConstraint( constraint );
+		}
+		else if( subject.type() == Symbol::Invalid )
+		{
+			if( !addWithArtificialVariable( *rowptr ) )
 				throw UnsatisfiableConstraint( constraint );
 		}
 		else
@@ -572,17 +580,21 @@ private:
 
 	/* Add the row to the tableau using the dual simplex method.
 
-	The row must be that of a required inequality which has no valid
-	subject, so its slack marker has a positive coefficient and takes
-	a non-positive value when the row is solved for it. The objective
-	is optimal before the row is added, so the dual simplex method can
+	The row must be that of an inequality with no external variable to
+	carry it, whose slack marker has a positive coefficient and takes a
+	non-positive value when the row is solved for it. The objective is
+	optimal before the row is added, so the dual simplex method can
 	restore feasibility while keeping it optimal, as it does for an
-	edited value. An artificial variable would instead require a phase
-	one optimization for every such row, which is highly degenerate
-	when many rows have a zero constant (as with many variables held
-	in place by non-required equalities). On large systems that costs
-	thousands of pivots per added row and can end on a spurious
-	unbounded objective.
+	edited value. A non-required row's error symbol is parametric in
+	the objective at the row's strength, so it enters the basis, and
+	the row falls short, only where that costs less than moving the
+	rest of the system. An artificial variable would instead require a
+	phase one optimization for every required row, and a basic error
+	symbol a primal optimization for every non-required one; both are
+	highly degenerate when many rows have a zero constant (as with many
+	variables held in place by non-required equalities). On large
+	systems that costs thousands of pivots per added row and can end on
+	a spurious unbounded objective.
 
 	This will return false if the constraint cannot be satisfied, in
 	which case the pivots are undone and the row is dropped, leaving

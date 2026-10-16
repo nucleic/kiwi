@@ -123,17 +123,20 @@ Moving the stays only changes constants in the tableau, so it costs no pivots.
         solver.suggestValue(xm, 50);
 
 
-Adding required inequalities
-----------------------------
+Adding inequalities
+-------------------
 
 Cassowary adds a required inequality which no variable can directly satisfy
-with an artificial variable and a phase one optimization. When many rows have
-a zero constant, as with many variables held in place by stays, that
-optimization is highly degenerate and can take thousands of pivots per added
-constraint. Kiwi adds such a row with its slack variable infeasible and
-restores feasibility with the dual simplex method, the same method used after
-a suggested value, since the objective is already optimal. A required equality
-still uses an artificial variable.
+with an artificial variable and a phase one optimization, and a violated
+non-required inequality with its error variable basic, leaving the simplex
+method to optimize the violation away. When many rows have a zero constant, as
+with many variables held in place by stays, both are highly degenerate and can
+take thousands of pivots per added constraint. Kiwi adds such a row with its
+slack variable infeasible and restores feasibility with the dual simplex
+method, the same method used after a suggested value, since the objective is
+already optimal. A non-required row's error variable then enters only where
+falling short costs less than moving the rest of the system. A required
+equality still uses an artificial variable.
 
 
 Creating strengths and their internal representation
