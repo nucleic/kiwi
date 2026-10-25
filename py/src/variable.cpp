@@ -77,10 +77,8 @@ int
 Variable_traverse( Variable* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->context );
-#if PY_VERSION_HEX >= 0x03090000
     // This was not needed before Python 3.9 (Python issue 35810 and 40217)
     Py_VISIT(Py_TYPE(self));
-#endif
 	return 0;
 }
 
@@ -93,7 +91,9 @@ Variable_dealloc( Variable* self )
 	ACQUIRE_GLOBAL_LOCK();
 	self->variable.~Variable();
 	RELEASE_GLOBAL_LOCK();
-	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
+	PyTypeObject* tp = Py_TYPE(self);
+    tp->tp_free(pyobject_cast(self));
+    Py_DECREF(tp);
 }
 
 

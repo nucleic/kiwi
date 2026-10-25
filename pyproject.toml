@@ -9,13 +9,12 @@
 [project]
   name = "kiwisolver"
   description = "A fast implementation of the Cassowary constraint solver"
-  readme = "README.rst"
+  readme = "README.md"
   requires-python = ">=3.10"
-  license = { file = "LICENSE" }
+  license =	"BSD-3-Clause"
   authors = [{ name = "The Nucleic Development Team", email = "sccolbert@gmail.com" }]
   maintainers = [{ name = "Matthieu C. Dartiailh", email = "m.dartiailh@gmail.com" }]
   classifiers = [
-    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",

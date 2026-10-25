@@ -21,9 +21,11 @@ namespace kiwisolver
 extern std::recursive_mutex global_lock;
 #define ACQUIRE_GLOBAL_LOCK() global_lock.lock()
 #define RELEASE_GLOBAL_LOCK() global_lock.unlock()
+#define GLOBAL_LOCK_GUARD() std::lock_guard<std::recursive_mutex> guard(global_lock)
 #else
 #define ACQUIRE_GLOBAL_LOCK()
 #define RELEASE_GLOBAL_LOCK()
+#define GLOBAL_LOCK_GUARD()
 #endif
 
 #ifndef Py_BEGIN_CRITICAL_SECTION
