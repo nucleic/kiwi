@@ -134,6 +134,8 @@ bool add_objects( PyObject* mod )
     PyModule_AddObject( mod, "UnknownConstraint", UnknownConstraint );
     PyModule_AddObject( mod, "DuplicateEditVariable", DuplicateEditVariable );
     PyModule_AddObject( mod, "UnknownEditVariable", UnknownEditVariable );
+    PyModule_AddObject( mod, "DuplicateStay", DuplicateStay );
+    PyModule_AddObject( mod, "UnknownStay", UnknownStay );
     PyModule_AddObject( mod, "BadRequiredStrength", BadRequiredStrength );
 
 	return true;

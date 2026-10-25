@@ -185,6 +185,19 @@ Variable_value( Variable* self )
 
 
 PyObject*
+Variable_setValue( Variable* self, PyObject* pyvalue )
+{
+	double value;
+	if( !convert_to_double( pyvalue, value ) )
+		return 0;
+	ACQUIRE_GLOBAL_LOCK();
+	self->variable.setValue( value );
+	RELEASE_GLOBAL_LOCK();
+	Py_RETURN_NONE;
+}
+
+
+PyObject*
 Variable_add( PyObject* first, PyObject* second )
 {
 	return BinaryInvoke<BinaryAdd, Variable>()( first, second );
@@ -257,6 +270,8 @@ Variable_methods[] = {
 	  "Set the context object associated with the variable." },
 	{ "value", ( PyCFunction )Variable_value, METH_NOARGS,
 	  "Get the current value of the variable." },
+	{ "setValue", ( PyCFunction )Variable_setValue, METH_O,
+	  "Set the current value of the variable." },
 	{ 0 } // sentinel
 };
 

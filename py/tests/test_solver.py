@@ -5,15 +5,19 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+import itertools
+
 import pytest
 
 from kiwisolver import (
     BadRequiredStrength,
     DuplicateConstraint,
     DuplicateEditVariable,
+    DuplicateStay,
     Solver,
     UnknownConstraint,
     UnknownEditVariable,
+    UnknownStay,
     UnsatisfiableConstraint,
     Variable,
 )
@@ -103,6 +107,182 @@ def test_suggesting_values_for_edit_variables() -> None:
     s.suggestValue(v2, 0)
     s.updateVariables()
     assert v2.value() <= -1
+
+
+def test_edit_variable_starts_at_value() -> None:
+    """Test that an edit variable holds its variable until a value is suggested."""
+    s = Solver()
+    v = Variable("foo")
+
+    v.setValue(5)
+    s.addEditVariable(v, "strong")
+    s.addConstraint((v == 1) | "weak")
+    s.updateVariables()
+    assert v.value() == pytest.approx(5)
+
+    s.suggestValue(v, 7)
+    s.updateVariables()
+    assert v.value() == pytest.approx(7)
+
+
+def test_managing_stays() -> None:
+    """Test adding/removing stays."""
+    s = Solver()
+    v1 = Variable("foo")
+    v2 = Variable("bar")
+
+    with pytest.raises(TypeError):
+        s.hasStay(object())  # type: ignore
+    with pytest.raises(TypeError):
+        s.addStay(object(), "weak")  # type: ignore
+    with pytest.raises(TypeError):
+        s.removeStay(object())  # type: ignore
+
+    assert not s.hasStay(v1)
+    s.addStay(v1, "weak")
+    assert s.hasStay(v1)
+    with pytest.raises(DuplicateStay) as e:
+        s.addStay(v1, "medium")
+    assert e.value.variable is v1
+    with pytest.raises(UnknownStay) as e2:
+        s.removeStay(v2)
+    assert e2.value.variable is v2
+    with pytest.raises(BadRequiredStrength):
+        s.addStay(v2, "required")
+    assert not s.hasStay(v2)
+    assert "Stays" in s.dumps()
+
+    s.removeStay(v1)
+    assert not s.hasStay(v1)
+
+    s.addStay(v2, "strong")
+    assert s.hasStay(v2)
+    s.reset()
+    assert not s.hasStay(v2)
+
+
+def test_dragging_with_stays() -> None:
+    """Test dragging the midpoint of a segment whose ends have stays.
+
+    The stronger stay on the left end leaves the right end to move until it meets its bound.
+    Each suggested value moves the stays to the current solution first, so dragging back
+    moves both ends from where they are, not from where they started.
+
+    """
+    xl = Variable("xl")
+    xm = Variable("xm")
+    xr = Variable("xr")
+    s = Solver()
+
+    xl.setValue(30)
+    xm.setValue(45)
+    xr.setValue(60)
+    s.addStay(xl, "medium")
+    s.addStay(xr, "weak")
+    s.addConstraint(2 * xm == xl + xr)
+    s.addConstraint(xl + 10 <= xr)
+    s.addConstraint(xr <= 100)
+    s.addConstraint(xl >= 0)
+    s.addEditVariable(xm, "strong")
+    s.updateVariables()
+    assert (xl.value(), xr.value()) == pytest.approx((30, 60))
+
+    for midpoint, left, right in (
+        (50, 30, 70),
+        (60, 30, 90),
+        (90, 80, 100),
+        (60, 55, 65),
+    ):
+        s.suggestValue(xm, midpoint)
+        s.updateVariables()
+        assert xl.value() == pytest.approx(left)
+        assert xr.value() == pytest.approx(right)
+
+
+def test_removing_constraint_keeps_stays() -> None:
+    """Test that removing a constraint leaves a variable with a stay where it was."""
+    s = Solver()
+    v = Variable("foo")
+
+    s.addStay(v, "weak")
+    c = v >= 10
+    s.addConstraint(c)
+    s.updateVariables()
+    assert v.value() == pytest.approx(10)
+
+    s.removeConstraint(c)
+    s.updateVariables()
+    assert v.value() == pytest.approx(10)
+
+
+def test_adding_inequalities_to_held_variables() -> None:
+    """Test adding required inequalities over variables held by non-required equalities.
+
+    No variable in these rows can enter the basis directly, so each row is added by the
+    dual simplex method.
+
+    """
+    s = Solver()
+    x = [Variable(f"x{i}") for i in range(50)]
+
+    for v in x:
+        s.addConstraint((v == 0) | "weak")
+    s.addConstraint(x[0] >= 1)
+    for a, b in itertools.pairwise(x):
+        s.addConstraint(b >= a + 1)
+    s.updateVariables()
+
+    assert [v.value() for v in x] == pytest.approx(list(range(1, 51)))
+
+
+def test_overruled_inequality() -> None:
+    """Test that a strong inequality falls short only as far as a required one makes it."""
+    s = Solver()
+    x = Variable("x")
+    y = Variable("y")
+
+    s.addConstraint((x == 0) | "weak")
+    s.addConstraint((y == 0) | "weak")
+    s.addConstraint(x <= 5)
+    wanted = (x - y >= 10) | "strong"
+    s.addConstraint(wanted)
+    s.updateVariables()
+    # Moving y costs only a weak stay, so the strong row holds exactly
+    assert (x.value(), y.value()) == pytest.approx((5, -5))
+
+    # With y held at zero as well, the strong row falls short by exactly what is left
+    s.addConstraint(y >= 0)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((5, 0))
+    assert wanted.violated()
+
+
+def test_unsatisfiable_inequality_leaves_solver_unchanged() -> None:
+    """Test that a failed dual simplex add leaves the solver as it was."""
+    s = Solver()
+    x = Variable("x")
+    y = Variable("y")
+
+    s.addConstraint((x == 0) | "weak")
+    s.addConstraint((y == 0) | "medium")
+    total = x + y >= 10
+    s.addConstraint(total)
+    s.addConstraint(x - y >= 2)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((10, 0))
+
+    bound = x <= 5
+    with pytest.raises(UnsatisfiableConstraint) as e:
+        s.addConstraint(bound)
+    assert e.value.constraint is bound
+    assert not s.hasConstraint(bound)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((10, 0))
+
+    s.removeConstraint(total)
+    s.addConstraint(bound)
+    s.updateVariables()
+    assert (x.value(), y.value()) == pytest.approx((2, 0))
 
 
 def test_managing_constraints() -> None:
