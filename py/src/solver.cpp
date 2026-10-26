@@ -352,7 +352,7 @@ static PyType_Slot Solver_Type_slots[] = {
     { Py_tp_methods, void_cast( Solver_methods ) },      /* tp_methods */
     { Py_tp_new, void_cast( Solver_new ) },              /* tp_new */
     { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },   /* tp_alloc */
-    { Py_tp_free, void_cast( PyObject_GC_Del ) },           /* tp_free */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },        /* tp_free */
     { 0, 0 },
 };
 
