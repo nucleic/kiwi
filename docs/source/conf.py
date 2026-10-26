@@ -12,7 +12,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+from pathlib import Path
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
@@ -54,7 +54,14 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx_tabs.tabs",
+    "breathe",
 ]
+
+breathe_projects = {
+    "kiwi": str(Path(__file__).parents[2] / "build" / "doxygen-public" / "xml")
+}
+breathe_default_project = "kiwi"
+breathe_domain_by_extension = {"h": "cpp"}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
