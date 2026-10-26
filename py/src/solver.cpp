@@ -39,7 +39,16 @@ Solver_dealloc( Solver* self )
 	ACQUIRE_GLOBAL_LOCK();
 	self->solver.~Solver();
 	RELEASE_GLOBAL_LOCK();
-	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
+	PyTypeObject* tp = Py_TYPE(self);
+    tp->tp_free(pyobject_cast(self));
+    Py_DECREF(tp);
+}
+
+int
+Solver_traverse( PyObject* self, visitproc visit, void* arg )
+{
+	Py_VISIT(Py_TYPE(self));
+    return 0;
 }
 
 
@@ -51,19 +60,16 @@ Solver_addConstraint( Solver* self, PyObject* other )
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.addConstraint( cn->constraint );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::DuplicateConstraint& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( DuplicateConstraint, other );
 		return 0;
 	}
 	catch( const kiwi::UnsatisfiableConstraint& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnsatisfiableConstraint, other );
 		return 0;
 	}
@@ -79,13 +85,11 @@ Solver_removeConstraint( Solver* self, PyObject* other )
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.removeConstraint( cn->constraint );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownConstraint& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownConstraint, other );
 		return 0;
 	}
@@ -123,19 +127,16 @@ Solver_addEditVariable( Solver* self, PyObject* args )
 	Variable* var = reinterpret_cast<Variable*>( pyvar );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.addEditVariable( var->variable, strength );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::DuplicateEditVariable& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( DuplicateEditVariable, pyvar );
 		return 0;
 	}
 	catch( const kiwi::BadRequiredStrength& e )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetString( BadRequiredStrength, e.what() );
 		return 0;
 	}
@@ -151,13 +152,11 @@ Solver_removeEditVariable( Solver* self, PyObject* other )
 	Variable* var = reinterpret_cast<Variable*>( other );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.removeEditVariable( var->variable );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownEditVariable& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownEditVariable, other );
 		return 0;
 	}
@@ -193,13 +192,11 @@ Solver_suggestValue( Solver* self, PyObject* args )
 	Variable* var = reinterpret_cast<Variable*>( pyvar );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.suggestValue( var->variable, value );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownEditVariable& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownEditVariable, pyvar );
 		return 0;
 	}
@@ -222,19 +219,16 @@ Solver_addStay( Solver* self, PyObject* args )
 	Variable* var = reinterpret_cast<Variable*>( pyvar );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.addStay( var->variable, strength );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::DuplicateStay& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( DuplicateStay, pyvar );
 		return 0;
 	}
 	catch( const kiwi::BadRequiredStrength& e )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetString( BadRequiredStrength, e.what() );
 		return 0;
 	}
@@ -250,13 +244,11 @@ Solver_removeStay( Solver* self, PyObject* other )
 	Variable* var = reinterpret_cast<Variable*>( other );
 	try
 	{
-		ACQUIRE_GLOBAL_LOCK();
+		GLOBAL_LOCK_GUARD();
 		self->solver.removeStay( var->variable );
-		RELEASE_GLOBAL_LOCK();
 	}
 	catch( const kiwi::UnknownStay& )
 	{
-		RELEASE_GLOBAL_LOCK();
 		PyErr_SetObject( UnknownStay, other );
 		return 0;
 	}
@@ -304,6 +296,9 @@ Solver_dump( Solver* self )
 	std::string dumps = self->solver.dumps();
 	RELEASE_GLOBAL_LOCK();
 	cppy::ptr dump_str( PyUnicode_FromString( dumps.c_str() ) );
+	if ( !dump_str ) {
+		return 0;
+	}
 	PyObject_Print( dump_str.get(), stdout, 0 );
 	Py_RETURN_NONE;
 }
@@ -353,10 +348,11 @@ Solver_methods[] = {
 
 static PyType_Slot Solver_Type_slots[] = {
     { Py_tp_dealloc, void_cast( Solver_dealloc ) },      /* tp_dealloc */
+    { Py_tp_traverse, void_cast( Solver_traverse )},     /* tp_traverse */
     { Py_tp_methods, void_cast( Solver_methods ) },      /* tp_methods */
     { Py_tp_new, void_cast( Solver_new ) },              /* tp_new */
     { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },   /* tp_alloc */
-    { Py_tp_free, void_cast( PyObject_Del ) },           /* tp_free */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },        /* tp_free */
     { 0, 0 },
 };
 
@@ -371,9 +367,10 @@ PyTypeObject* Solver::TypeObject = NULL;
 PyType_Spec Solver::TypeObject_Spec = {
 	"kiwisolver.Solver",             /* tp_name */
 	sizeof( Solver ),                /* tp_basicsize */
-	0,                                   /* tp_itemsize */
-	Py_TPFLAGS_DEFAULT|
-    Py_TPFLAGS_BASETYPE,                 /* tp_flags */
+	0,                               /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT |
+    Py_TPFLAGS_HAVE_GC |
+    Py_TPFLAGS_BASETYPE,             /* tp_flags */
     Solver_Type_slots                /* slots */
 };
 

@@ -572,13 +572,17 @@ PyObject* makecn( T first, U second, kiwi::RelationalOperator op )
 	cppy::ptr pyexpr( BinarySub()( first, second ) );
 	if( !pyexpr )
 		return 0;
+
+	cppy::ptr reduced_expr( reduce_expression( pyexpr.get() ) );
+	if( !reduced_expr )
+		return 0;
+
 	cppy::ptr pycn( PyType_GenericNew( Constraint::TypeObject, 0, 0 ) );
 	if( !pycn )
 		return 0;
 	Constraint* cn = reinterpret_cast<Constraint*>( pycn.get() );
-	cn->expression = reduce_expression( pyexpr.get() );
-	if( !cn->expression )
-		return 0;
+	cn->expression = reduced_expr.release();
+
 	ACQUIRE_GLOBAL_LOCK();
 	kiwi::Expression expr( convert_to_kiwi_expression( cn->expression ) );
 	new( &cn->constraint ) kiwi::Constraint( expr, op, kiwi::strength::required );

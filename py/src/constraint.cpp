@@ -37,13 +37,16 @@ Constraint_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     double strength = kiwi::strength::required;
     if (pystrength && !convert_to_strength(pystrength, strength))
         return 0;
+
+    cppy::ptr reduced_expr(reduce_expression(pyexpr));
+    if (!reduced_expr)
+        return 0;
+
     cppy::ptr pycn(PyType_GenericNew(type, args, kwargs));
     if (!pycn)
         return 0;
     Constraint *cn = reinterpret_cast<Constraint *>(pycn.get());
-    cn->expression = reduce_expression(pyexpr);
-    if (!cn->expression)
-        return 0;
+    cn->expression = reduced_expr.release();
 
     ACQUIRE_GLOBAL_LOCK();
     kiwi::Expression expr(convert_to_kiwi_expression(cn->expression));
@@ -63,10 +66,8 @@ Constraint_clear(Constraint *self)
 int Constraint_traverse(Constraint *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->expression);
-#if PY_VERSION_HEX >= 0x03090000
     // This was not needed before Python 3.9 (Python issue 35810 and 40217)
     Py_VISIT(Py_TYPE(self));
-#endif
     return 0;
 }
 
@@ -77,7 +78,9 @@ void Constraint_dealloc(Constraint *self)
     ACQUIRE_GLOBAL_LOCK();
     self->constraint.~Constraint();
     RELEASE_GLOBAL_LOCK();
-    Py_TYPE(self)->tp_free(pyobject_cast(self));
+    PyTypeObject* tp = Py_TYPE(self);
+    tp->tp_free(pyobject_cast(self));
+    Py_DECREF(tp);
 }
 
 PyObject *

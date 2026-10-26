@@ -72,71 +72,87 @@ bool add_objects( PyObject* mod )
         return false;
     }
 
-    if( PyModule_AddObject( mod, "__version__", pyversion.get() ) < 0 )
+    if( PyModule_AddObjectRef( mod, "__version__", pyversion.get() ) < 0 )
     {
 		return false;
 	}
-    pyversion.release();
 
-    if( PyModule_AddObject( mod, "__kiwi_version__", kiwiversion.get() ) < 0 )
+    if( PyModule_AddObjectRef( mod, "__kiwi_version__", kiwiversion.get() ) < 0 )
     {
 		return false;
 	}
-    kiwiversion.release();
 
-    if( PyModule_AddObject( mod, "strength", pystrength.get() ) < 0 )
+    if( PyModule_AddObjectRef( mod, "strength", pystrength.get() ) < 0 )
     {
 		return false;
 	}
-    pystrength.release();
 
     // Variable
     cppy::ptr var( pyobject_cast( Variable::TypeObject ) );
-	if( PyModule_AddObject( mod, "Variable", var.get() ) < 0 )
+	if( PyModule_AddObjectRef( mod, "Variable", var.get() ) < 0 )
 	{
 		return false;
 	}
-    var.release();
 
     // Term
     cppy::ptr term( pyobject_cast( Term::TypeObject ) );
-	if( PyModule_AddObject( mod, "Term", term.get() ) < 0 )
+	if( PyModule_AddObjectRef( mod, "Term", term.get() ) < 0 )
 	{
 		return false;
 	}
-    term.release();
 
     // Expression
     cppy::ptr expr( pyobject_cast( Expression::TypeObject ) );
-	if( PyModule_AddObject( mod, "Expression", expr.get() ) < 0 )
+	if( PyModule_AddObjectRef( mod, "Expression", expr.get() ) < 0 )
 	{
 		return false;
 	}
-    expr.release();
 
     // Constraint
     cppy::ptr cons( pyobject_cast( Constraint::TypeObject ) );
-	if( PyModule_AddObject( mod, "Constraint", cons.get() ) < 0 )
+	if( PyModule_AddObjectRef( mod, "Constraint", cons.get() ) < 0 )
 	{
 		return false;
 	}
-    cons.release();
 
     cppy::ptr solver( pyobject_cast( Solver::TypeObject ) );
-	if( PyModule_AddObject( mod, "Solver", solver.get() ) < 0 )
+	if( PyModule_AddObjectRef( mod, "Solver", solver.get() ) < 0 )
 	{
 		return false;
 	}
-    solver.release();
 
-    PyModule_AddObject( mod, "DuplicateConstraint", DuplicateConstraint );
-    PyModule_AddObject( mod, "UnsatisfiableConstraint", UnsatisfiableConstraint );
-    PyModule_AddObject( mod, "UnknownConstraint", UnknownConstraint );
-    PyModule_AddObject( mod, "DuplicateEditVariable", DuplicateEditVariable );
-    PyModule_AddObject( mod, "UnknownEditVariable", UnknownEditVariable );
-    PyModule_AddObject( mod, "DuplicateStay", DuplicateStay );
-    PyModule_AddObject( mod, "UnknownStay", UnknownStay );
-    PyModule_AddObject( mod, "BadRequiredStrength", BadRequiredStrength );
+    if( PyModule_AddObjectRef( mod, "DuplicateConstraint", DuplicateConstraint ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "UnsatisfiableConstraint", UnsatisfiableConstraint ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "UnknownConstraint", UnknownConstraint ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "DuplicateEditVariable", DuplicateEditVariable ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "UnknownEditVariable", UnknownEditVariable ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "DuplicateStay", DuplicateStay ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "UnknownStay", UnknownStay ) < 0 )
+    {
+        return false;
+    }
+    if( PyModule_AddObjectRef( mod, "BadRequiredStrength", BadRequiredStrength ) < 0 )
+    {
+        return false;
+    }
 
 	return true;
 }

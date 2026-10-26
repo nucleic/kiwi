@@ -30,7 +30,16 @@ namespace
 void
 strength_dealloc( PyObject* self )
 {
-	Py_TYPE( self )->tp_free( self );
+	PyTypeObject* tp = Py_TYPE(self);
+    tp->tp_free(pyobject_cast(self));
+    Py_DECREF(tp);
+}
+
+int
+strength_traverse( PyObject* self, visitproc visit, void* arg )
+{
+	Py_VISIT(Py_TYPE(self));
+    return 0;
 }
 
 
@@ -110,10 +119,11 @@ strength_methods[] = {
 
 static PyType_Slot strength_Type_slots[] = {
     { Py_tp_dealloc, void_cast( strength_dealloc ) },      /* tp_dealloc */
+    { Py_tp_traverse, void_cast( strength_traverse )},     /* tp_traverse */
     { Py_tp_getset, void_cast( strength_getset ) },        /* tp_getset */
     { Py_tp_methods, void_cast( strength_methods ) },      /* tp_methods */
     { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },     /* tp_alloc */
-    { Py_tp_free, void_cast( PyObject_Del ) },          /* tp_free */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },          /* tp_free */
     { 0, 0 },
 };
 
@@ -126,11 +136,11 @@ PyTypeObject* strength::TypeObject = NULL;
 
 
 PyType_Spec strength::TypeObject_Spec = {
-	"kiwisolver.Strength",             /* tp_name */
-	sizeof( strength ),                /* tp_basicsize */
-	0,                                 /* tp_itemsize */
-	Py_TPFLAGS_DEFAULT,                /* tp_flags */
-    strength_Type_slots                /* slots */
+	"kiwisolver.Strength",                   /* tp_name */
+	sizeof( strength ),                      /* tp_basicsize */
+	0,                                       /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
+    strength_Type_slots                      /* slots */
 };
 
 

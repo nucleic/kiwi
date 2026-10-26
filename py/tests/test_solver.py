@@ -407,6 +407,7 @@ def test_dumping_solver(capsys) -> None:
     s.addConstraint(v1 + v2 == 0)
     s.addConstraint((v2 <= -1))
     s.addConstraint((v2 >= 0) | "weak")
+    s.addStay(v2, "weak")
     s.updateVariables()
     try:
         s.addConstraint((v2 >= 1))
@@ -424,6 +425,7 @@ def test_dumping_solver(capsys) -> None:
         "Variables",
         "Edit Variables",
         "Constraints",
+        "Stays",
     ):
         assert header in state
 
